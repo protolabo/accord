@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles personnalisés */
+@layer components {
+  .tooltip {
+    @apply relative inline-block;
+  }
+
+  .tooltip:hover::after {
+    content: attr(title);
+    @apply absolute -bottom-10 left-1/2 transform -translate-x-1/2 
+    bg-gray-800 text-white text-xs py-2 px-4 rounded-md whitespace-nowrap
+    opacity-0 transition-opacity duration-200 opacity-100;
+  }
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Transitions globales */
+* {
+  @apply transition-colors duration-200;
+}

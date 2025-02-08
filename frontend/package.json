@@ -1,0 +1,31 @@
+{
+  "name": "electron-project",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "cross-env NODE_ENV=development concurrently \"cd react-app && cross-env PORT=3000 npm start\" \"wait-on tcp:3000 && electron .\"",
+    "build": "cd react-app && npm run build && cd .. && electron-builder"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.yourapp.id",
+    "files": [
+      "main.js",
+      "react-app/build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    }
+  }
+}
