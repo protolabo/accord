@@ -4,6 +4,9 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      transitionProperty: {
+        width: "width",
+      },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
       },

@@ -37,3 +37,33 @@
 * {
   @apply transition-colors duration-200;
 }
+
+@layer utilities {
+  /* Styles de scrollbar personnalisés */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #e5e7eb;
+    border-radius: 3px;
+  }
+
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+  }
+}
+
+/* Cacher les scrollbars horizontaux par défaut */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+.dark * {
+  scrollbar-color: #4b5563 transparent;
+}
