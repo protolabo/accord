@@ -90,3 +90,13 @@ typings/
 
 # Electron-Forge
 out/
+
+# Build files
+*.exe
+*.dll
+*.dat
+*.pak
+*.blockmap
+*debug.yml
+dist/
+build/
