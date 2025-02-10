@@ -28,42 +28,115 @@ const Home = () => {
 
   const emails = [
     {
-      id: 1,
-      subject: "Nouvelle fonctionnalité",
-      sender: "Jean Dupont",
-      time: "10:30",
+      "Message-ID": "<18782981.1075855378110.JavaMail.evans@thyme>",
+      Date: "Mon, 14 May 2001 16:39:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "tim.belden@enron.com",
+      Subject: "Here is our forecast",
+      Body: "Here is our forecast for the upcoming quarter.",
+      Categories: ["Other"],
     },
     {
-      id: 2,
-      subject: "Réunion d'équipe",
-      sender: "Marie Curie",
-      time: "11:45",
+      "Message-ID": "<15464986.1075855378456.JavaMail.evans@thyme>",
+      Date: "Fri, 04 May 2001 13:51:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "john.lavorato@enron.com",
+      Subject: "Re: Business trip",
+      Body: "Traveling to have a business meeting takes the fun out of the trip...",
+      Categories: ["Meeting Scheduling", "Business Discussion"],
     },
     {
-      id: 3,
-      subject: "Mise à jour système",
-      sender: "IT Support",
-      time: "13:15",
+      "Message-ID": "<24216240.1075855687451.JavaMail.evans@thyme>",
+      Date: "Wed, 18 Oct 2000 03:00:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "leah.arsdall@enron.com",
+      Subject: "Re: test",
+      Body: "Test successful. Way to go!!!",
+      Categories: ["System Testing & IT", "Information Distribution"],
     },
     {
-      id: 4,
-      subject: "Facture mensuelle",
-      sender: "Comptabilité",
-      time: "14:20",
+      "Message-ID": "<13505866.1075863688222.JavaMail.evans@thyme>",
+      Date: "Mon, 23 Oct 2000 06:13:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "randall.gay@enron.com",
+      Subject: "Salary and schedule",
+      Body: "Can you send me a schedule of the salary and level of everyone...",
+      Categories: ["Meeting Scheduling", "Salary & Promotion"],
     },
     {
-      id: 5,
-      subject: "Planification du projet",
-      sender: "Chef de projet",
-      time: "15:00",
+      "Message-ID": "<30922949.1075863688243.JavaMail.evans@thyme>",
+      Date: "Thu, 31 Aug 2000 05:07:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "greg.piper@enron.com",
+      Subject: "Re: Hello",
+      Body: "Let's shoot for Tuesday at 11:45.",
+      Categories: ["Scheduling Coordination"],
+    },
+    {
+      "Message-ID": "<30965995.1075863688265.JavaMail.evans@thyme>",
+      Date: "Thu, 31 Aug 2000 04:17:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "greg.piper@enron.com",
+      Subject: "Re: Hello again",
+      Body: "How about either next Tuesday or Thursday?",
+      Categories: ["Scheduling Coordination"],
+    },
+    {
+      "Message-ID": "<16254169.1075863688286.JavaMail.evans@thyme>",
+      Date: "Tue, 22 Aug 2000 07:44:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "david.l.johnson@enron.com, john.shafer@enron.com",
+      Subject: "Update distribution list",
+      Body: "Please cc the following distribution list with updates...",
+      Categories: ["System Updates", "Information Distribution"],
+    },
+    {
+      "Message-ID": "<17189699.1075863688308.JavaMail.evans@thyme>",
+      Date: "Fri, 14 Jul 2000 06:59:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "joyce.teixeira@enron.com",
+      Subject: "Re: PRC review",
+      Body: "Any morning between 10 and 11:30.",
+      Categories: ["Other"],
+    },
+    {
+      "Message-ID": "<18782982.1075855378111.JavaMail.evans@thyme>",
+      Date: "Tue, 15 May 2001 10:39:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "tim.belden@enron.com",
+      Subject: "Follow-up forecast",
+      Body: "Here is an updated forecast.",
+      Categories: ["Other"],
+    },
+    {
+      "Message-ID": "<13505867.1075863688223.JavaMail.evans@thyme>",
+      Date: "Tue, 24 Oct 2000 07:13:00 -0700",
+      From: "phillip.allen@enron.com",
+      To: "randall.gay@enron.com",
+      Subject: "Promotion changes",
+      Body: "Thoughts on changes for next quarter.",
+      Categories: ["Salary & Promotion"],
     },
   ];
-
   const filteredEmails = emails.filter(
     (email) =>
-      email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      email.sender.toLowerCase().includes(searchTerm.toLowerCase())
+      email.Subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.From.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const groupEmailsByCategory = (emails) => {
+    const grouped = {};
+    emails.forEach((email) => {
+      email.Categories.forEach((category) => {
+        if (!grouped[category]) {
+          grouped[category] = [];
+        }
+        grouped[category].push(email);
+      });
+    });
+    return grouped;
+  };
+
+  const groupedEmails = groupEmailsByCategory(emails);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -102,7 +175,6 @@ const Home = () => {
                 )}
               </motion.button>
 
-              {/* Slider de disponibilité amélioré */}
               <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2">
                 <span className="mr-3 text-sm font-medium dark:text-white">
                   {isAvailable ? "Disponible" : "Occupé"}
@@ -181,51 +253,80 @@ const Home = () => {
               </div>
 
               <div className="p-6">
-                <div className="mb-6">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium dark:text-white">
-                      Progression
-                    </span>
-                    <span className="text-sm font-medium dark:text-white">
-                      {availability}%
-                    </span>
+                {section === "Threads" ? (
+                  <div>
+                    {Object.keys(groupedEmails).map((category) => (
+                      <motion.div
+                        key={category}
+                        className="mb-6 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() =>
+                          setExpandedSection(
+                            expandedSection === category ? null : category
+                          )
+                        }
+                      >
+                        <h2 className="text-xl font-semibold mb-2">
+                          {category}
+                        </h2>
+                        {expandedSection === category && (
+                          <ul className="list-disc pl-6 space-y-2">
+                            {groupedEmails[category].map((email) => (
+                              <motion.li
+                                key={email["Message-ID"]}
+                                className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md hover:shadow-lg cursor-pointer"
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() =>
+                                  alert(`Email sélectionné : ${email.Subject}`)
+                                } // Action à modifier pour une réelle navigation ou affichage.
+                              >
+                                <strong className="text-lg">
+                                  {email.Subject}
+                                </strong>{" "}
+                                -{" "}
+                                <span className="text-sm text-gray-600 dark:text-gray-300">
+                                  {email.Body}
+                                </span>{" "}
+                                <em className="text-sm text-gray-500 dark:text-gray-400">
+                                  (from: {email.From})
+                                </em>
+                              </motion.li>
+                            ))}
+                          </ul>
+                        )}
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${availability}%` }}
-                      className="h-full bg-blue-500 rounded-full"
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-400px)]">
-                  {filteredEmails.map((email) => (
-                    <motion.div
-                      key={email.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ scale: 1.02 }}
-                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer 
+                ) : (
+                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-400px)]">
+                    {filteredEmails.map((email) => (
+                      <motion.div
+                        key={email.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer 
                       hover:shadow-md transition-all"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold mb-1 dark:text-white">
-                            {email.subject}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-300">
-                            {email.sender}
-                          </p>
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold mb-1 dark:text-white">
+                              {email.Subject}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {email.From}
+                            </p>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {email.Date}
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {email.time}
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
