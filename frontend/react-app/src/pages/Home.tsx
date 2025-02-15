@@ -7,6 +7,7 @@ import {
   FaMoon,
   FaSun,
   FaSearch,
+  FaArrowRight,
 } from "react-icons/fa";
 import { twMerge } from "tailwind-merge";
 
@@ -15,6 +16,7 @@ const Home = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [availability, setAvailability] = useState(50);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [expandedThread, setExpandedThread] = useState<string | null>(null);
   const [isAvailable, setIsAvailable] = useState(true);
 
   // Effet pour le mode sombre
@@ -298,9 +300,19 @@ const Home = () => {
                           )
                         }
                       >
-                        <h2 className="text-xl font-semibold mb-2">
-                          {category}
-                        </h2>
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-xl font-semibold mb-2">
+                            {category}
+                          </h2>
+                          <FaArrowRight
+                            className="text-gray-500 dark:text-gray-400 cursor-pointer"
+                            onClick={() =>
+                              setExpandedThread(
+                                expandedThread === category ? null : category
+                              )
+                            }
+                          />
+                        </div>
                         {expandedSection === category && (
                           <ul className="list-disc pl-6 space-y-2">
                             {groupedEmails[category].map((email) => (
@@ -362,6 +374,66 @@ const Home = () => {
             </motion.div>
           ))}
         </div>
+
+        {expandedThread && (
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-3xl w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold dark:text-white">
+                  {expandedThread}
+                </h2>
+                <button
+                  onClick={() => setExpandedThread(null)}
+                  className="text-gray-500 dark:text-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-1 space-y-4">
+                  {groupedEmails[expandedThread].map((email) => (
+                    <div
+                      key={email["Message-ID"]}
+                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    >
+                      <h3 className="font-semibold mb-1 dark:text-white">
+                        {email.Subject}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {email.Body}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        From: {email.From}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Date: {email.Date}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <div className="col-span-2 space-y-4">
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 className="font-semibold mb-1 dark:text-white">
+                      Meetings
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Placeholder for meetings related to the thread.
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h3 className="font-semibold mb-1 dark:text-white">
+                      AI-Generated Summary
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Placeholder for AI-generated summary about the project
+                      advancement.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
