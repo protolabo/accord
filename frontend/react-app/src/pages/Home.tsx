@@ -26,6 +26,18 @@ const Home = () => {
     }
   }, [darkMode]);
 
+  const priorityLevels = {
+    Actions: 90, // Haute priorité
+    Threads: 60, // Moyenne priorité
+    Informations: 30, // Basse priorité
+  };
+
+  const getGradient = (priority: number) => {
+    if (priority > 80) return "bg-gradient-to-r from-red-500 to-yellow-400";
+    if (priority > 50) return "bg-gradient-to-r from-yellow-400 to-green-500";
+    return "bg-gradient-to-r from-green-500 to-green-300";
+  };
+
   const emails = [
     {
       "Message-ID": "<18782981.1075855378110.JavaMail.evans@thyme>",
@@ -232,6 +244,25 @@ const Home = () => {
                 expandedSection === section ? "w-[45%]" : "w-[30%]"
               )}
             >
+              {/* Jauge d'Attention */}
+              <div className="p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium dark:text-white">
+                    Attention Requise : {priorityLevels[section]}%
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full mt-2">
+                  <motion.div
+                    className={`h-full rounded-full ${getGradient(
+                      priorityLevels[section]
+                    )}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${priorityLevels[section]}%` }}
+                    transition={{ duration: 1 }}
+                  />
+                </div>
+              </div>
+
               <div className="p-6 border-b dark:border-gray-700">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold dark:text-white">
