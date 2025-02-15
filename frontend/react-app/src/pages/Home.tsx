@@ -10,6 +10,7 @@ import {
   FaArrowRight,
 } from "react-icons/fa";
 import { twMerge } from "tailwind-merge";
+import ActionBox from "../components/ActionBox.tsx";
 
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -280,14 +281,14 @@ const Home = () => {
       </motion.header>
 
       <main className="container mx-auto p-4">
-        <div className="flex space-x-4 overflow-x-auto">
+        <div className="flex space-x-4 overflow-x-hidden">
           {["Actions", "Threads", "Informations"].map((section) => (
             <motion.div
               key={section}
               layout
               className={twMerge(
                 "flex-shrink-0 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transition-all duration-300",
-                expandedSection === section ? "w-[45%]" : "w-[30%]"
+                expandedSection === section ? "flex-grow" : "w-[30%]"
               )}
             >
               {/* Jauge d'Attention */}
@@ -383,6 +384,49 @@ const Home = () => {
                             ))}
                           </ul>
                         )}
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : section === "Actions" ? (
+                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-400px)]">
+                    {filteredEmails.map((email) => (
+                      <motion.div
+                        key={email.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ scale: 1.02 }}
+                        className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer 
+                      hover:shadow-md transition-all"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold mb-1 dark:text-white">
+                              {email.Subject}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {email.From}
+                            </p>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {email.Date}
+                          </span>
+                        </div>
+                        <div className="mt-4 space-y-2">
+                          <ActionBox title="Accepter">
+                            <button className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-all">
+                              Accepter
+                            </button>
+                          </ActionBox>
+                          <ActionBox title="Répondre">
+                            <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-all">
+                              Répondre
+                            </button>
+                            <textarea
+                              className="w-full mt-2 p-2 bg-gray-100 dark:bg-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
+                              placeholder="Réponse rapide..."
+                            />
+                          </ActionBox>
+                        </div>
                       </motion.div>
                     ))}
                   </div>
