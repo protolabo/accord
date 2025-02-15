@@ -18,6 +18,8 @@ const Home = () => {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [expandedThread, setExpandedThread] = useState<string | null>(null);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileOptions, setShowProfileOptions] = useState(false);
 
   // Effet pour le mode sombre
   useEffect(() => {
@@ -202,7 +204,7 @@ const Home = () => {
                   />
                   <motion.div
                     className={`absolute w-full h-full rounded-full cursor-pointer transition-colors duration-300 ${
-                      isAvailable ? "bg-green-500" : "bg-gray-400"
+                      isAvailable ? "bg-green-500" : "bg-red-500"
                     }`}
                   />
                   <motion.div
@@ -216,20 +218,62 @@ const Home = () => {
                 </motion.div>
               </div>
 
-              {[
-                { icon: FaBell, title: "Notifications" },
-                { icon: FaUser, title: "Profil" },
-              ].map(({ icon: Icon, title }) => (
+              <div className="relative">
                 <motion.button
-                  key={title}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 tooltip"
-                  title={title}
+                  title="Notifications"
+                  onClick={() => setShowNotifications(!showNotifications)}
                 >
-                  <Icon className="text-xl text-gray-600 dark:text-gray-300" />
+                  <FaBell className="text-xl text-gray-600 dark:text-gray-300" />
                 </motion.button>
-              ))}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
+                    <h3 className="text-lg font-semibold dark:text-white">
+                      Notifications
+                    </h3>
+                    <ul className="mt-2 space-y-2">
+                      <li className="text-sm text-gray-600 dark:text-gray-300">
+                        Notification 1
+                      </li>
+                      <li className="text-sm text-gray-600 dark:text-gray-300">
+                        Notification 2
+                      </li>
+                      <li className="text-sm text-gray-600 dark:text-gray-300">
+                        Notification 3
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 tooltip"
+                  title="Profil"
+                  onClick={() => setShowProfileOptions(!showProfileOptions)}
+                >
+                  <FaUser className="text-xl text-gray-600 dark:text-gray-300" />
+                </motion.button>
+                {showProfileOptions && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
+                    <h3 className="text-lg font-semibold dark:text-white">
+                      Profil
+                    </h3>
+                    <ul className="mt-2 space-y-2">
+                      <li className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer">
+                        Settings
+                      </li>
+                      <li className="text-sm text-red-600 dark:text-red-400 cursor-pointer">
+                        Déconnexion
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
