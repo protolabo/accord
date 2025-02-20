@@ -281,14 +281,14 @@ const Home = () => {
       </motion.header>
 
       <main className="container mx-auto p-4">
-        <div className="flex space-x-4 overflow-x-hidden">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4 max-w-7xl mx-auto">
           {["Actions", "Threads", "Informations"].map((section) => (
             <motion.div
               key={section}
               layout
               className={twMerge(
-                "flex-shrink-0 bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transition-all duration-300",
-                expandedSection === section ? "flex-grow" : "w-[30%]"
+                "w-full md:w-1/3 max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden transition-all duration-300",
+                expandedSection === section ? "md:w-1/2" : "md:w-1/3"
               )}
             >
               {/* Jauge d'Attention */}
@@ -332,7 +332,7 @@ const Home = () => {
 
               <div className="p-6">
                 {section === "Threads" ? (
-                  <div>
+                  <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                     {Object.keys(groupedEmails).map((category) => (
                       <motion.div
                         key={category}
@@ -368,7 +368,7 @@ const Home = () => {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() =>
                                   alert(`Email sélectionné : ${email.Subject}`)
-                                } // Action à modifier pour une réelle navigation ou affichage.
+                                }
                               >
                                 <strong className="text-lg">
                                   {email.Subject}
@@ -388,7 +388,7 @@ const Home = () => {
                     ))}
                   </div>
                 ) : section === "Actions" ? (
-                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-400px)]">
+                  <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                     {filteredEmails.map((email) => (
                       <motion.div
                         key={email.id}
@@ -431,7 +431,7 @@ const Home = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-400px)]">
+                  <div className="max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
                     {filteredEmails.map((email) => (
                       <motion.div
                         key={email.id}
