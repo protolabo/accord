@@ -9,6 +9,18 @@ export interface Email {
   Body: string;
   Categories: string[];
 }
+export interface Notification {
+  id: string;
+  text: string;
+}
+
+export interface PriorityLevels {
+  [key: string]: number;
+}
+export interface ThreadDetailProps {
+  thread: Email | null;
+  onBack: () => void;
+}
 
 export interface ThreadCategoryProps {
   category: string;
@@ -25,12 +37,7 @@ export interface ThreadSectionProps {
   };
 }
 
-export interface ThreadDetailProps {
-  thread?: {
-    subject: string;
-  };
-  emails: Email[];
-}
+
 
 export interface Attachment {
   name: string;

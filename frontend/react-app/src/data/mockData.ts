@@ -1,4 +1,4 @@
-import { Email } from '../components/types';
+import { Email, PriorityLevels , Notification } from '../components/types';
 
 export const mockEmails: Email[] =[
     {
@@ -92,3 +92,14 @@ export const mockEmails: Email[] =[
       Categories: ["Salary & Promotion"],
     },
   ]
+export const mockNotifications = [
+  { id: "1", text: "Notification 1" },
+  { id: "2", text: "Notification 2" },
+  { id: "3", text: "Notification 3" }
+];
+
+export const mockPriorityLevels :  PriorityLevels = {
+  Actions: 90,
+  Threads: 60,
+  Informations: 30
+};
