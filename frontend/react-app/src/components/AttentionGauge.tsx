@@ -1,29 +1,38 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaExclamationCircle, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import React from "react";
+import { motion } from "framer-motion";
+import { FaExclamationCircle, FaArrowUp, FaArrowDown } from "react-icons/fa";
 
 interface AttentionGaugeProps {
   level: number;
-  previousLevel: number | null;
+  previousLevel?: number | null;
   section: string;
+  estimatedTime: string;
 }
 
-const AttentionGauge: React.FC<AttentionGaugeProps> = ({ level, previousLevel, section }) => {
+const AttentionGauge: React.FC<AttentionGaugeProps> = ({
+  level,
+  previousLevel,
+  section,
+  estimatedTime,
+}) => {
   // Calculer la différence si previousLevel existe
-  const difference = previousLevel !== null ? level - previousLevel : null;
+  const difference =
+    previousLevel !== undefined && previousLevel !== null
+      ? level - previousLevel
+      : null;
 
   const getStatus = (level: number) => {
-    if (level >= 80) return { text: 'Critique', color: 'text-red-500' };
-    if (level >= 60) return { text: 'Élevé', color: 'text-orange-500' };
-    if (level >= 40) return { text: 'Modéré', color: 'text-yellow-500' };
-    return { text: 'Normal', color: 'text-green-500' };
+    if (level >= 80) return { text: "Critique", color: "text-red-500" };
+    if (level >= 60) return { text: "Élevé", color: "text-orange-500" };
+    if (level >= 40) return { text: "Modéré", color: "text-yellow-500" };
+    return { text: "Normal", color: "text-green-500" };
   };
 
   const getGradientColors = (level: number) => {
-    if (level >= 80) return 'from-red-500 via-red-400 to-red-300';
-    if (level >= 60) return 'from-orange-500 via-orange-400 to-orange-300';
-    if (level >= 40) return 'from-yellow-500 via-yellow-400 to-yellow-300';
-    return 'from-green-500 via-green-400 to-green-300';
+    if (level >= 80) return "from-red-500 via-red-400 to-red-300";
+    if (level >= 60) return "from-orange-500 via-orange-400 to-orange-300";
+    if (level >= 40) return "from-yellow-500 via-yellow-400 to-yellow-300";
+    return "from-green-500 via-green-400 to-green-300";
   };
 
   const status = getStatus(level);
@@ -47,7 +56,11 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({ level, previousLevel, s
               ) : (
                 <FaArrowDown className="w-4 h-4 text-green-500" />
               )}
-              <span className={`text-sm ${difference > 0 ? 'text-red-500' : 'text-green-500'}`}>
+              <span
+                className={`text-sm ${
+                  difference > 0 ? "text-red-500" : "text-green-500"
+                }`}
+              >
                 {Math.abs(difference)}%
               </span>
             </motion.div>
@@ -70,12 +83,14 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({ level, previousLevel, s
 
         <div className="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
           <motion.div
-            className={`h-full rounded-full bg-gradient-to-r ${getGradientColors(level)}`}
+            className={`h-full rounded-full bg-gradient-to-r ${getGradientColors(
+              level
+            )}`}
             initial={{ width: 0 }}
             animate={{ width: `${level}%` }}
             transition={{
               duration: 1,
-              ease: "easeOut"
+              ease: "easeOut",
             }}
           />
         </div>
@@ -91,6 +106,23 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({ level, previousLevel, s
           <span className="text-xs text-gray-500 dark:text-gray-400">50%</span>
           <span className="text-xs text-gray-500 dark:text-gray-400">100%</span>
         </div>
+      </div>
+
+      <div className="flex justify-between items-center mt-4">
+        <span className="text-sm font-medium dark:text-white">
+          Urgence : {level}%
+        </span>
+        <span className="text-sm font-medium dark:text-white">
+          Temps estimé : {estimatedTime}
+        </span>
+      </div>
+      <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+        {section === "Actions" &&
+          "Priorité élevée, nécessite une attention immédiate."}
+        {section === "Threads" &&
+          "Priorité moyenne, nécessite une attention modérée."}
+        {section === "Informations" &&
+          "Priorité basse, nécessite une attention minimale."}
       </div>
     </div>
   );
