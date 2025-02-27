@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useCallback, useRef} from "react";
 import { motion } from "framer-motion";
 import {
   FaBell,
@@ -18,6 +18,7 @@ import ThreadSection from "../pages/ThreadSection";
 import ThreadDetail from "../components/ThreadDetail";
 import { mockEmails, mockNotifications, mockPriorityLevels } from "../data/mockData";
 import type { Email } from "../components/types";
+import ResizeHandle from "../components/ResizeHandle";
 
 interface HomeState {
   searchTerm: string;
@@ -31,6 +32,10 @@ interface HomeState {
   showProfileOptions: boolean;
   selectedThread: Email | null;
   showThreadDetail: boolean;
+  isResizing: boolean;
+  resizingIndex: number | null;
+  startX: number;
+  startSizes: {[key: string]: number};
 }
 
 const Home: React.FC = () => {
@@ -49,7 +54,13 @@ const Home: React.FC = () => {
     showProfileOptions: false,
     selectedThread: null,
     showThreadDetail: false,
+    isResizing: false,
+    resizingIndex: null,
+    startX: 0,
+    startSizes: {},
   };
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [state, setState] = useState<HomeState>(initialState);
 
@@ -138,7 +149,7 @@ const Home: React.FC = () => {
     });
   };
 
-  // Gestion des threads
+
   const handleThreadSelect = (email: Email) => {
     setState(prev => ({
       ...prev,
@@ -154,6 +165,84 @@ const Home: React.FC = () => {
       showThreadDetail: false
     }));
   };
+
+  // resize again - Gestionnaire evenement 
+  const handleResizeStart = useCallback((index: number, clientX: number) => {
+
+    const sectionSizes = { ...state.sectionSizes };
+
+    setState(prev => ({
+      ...prev,
+      isResizing: true,
+      resizingIndex: index,
+      startX: clientX,
+      startSizes: { ...sectionSizes }
+    }));
+  }, [state.sectionSizes]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!state.isResizing || state.resizingIndex === null) return;
+
+    const deltaX = e.clientX - state.startX;
+
+    if (Math.abs(deltaX) < 5) return;
+
+    const containerWidth = containerRef.current?.offsetWidth || 1000;
+
+    const deltaRatio = deltaX / containerWidth;
+
+    const sectionKeys = Object.keys(state.sectionSizes);
+    const leftSection = sectionKeys[state.resizingIndex];
+    const rightSection = sectionKeys[state.resizingIndex + 1];
+
+    if (!leftSection || !rightSection) return;
+
+    // minimum size
+    const MIN_SIZE = 0.15;
+    const newSizes = { ...state.startSizes };
+
+    const totalCurrentSize = newSizes[leftSection] + newSizes[rightSection];
+
+    let newLeftSize = newSizes[leftSection] + deltaRatio * totalCurrentSize;
+    let newRightSize = newSizes[rightSection] - deltaRatio * totalCurrentSize;
+
+    if (newLeftSize < MIN_SIZE) {
+      newLeftSize = MIN_SIZE;
+      newRightSize = totalCurrentSize - MIN_SIZE;
+    } else if (newRightSize < MIN_SIZE) {
+      newRightSize = MIN_SIZE;
+      newLeftSize = totalCurrentSize - MIN_SIZE;
+    }
+
+    newSizes[leftSection] = newLeftSize;
+    newSizes[rightSection] = newRightSize;
+
+    setState(prev => ({
+      ...prev,
+      sectionSizes: newSizes
+    }));
+  }, [state.isResizing, state.resizingIndex, state.startX, state.startSizes, state.sectionSizes]);
+
+  const handleMouseUp = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isResizing: false,
+      resizingIndex: null
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (state.isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [state.isResizing, handleMouseMove, handleMouseUp]);
+
 
   // Calcul de la largeur totale pour normaliser les tailles
   const totalSize = Object.values(state.sectionSizes || {
@@ -320,94 +409,114 @@ const Home: React.FC = () => {
               </motion.div>
           ) : (
               // sections Home
-              <div className="flex flex-col md:flex-row justify-center items-start gap-4 max-w-7xl mx-auto">
-                {["Actions", "Threads", "Informations"].map((section) => {
+              <div
+                  ref={containerRef}
+                  className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-7xl mx-auto"
+                  style={{cursor: state.isResizing ? 'col-resize' : 'default'}}
+              >
+                {["Actions", "Threads", "Informations"].map((section, index) => {
                   // Calculer le pourcentage de largeur
                   const sizePercent = (state.sectionSizes[section] / totalSize) * 100;
                   const isExpanded = state.sectionSizes[section] > 1;
 
                   return (
-                      <motion.div
-                          key={section}
-                          layout
-                          animate={{ width: `${sizePercent}%` }}
-                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                          className="w-full md:h-[calc(100vh-160px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl overflow-hidden flex flex-col"
-                      >
-                        <AttentionGauge
-                            level={mockPriorityLevels[section]}
-                            previousLevel={75}
-                            section={section}
-                        />
+                      <React.Fragment key={section}>
+                        <motion.div
+                            ref={(el) => { sectionRefs.current[index] = el; }}
+                            layout
+                            animate={{width: `${sizePercent}%`}}
+                            transition={{
+                              type: state.isResizing ? "tween" : "spring",
+                              duration: state.isResizing ? 0 : 0.3,
+                              stiffness: 300,
+                              damping: 30
+                            }}
+                            className="w-full md:h-[calc(100vh-160px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
+                  overflow-hidden flex flex-col select-none"
+                            style={{userSelect: state.isResizing ? 'none' : 'auto'}}
+                        >
+                          <AttentionGauge
+                              level={mockPriorityLevels[section]}
+                              previousLevel={75}
+                              section={section}
+                          />
 
-                        <div className="p-4 border-b dark:border-gray-700">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-bold dark:text-white">{section}</h2>
-                            <div className="flex space-x-2">
-                              {isExpanded ? (
-                                  <motion.button
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      onClick={() => handleSectionResize(section, 'reset')}
-                                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                                      title="Réinitialiser"
-                                  >
-                                    <FaCompress className="text-gray-500 dark:text-gray-400" />
-                                  </motion.button>
-                              ) : (
-                                  <motion.button
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.95 }}
-                                      onClick={() => handleSectionResize(section, 'expand')}
-                                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                                      title="Agrandir"
-                                  >
-                                    <FaExpand className="text-gray-500 dark:text-gray-400" />
-                                  </motion.button>
-                              )}
+                          <div className="p-4 border-b dark:border-gray-700">
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-xl font-bold dark:text-white">{section}</h2>
+                              <div className="flex space-x-2">
+                                {isExpanded ? (
+                                    <motion.button
+                                        whileHover={{scale: 1.1}}
+                                        whileTap={{scale: 0.95}}
+                                        onClick={() => handleSectionResize(section, 'reset')}
+                                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Réinitialiser"
+                                    >
+                                      <FaCompress className="text-gray-500 dark:text-gray-400"/>
+                                    </motion.button>
+                                ) : (
+                                    <motion.button
+                                        whileHover={{scale: 1.1}}
+                                        whileTap={{scale: 0.95}}
+                                        onClick={() => handleSectionResize(section, 'expand')}
+                                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        title="Agrandir"
+                                    >
+                                      <FaExpand className="text-gray-500 dark:text-gray-400"/>
+                                    </motion.button>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="p-4 flex-grow overflow-auto">
-                          {section === "Threads" ? (
-                              <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
-                                <ThreadSection
-                                    groupedEmails={groupedEmails}
-                                    onThreadSelect={handleThreadSelect}
-                                />
-                              </div>
-                          ) : section === "Actions" ? (
-                              <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
-                                {filteredEmails.map((email, index) => (
-                                    <ActionItem
-                                        key={email["Message-ID"]}
-                                        email={email}
-                                        actionNumber={index + 1}
-                                        totalActions={filteredEmails.length}
-                                        totalProgress={`${index + 1}/${
-                                            Object.keys(groupedEmails).reduce(
-                                                (acc, key) => acc + groupedEmails[key].length,
-                                                0
-                                            )
-                                        }`}
-                                    />
-                                ))}
-                              </div>
-                          ) : (
-                              <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
-                                {filteredEmails.map((email, index) => (
-                                    <InfoItem
-                                        key={email["Message-ID"]}
-                                        email={email}
-                                        infoNumber={index + 1}
-                                        totalInfo={filteredEmails.length}
-                                    />
-                                ))}
-                              </div>
-                          )}
-                        </div>
-                      </motion.div>
+                          <div className="p-4 flex-grow overflow-auto">
+                            {section === "Threads" ? (
+                                <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
+                                  <ThreadSection
+                                      groupedEmails={groupedEmails}
+                                      onThreadSelect={handleThreadSelect}
+                                  />
+                                </div>
+                            ) : section === "Actions" ? (
+                                <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
+                                  {filteredEmails.map((email, idx) => (
+                                      <ActionItem
+                                          key={email["Message-ID"]}
+                                          email={email}
+                                          actionNumber={idx + 1}
+                                          totalActions={filteredEmails.length}
+                                          totalProgress={`${idx + 1}/${
+                                              Object.keys(groupedEmails).reduce(
+                                                  (acc, key) => acc + groupedEmails[key].length,
+                                                  0
+                                              )
+                                          }`}
+                                      />
+                                  ))}
+                                </div>
+                            ) : (
+                                <div className="h-full overflow-y-auto pr-2 scrollbar-thin">
+                                  {filteredEmails.map((email, idx) => (
+                                      <InfoItem
+                                          key={email["Message-ID"]}
+                                          email={email}
+                                          infoNumber={idx + 1}
+                                          totalInfo={filteredEmails.length}
+                                      />
+                                  ))}
+                                </div>
+                            )}
+                          </div>
+                        </motion.div>
+
+                        {index < ["Actions", "Threads", "Informations"].length - 1 && (
+                            <ResizeHandle
+                                index={index}
+                                onResizeStart={handleResizeStart}
+                            />
+                        )}
+                      </React.Fragment>
                   );
                 })}
               </div>
