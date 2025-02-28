@@ -279,6 +279,17 @@ const Home: React.FC = () => {
     }
   ).reduce((a, b) => a + b, 0);
 
+  // Define available time in minutes (e.g., 8 hours = 480 minutes)
+  const availableTime =
+    480 - (new Date().getHours() * 60 + new Date().getMinutes());
+
+  // Example data for total actions
+  const totalActions = {
+    Actions: 500,
+    Threads: 300,
+    Informations: 200,
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       <motion.header
@@ -431,7 +442,11 @@ const Home: React.FC = () => {
             className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-7xl mx-auto"
             style={{ cursor: state.isResizing ? "col-resize" : "default" }}
           >
-            {["Actions", "Threads", "Informations"].map((section, index) => {
+            {(
+              ["Actions", "Threads", "Informations"] as Array<
+                keyof typeof totalActions
+              >
+            ).map((section, index) => {
               // Calculer le pourcentage de largeur
               const sizePercent =
                 (state.sectionSizes[section] / totalSize) * 100;
@@ -464,6 +479,8 @@ const Home: React.FC = () => {
                           section as keyof typeof mockEstimatedTimes
                         ]
                       }
+                      totalActions={totalActions[section]}
+                      availableTime={availableTime}
                     />
 
                     <div className="p-4 border-b dark:border-gray-700">
