@@ -8,6 +8,7 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    resizable: true, // Make the window resizable
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -17,8 +18,8 @@ function createWindow() {
 
   // Charger l'URL appropriée
   const startUrl = isDev
-      ? "http://localhost:3000"
-      : `file://${path.join(__dirname, "react-app/build/index.html")}`;
+    ? "http://localhost:3000"
+    : `file://${path.join(__dirname, "react-app/build/index.html")}`;
 
   mainWindow.loadURL(startUrl);
 
@@ -28,7 +29,7 @@ function createWindow() {
   }
 
   // Gérer la fermeture de la fenêtre
-  mainWindow.on('closed', function () {
+  mainWindow.on("closed", function () {
     mainWindow = null;
   });
 }
