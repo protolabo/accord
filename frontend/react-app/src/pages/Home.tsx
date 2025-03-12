@@ -68,10 +68,6 @@ const Home: React.FC = () => {
   };
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const navigate = useNavigate();
-  const goToAdvancedSearch = () => {
-    navigate('/search');
-  };
 
   const [state, setState] = useState<HomeState>(initialState);
 
@@ -576,15 +572,6 @@ const Home: React.FC = () => {
               </div>
           )}
         </main>
-        <motion.button
-            whileHover={{scale: 1.1}}
-            whileTap={{scale: 0.9}}
-            onClick={goToAdvancedSearch}
-            className="fixed bottom-6 right-6 bg-blue-500 text-white p-4 rounded-full shadow-lg z-50"
-            aria-label="Recherche avancée"
-        >
-          <FaSearchPlus className="text-xl"/>
-        </motion.button>
       </div>
   );
 };
