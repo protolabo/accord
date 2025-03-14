@@ -23,6 +23,7 @@ import {
   mockNotifications,
   mockPriorityLevels,
   mockEstimatedTimes,
+  mockTopContacts,
 } from "../data/mockData";
 import type { Email } from "../components/types";
 import ResizeHandle from "../components/ResizeHandle";
@@ -46,6 +47,12 @@ interface HomeState {
   startSizes: { [key: string]: number };
   showComposePopup: boolean;
   recipientAvailability?: number;
+  focusMode: {
+    active: boolean;
+    priority: "high" | "medium" | "low";
+    timeBlock: number; // minutes
+    endTime: Date | null;
+  };
 }
 
 const Home: React.FC = () => {
@@ -70,6 +77,12 @@ const Home: React.FC = () => {
     startSizes: {},
     showComposePopup: false,
     recipientAvailability: undefined,
+    focusMode: {
+      active: false,
+      priority: "high",
+      timeBlock: 25,
+      endTime: null,
+    },
   };
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -305,7 +318,7 @@ const Home: React.FC = () => {
       >
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-6">
               <span className="text-2xl font-bold text-gray-800 dark:text-white">
                 Accord
               </span>
@@ -336,6 +349,7 @@ const Home: React.FC = () => {
                 />
               </div>
             </div>
+
             <div className="flex items-center space-x-6">
               <motion.button
                 whileHover={{ scale: 1.1 }}
@@ -587,6 +601,37 @@ const Home: React.FC = () => {
               <span className="text-2xl font-bold">+</span>
             </motion.button>
 
+            {/* contact fréquents Panel */}
+            <div className="fixed right-6 top-24 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-40">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">
+                Contacts fréquents
+              </h3>
+              <div className="space-y-4">
+                {mockTopContacts.map((contact) => (
+                  <div key={contact.id} className="flex flex-col">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium dark:text-white">
+                        {contact.name}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {contact.availability}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${contact.availability}%` }}
+                        transition={{ duration: 0.5 }}
+                        className="h-full transition-all duration-300"
+                        style={{
+                          backgroundColor: `hsl(${contact.availability}, 70%, 50%)`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
             {/* message rapide Popup */}
             {state.showComposePopup && (
               <motion.div
