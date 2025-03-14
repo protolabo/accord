@@ -110,3 +110,11 @@ export const mockEstimatedTimes = {
   Threads: "10 minutes",
   Informations: "15 minutes",
 };
+
+export const mockTopContacts = [
+  { id: 1, name: "Alice Martin", email: "alice.m@mail.com", availability: 85 },
+  { id: 2, name: "Bob Wilson", email: "bob.w@mail.com", availability: 45 },
+  { id: 3, name: "Carol Smith", email: "carol.s@mail.com", availability: 90 },
+  { id: 4, name: "David Brown", email: "david.b@mail.com", availability: 20 },
+  { id: 5, name: "Eve Johnson", email: "eve.j@mail.com", availability: 60 },
+];
