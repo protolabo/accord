@@ -7,6 +7,8 @@ interface AttentionGaugeProps {
   previousLevel?: number | null;
   section: string;
   estimatedTime: string;
+  totalActions: number;
+  availableTime: number; // in minutes
 }
 
 const AttentionGauge: React.FC<AttentionGaugeProps> = ({
@@ -14,6 +16,8 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({
   previousLevel,
   section,
   estimatedTime,
+  totalActions,
+  availableTime,
 }) => {
   // Calculer la différence si previousLevel existe
   const difference =
@@ -21,21 +25,31 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({
       ? level - previousLevel
       : null;
 
-  const getStatus = (level: number) => {
-    if (level >= 80) return { text: "Critique", color: "text-red-500" };
-    if (level >= 60) return { text: "Élevé", color: "text-orange-500" };
-    if (level >= 40) return { text: "Modéré", color: "text-yellow-500" };
+  // Estimation du temps total nécessaire pour compléter toutes les actions
+  const estimatedTimePerAction = parseInt(estimatedTime.split(" ")[0], 10);
+  const totalEstimatedTime = totalActions * estimatedTimePerAction;
+
+  // Calculer le pourcentage de temps disponible utilisé
+  const timeUsagePercentage =
+    availableTime > 0
+      ? Math.max((totalEstimatedTime / availableTime) * 100, 0)
+      : 0;
+
+  const getStatus = (percentage: number) => {
+    if (percentage >= 100) return { text: "Critique", color: "text-red-500" };
+    if (percentage >= 75) return { text: "Élevé", color: "text-orange-500" };
+    if (percentage >= 50) return { text: "Modéré", color: "text-yellow-500" };
     return { text: "Normal", color: "text-green-500" };
   };
 
-  const getGradientColors = (level: number) => {
-    if (level >= 80) return "from-red-500 via-red-400 to-red-300";
-    if (level >= 60) return "from-orange-500 via-orange-400 to-orange-300";
-    if (level >= 40) return "from-yellow-500 via-yellow-400 to-yellow-300";
+  const getGradientColors = (percentage: number) => {
+    if (percentage >= 100) return "from-red-500 via-red-400 to-red-300";
+    if (percentage >= 75) return "from-orange-500 via-orange-400 to-orange-300";
+    if (percentage >= 50) return "from-yellow-500 via-yellow-400 to-yellow-300";
     return "from-green-500 via-green-400 to-green-300";
   };
 
-  const status = getStatus(level);
+  const status = getStatus(timeUsagePercentage);
 
   return (
     <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
@@ -77,17 +91,17 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({
             Niveau d'attention
           </span>
           <span className="text-sm font-semibold dark:text-white">
-            {level}%
+            {timeUsagePercentage.toFixed(2)}%
           </span>
         </div>
 
         <div className="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
           <motion.div
             className={`h-full rounded-full bg-gradient-to-r ${getGradientColors(
-              level
+              timeUsagePercentage
             )}`}
             initial={{ width: 0 }}
-            animate={{ width: `${level}%` }}
+            animate={{ width: `${timeUsagePercentage}%` }}
             transition={{
               duration: 1,
               ease: "easeOut",
@@ -110,10 +124,10 @@ const AttentionGauge: React.FC<AttentionGaugeProps> = ({
 
       <div className="flex justify-between items-center mt-4">
         <span className="text-sm font-medium dark:text-white">
-          Urgence : {level}%
+          Urgence : {timeUsagePercentage.toFixed(2)}%
         </span>
         <span className="text-sm font-medium dark:text-white">
-          Temps estimé : {estimatedTime}
+          Temps estimé : {totalEstimatedTime} minutes
         </span>
       </div>
       <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
