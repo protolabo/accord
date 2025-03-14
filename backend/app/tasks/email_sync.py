@@ -1,4 +1,5 @@
 from celery import Celery
+from datetime import datetime
 from app.db.connection import get_db
 from app.services.email.outlook import OutlookService
 

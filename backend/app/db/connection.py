@@ -3,8 +3,8 @@ import sys
 from pathlib import Path
 
 # Calculer root 
-current_dir = Path(__file__).resolve().parent  # connection.py所在目录
-root_dir = current_dir.parent.parent  # 上两级目录（项目根目录）
+current_dir = Path(__file__).resolve().parent  # folder of connection.py
+root_dir = current_dir.parent.parent  # root folser
 sys.path.append(str(root_dir))
 
 # import local files

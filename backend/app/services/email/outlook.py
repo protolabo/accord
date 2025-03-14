@@ -1,4 +1,5 @@
 import httpx
+from datetime import datetime
 from app.core.config import settings
 
 class OutlookService:
