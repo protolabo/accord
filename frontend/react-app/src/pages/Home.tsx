@@ -125,13 +125,11 @@ const Home: React.FC = () => {
   const groupedEmails = groupEmailsByCategory(mockEmails);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  setState((prev) => ({ ...prev, searchTerm: e.target.value }));
+    setState((prev) => ({ ...prev, searchTerm: e.target.value }));
   };
   const handleSearchClick = () => {
-  setState((prev) => ({ ...prev, showSearchPopup: true }));
+    setState((prev) => ({ ...prev, showSearchPopup: true }));
   };
-
-
 
   const toggleDarkMode = () => {
     setState((prev) => ({ ...prev, darkMode: !prev.darkMode }));
@@ -316,8 +314,6 @@ const Home: React.FC = () => {
     Informations: 200,
   };
 
-
-
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       <motion.header
@@ -470,7 +466,7 @@ const Home: React.FC = () => {
           // sections Home
           <div
             ref={containerRef}
-            className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-7xl mx-auto"
+            className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-[85rem] mx-auto"
             style={{ cursor: state.isResizing ? "col-resize" : "default" }}
           >
             {(
@@ -497,7 +493,7 @@ const Home: React.FC = () => {
                       stiffness: 300,
                       damping: 30,
                     }}
-                    className="w-full md:h-[calc(100vh-160px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
+                    className="w-full md:h-[calc(100vh-192px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
                   overflow-hidden flex flex-col select-none"
                     style={{ userSelect: state.isResizing ? "none" : "auto" }}
                   >
@@ -741,9 +737,11 @@ const Home: React.FC = () => {
         )}
       </main>
       <SearchPopup
-  isOpen={state.showSearchPopup}
-  onClose={() => setState(prev => ({ ...prev, showSearchPopup: false }))}
-/>
+        isOpen={state.showSearchPopup}
+        onClose={() =>
+          setState((prev) => ({ ...prev, showSearchPopup: false }))
+        }
+      />
     </div>
   );
 };
