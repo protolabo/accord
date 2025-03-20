@@ -17,3 +17,8 @@ class OutlookService:
         }
         response = await self.client.get("/me/messages", params=params)
         return response.json().get("value", [])
+    
+
+
+if __name__ == "__main__":
+    pass

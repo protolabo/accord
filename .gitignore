@@ -34,3 +34,4 @@ yarn.lock
 data/enron_emails_pred.json
 data/enron_emails.csv
 data/enron_emails.json
+data/notes.ipynb

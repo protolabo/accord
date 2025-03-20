@@ -1,23 +1,23 @@
 from beanie import Document
+from datetime import datetime, timedelta
 from pydantic import Field
-from datetime import datetime
 
 class User(Document):
-    username: str = Field(unique=True)
-    email: str = Field(unique=True)
-    password_hash: str
-    created_at: datetime = datetime.now()
+    microsoft_id: str = Field(unique=True)
+    email: str
+    outlook_tokens: dict
+    created_at: datetime = Field(default_factory=datetime.now)
 
     class Settings:
         name = "users"
         indexes = [
-            # Index
-            "username", 
-            # Complex index
-            [("email", 1), ("created_at", -1)],
-            # text index
-            [("$**", "text")]  # search for text
+            "email",
+            [("microsoft_id", 1)]
         ]
+
+    @property
+    def is_token_expired(self):
+        return datetime.now() > self.outlook_tokens["expires_at"]
 
 class Email(Document):
     user_id: str
@@ -31,3 +31,8 @@ class Email(Document):
             [("user_id", 1), ("received_at", -1)],
             [("subject", "text")]
         ]
+
+
+
+
+
