@@ -18,6 +18,7 @@ import InfoItem from "../components/InfoItem";
 import ThreadSection from "../pages/ThreadSection";
 import ThreadDetail from "../components/ThreadDetail";
 import UserProfileModal from "../components/UserProfileModal";
+import SearchPopup from "../components/search/SearchPopup";
 import {
   mockEmails,
   mockNotifications,
@@ -47,6 +48,7 @@ interface HomeState {
   startSizes: { [key: string]: number };
   showComposePopup: boolean;
   recipientAvailability?: number;
+  showSearchPopup: boolean;
   focusMode: {
     active: boolean;
     priority: "high" | "medium" | "low";
@@ -77,6 +79,7 @@ const Home: React.FC = () => {
     startSizes: {},
     showComposePopup: false,
     recipientAvailability: undefined,
+    showSearchPopup: false,
     focusMode: {
       active: false,
       priority: "high",
@@ -121,9 +124,11 @@ const Home: React.FC = () => {
 
   const groupedEmails = groupEmailsByCategory(mockEmails);
 
-  // Gestionnaires d'événements
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState((prev) => ({ ...prev, searchTerm: e.target.value }));
+  };
+  const handleSearchClick = () => {
+    setState((prev) => ({ ...prev, showSearchPopup: true }));
   };
 
   const toggleDarkMode = () => {
@@ -343,9 +348,11 @@ const Home: React.FC = () => {
                   type="text"
                   placeholder="Rechercher..."
                   className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all"
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all cursor-pointer"
                   value={state.searchTerm}
                   onChange={handleSearchChange}
+                  onClick={handleSearchClick}
+                  readOnly
                 />
               </div>
             </div>
@@ -459,7 +466,7 @@ const Home: React.FC = () => {
           // sections Home
           <div
             ref={containerRef}
-            className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-7xl mx-auto"
+            className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-[85rem] mx-auto"
             style={{ cursor: state.isResizing ? "col-resize" : "default" }}
           >
             {(
@@ -486,7 +493,7 @@ const Home: React.FC = () => {
                       stiffness: 300,
                       damping: 30,
                     }}
-                    className="w-full md:h-[calc(100vh-160px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
+                    className="w-full md:h-[calc(100vh-192px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
                   overflow-hidden flex flex-col select-none"
                     style={{ userSelect: state.isResizing ? "none" : "auto" }}
                   >
@@ -729,6 +736,12 @@ const Home: React.FC = () => {
           </div>
         )}
       </main>
+      <SearchPopup
+        isOpen={state.showSearchPopup}
+        onClose={() =>
+          setState((prev) => ({ ...prev, showSearchPopup: false }))
+        }
+      />
     </div>
   );
 };

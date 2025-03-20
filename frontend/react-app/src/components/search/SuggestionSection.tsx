@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaQuoteLeft } from 'react-icons/fa';
 
 interface SuggestionSectionProps {
   suggestions: string[];
@@ -24,8 +23,7 @@ const SuggestionSection: React.FC<SuggestionSectionProps> = ({
           transition={{ delay: index * 0.05 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSuggestionClick(suggestion)}
-          className="bg-gray-200 dark:bg-gray-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors w-1/4"
-          // Padding réduit: px-4→px-3 et py-3→py-2
+          className="bg-gray-200 dark:bg-gray-700 rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors w-3/4"
         >
           <div className="flex items-center">
             <span className="text-sm text-gray-800 dark:text-white">
