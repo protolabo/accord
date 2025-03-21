@@ -1,24 +1,26 @@
-import httpx
-from datetime import datetime
 from app.core.config import settings
+from app.db.models import User
+from httpx import AsyncClient
+from datetime import datetime, timedelta
 
-class OutlookService:
-    def __init__(self, access_token: str):
-        self.client = httpx.AsyncClient(
-            base_url="https://graph.microsoft.com/v1.0",
-            headers={"Authorization": f"Bearer {access_token}"}
+# Refresh Token While access token is expired
+async def refresh_outlook_token(user: User):
+    async with AsyncClient() as client:
+        response = await client.post(
+            f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/token",
+            data={
+                "client_id": settings.MICROSOFT_CLIENT_ID,
+                "client_secret": settings.MICROSOFT_CLIENT_SECRET,
+                "refresh_token": user.outlook_tokens["refresh_token"],
+                "grant_type": "refresh_token",
+                "scope": "Mail.Read"
+            }
         )
-
-    async def get_emails(self, since: datetime):
-        params = {
-            "$filter": f"receivedDateTime ge {since.isoformat()}",
-            "$select": "subject,body,from,receivedDateTime",
-            "$top": 100
-        }
-        response = await self.client.get("/me/messages", params=params)
-        return response.json().get("value", [])
-    
-
-
-if __name__ == "__main__":
-    pass
+        
+        new_tokens = response.json()
+        user.outlook_tokens.update({
+            "access_token": new_tokens["access_token"],
+            "refresh_token": new_tokens.get("refresh_token", user.outlook_tokens["refresh_token"]),
+            "expires_at": datetime.now() + timedelta(seconds=new_tokens["expires_in"])
+        })
+        await user.save()
