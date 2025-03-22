@@ -9,14 +9,12 @@ const Login: React.FC<LoginProps> = () => {
   const navigate = useNavigate();
 
   const handleOutlookLogin = () => {
-    // TODO: Implement Outlook OAuth
-    console.log("Outlook login");
+    // Pour le développement, on va directement à home
     navigate("/home");
   };
 
   const handleGmailLogin = () => {
-    // TODO: Implement Gmail OAuth
-    console.log("Gmail login");
+    // Pour le développement, on va directement à home
     navigate("/home");
   };
 
