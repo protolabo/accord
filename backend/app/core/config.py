@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
 
     # Microsoft Info
-    MICROSOFT_CLIENT_ID: str
-    MICROSOFT_CLIENT_SECRET: str
+    MICROSOFT_CLIENT_ID: str = "dummy_client_id"
+    MICROSOFT_CLIENT_SECRET: str = "dummy_secret"
     MICROSOFT_TENANT_ID: str = "common"
     REDIRECT_URI: str = "http://localhost:8000/api/auth/outlook/callback"
 

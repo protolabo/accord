@@ -1,9 +1,10 @@
 from beanie import Document
 from datetime import datetime, timedelta
 from pydantic import Field
+from pydantic import ConfigDict
 
 class User(Document):
-    microsoft_id: str = Field(unique=True)
+    microsoft_id: str = Field(json_schema_extra={"unique": True})
     email: str
     outlook_tokens: dict
     created_at: datetime = Field(default_factory=datetime.now)
@@ -17,19 +18,23 @@ class User(Document):
 
     @property
     def is_token_expired(self):
-        return datetime.now() > self.outlook_tokens["expires_at"]
+        return datetime.now() > self.user.outlook_tokens["expires_at"] - timedelta(minutes=5)
 
 class Email(Document):
     user_id: str
+    platform: str
+    email_id: str = Field(unique=True)
+    categories: list[str]
+    sender: str
     subject: str
-    content: str
-    received_at: datetime = datetime.now()
+    received_at: datetime
+    is_processed: bool = False
 
     class Settings:
         name = "emails"
         indexes = [
             [("user_id", 1), ("received_at", -1)],
-            [("subject", "text")]
+            [("categories", 1)]
         ]
 
 

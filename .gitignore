@@ -35,3 +35,12 @@ data/enron_emails_pred.json
 data/enron_emails.csv
 data/enron_emails.json
 data/notes.ipynb
+backend/test/conftest.py
+backend/test/test_auth.py
+backend/test/test_emails.py
+backend/test/test_models.py
+backend/test/__pycache__/conftest.cpython-39-pytest-8.3.5.pyc
+backend/test/__pycache__/test_auth.cpython-39-pytest-8.3.5.pyc
+backend/test/__pycache__/test_emails.cpython-39-pytest-8.3.5.pyc
+backend/test/__pycache__/test_models.cpython-39-pytest-8.3.5.pyc
+backend/pytest.ini
