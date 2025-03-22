@@ -24,3 +24,43 @@ python emailParser.py
 
 4. Résultat :
    - Le script génère un fichier `emails.json` dans le dossier `./backend/data`
+
+# 2) Section Recherche 
+# Pipeline de Traitement des Données 
+
+## Préparation des Données
+
+- [ ] **Étape 1: Récupération des emails**
+  - [ ] Implémenter l'authentification Gmail OAuth et outlook
+
+- [ ] **Étape 2: Stockage temporaire**
+  - [ ] Créer la structure de stockage sécurisée (Json crypté si possible)
+
+- [ ] **Étape 3: Indexation de mails**
+
+- [ ] **Étape 4: Construction du graphe de connexion**
+  - [ ] Identifier les relations entre emails
+  - [ ] Identifier les relations entre contacts
+
+- [ ] **Étape 5: Classification des emails**
+
+- [ ] **Étape 6: Génération des threads**
+
+- [ ] **Étape 7: Stockage de notre structures de connexion de mails**
+
+- [ ] **Étape 8: Nettoyage des données brutes**
+
+
+## Recherche Sémantique
+
+- [ ] **Étape 9: Analyse sémantique avec RoBERTa**
+  - [ ] Extraction des entités et concepts clés
+
+- [ ] **Étape 10: Transformation en requête structurée**
+  - [ ] Extraction des contraintes de recherche
+  - [ ] Expansion des requêtes (contexte)
+
+- [ ] **Étape 11: Faire la recherche**
+
+- [ ] **Étape 12: Présentation des résultats**
+  - [ ] Organisation par pertinence et chronologie
