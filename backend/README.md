@@ -25,8 +25,7 @@ python emailParser.py
 4. Résultat :
    - Le script génère un fichier `emails.json` dans le dossier `./backend/data`
 
-# 2) Section Recherche 
-# Pipeline de Traitement des Données 
+# 2) Section Recherche
 
 ## Préparation des Données
 
