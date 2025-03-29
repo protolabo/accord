@@ -29,23 +29,23 @@ python emailParser.py
 
 ## Préparation des Données
 
-- [ ] **Étape 1: Récupération des emails**
-  - [ ] Implémenter l'authentification Gmail OAuth et outlook
+- [x] **Étape 1: Récupération des emails**
+  - [x] Implémenter l'authentification Gmail OAuth et outlook
 
-- [ ] **Étape 2: Stockage temporaire**
-  - [ ] Créer la structure de stockage sécurisée (Json crypté si possible)
+- [x] **Étape 2: Stockage temporaire**
+  - [x] Créer la structure de stockage sécurisée (Json crypté si possible)
 
-- [ ] **Étape 3: Indexation de mails**
+- [x] **Étape 3: Indexation de mails**
 
-- [ ] **Étape 4: Construction du graphe de connexion**
-  - [ ] Identifier les relations entre emails
-  - [ ] Identifier les relations entre contacts
+- [x] **Étape 4: Construction du graphe de connexion**
+  - [x] Identifier les relations entre emails
+  - [x] Identifier les relations entre contacts
 
 - [ ] **Étape 5: Classification des emails**
 
 - [ ] **Étape 6: Génération des threads**
 
-- [ ] **Étape 7: Stockage de notre structures de connexion de mails**
+- [x] **Étape 7: Stockage de notre structures de connexion de mails**
 
 - [ ] **Étape 8: Nettoyage des données brutes**
 
