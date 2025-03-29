@@ -441,11 +441,13 @@ class OptimizedEmailGraphBuilder:
 
         # Create a new thread
         # subject ??
+        #"subject": email_data.get("Subject", ""),
+        #storing a reference to the first message rather than storing the subject directly
         thread = {
             "id": thread_id,
             "type": "thread",
-            "subject": email_data.get("Subject", ""),
             "participants": [],
+            "first_message_id": email_data.get("Message-ID", ""),
             "message_count": 1,
             "last_message_date": "",
             "categories": [],
