@@ -2,12 +2,11 @@ import re
 import uuid
 import json
 import os
-import time
 import gc
 from datetime import datetime
 from collections import defaultdict
-from functools import lru_cache
 import numpy as np
+import spacy
 
 # Import NLP libraries with error handling
 try:
@@ -25,8 +24,30 @@ try:
     except LookupError:
         nltk.download('punkt')
         nltk.download('stopwords')
+
+
 except ImportError:
     print("Warning: Some NLP libraries are missing. Topic extraction might be limited.")
+
+""""
+try:
+    from spacy.lang.fr.stop_words import FRENCH_STOP_WORDS
+    from spacy.lang.en.stop_words import ENGLISH_STOP_WORDS
+    nlp_fr = spacy.load("fr_core_news_sm")
+    nlp_en = spacy.load("en_core_web_sm")
+    spacy_available = True
+except LookupError:
+    # Ccode for download spacy
+    #spacy download fr_core_news_sm  # French language model
+    #spacy download en_core_web_sm   # English language model (backup)
+    print("Warning: spaCy language models not found.")
+    spacy_available = False
+"""
+from spacy.lang.fr.stop_words import STOP_WORDS as FRENCH_STOP_WORDS
+from spacy.lang.en.stop_words import STOP_WORDS as ENGLISH_STOP_WORDS
+nlp_fr = spacy.load("fr_core_news_sm")
+nlp_en = spacy.load("en_core_web_sm")
+spacy_available = True
 
 
 def profile_function(func):
@@ -39,7 +60,7 @@ def profile_function(func):
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
-        print(f"Function {func.__name__} took {end_time - start_time:.2f} seconds to run")
+        #print(f"Function {func.__name__} took {end_time - start_time:.2f} seconds to run")
         return result
 
     return wrapper
@@ -84,13 +105,54 @@ class OptimizedEmailGraphBuilder:
         except:
             self.stop_words = set()
 
-        # Additional stopwords specific to emails
-        self.email_stop_words = {
-            'fw', 're', 'fwd', 'reply', 'sent', 'from', 'to', 'cc', 'bcc',
-            'subject', 'date', 'hello', 'hi', 'thanks', 'thank', 'you', 'regards',
-            'sincerely', 'best', 'attachment', 'please', 'file', 'files'
+        # for spacy
+        self.word_index = {}  # words : {message_id}
+        self.entity_index = {}  # entity : {message_id}
+        self.subject_index = {}  # word : {message_id}
+
+        # temp
+        spacy_available = True
+
+        # Initialize spaCy and stopwords
+        self.spacy_available = spacy_available
+
+        # Combine spaCy's stopwords with custom ones
+        if spacy_available:
+            self.stop_words = FRENCH_STOP_WORDS
+            self.stop_words.update(ENGLISH_STOP_WORDS)
+        else:
+            self.stop_words = set()
+
+        # Add custom stopwords for emails
+        self.custom_stopwords = {
+                # French email-specific stopwords
+                "bonjour", "cordialement", "merci", "salutations", "cdt", "bien",
+                "salut", "madame", "monsieur", "cher", "chère", "cheres", "chers",
+                "a", "à", "au", "aux", "avec", "ce", "ces", "dans", "de", "des",
+                "du", "en", "entre", "et", "il", "ils", "je", "j'ai", "la", "le",
+                "les", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi",
+                "mon", "nos", "notre", "nous", "ou", "par", "pas", "pour", "qu",
+                "que", "qui", "s", "sa", "se", "si", "son", "sur", "ta", "te",
+                "tes", "toi", "ton", "tu", "un", "une", "vos", "votre", "vous",
+
+                # English common email terms (for mixed-language emails)
+                "hello", "hi", "thanks", "thank", "you", "regards", "sincerely",
+                "best", "attachment", "please", "file", "files", "dear", "kind",
+                "regards", "sincerely", "best", "attachment", "please"
+            
+                #email stop words
+                'fw', 're', 'fwd', 'reply', 'sent', 'from', 'to', 'cc',
+                'bcc','subject', 'date', 'hello', 'hi', 'thanks', 'thank', 'you', 'regards',
+                'sincerely', 'best', 'attachment', 'please', 'file', 'files'
         }
-        self.stop_words.update(self.email_stop_words)
+
+        #even if it's short keep them
+        self.important_terms = {"pdf","vpn"}
+
+        self.min_word_length = 3
+
+        self.stop_words.update(self.custom_stopwords)
+
 
     def _normalize_email(self, email):
         """
@@ -218,20 +280,6 @@ class OptimizedEmailGraphBuilder:
 
         # Check if this message involves the central user - use cached normalization
         from_email = self._normalize_email(email_data.get("From", ""))
-
-
-        # Extract message content - store minimal data to save memory
-        # Only store full body
-
-        #
-        #
-        # possible indexation here and subject keyword extraction
-        #
-        #
-
-        body_plain = email_data.get("Body", {}).get("plain", "")
-        body_html = email_data.get("Body", {}).get("html", "")
-
 
         # Get recipient lists only once to avoid redundant splitting
         to_list = email_data.get("To", "").split(",") if email_data.get("To") else []
@@ -482,7 +530,125 @@ class OptimizedEmailGraphBuilder:
         self.relations.append(relation)
         return relation
 
+    def _get_language_model(self, text):
+        """
+        Determine which language model to use based on text content.
+        Defaults to French if uncertain.
+        """
+        if not self.spacy_available:
+            return None
 
+        # Simple heuristic for language detection
+        # Count common French words vs English words
+        french_indicators = ["le", "la", "les", "un", "une", "et", "pour", "dans", "avec"]
+        english_indicators = ["the", "a", "an", "and", "for", "in", "with", "to", "of"]
+
+        text_lower = text.lower()
+        fr_count = sum(1 for word in french_indicators if f" {word} " in f" {text_lower} ")
+        en_count = sum(1 for word in english_indicators if f" {word} " in f" {text_lower} ")
+
+        return nlp_fr if fr_count >= en_count else nlp_en
+
+    @profile_function
+    def _process_text_with_spacy(self, text, is_subject=False):
+        """
+        Process text with spaCy to extract tokens, lemmas and entities.
+
+        Args:
+            text: Text to process
+            is_subject: Whether this is a subject line (for special handling)
+
+        Returns:
+            tokens, entities (lists of strings)
+        """
+        if not text or not self.spacy_available:
+            return [], []
+
+        # Select language model
+        nlp = self._get_language_model(text)
+        if not nlp:
+            # Fallback for when spaCy is not available
+            return self._fallback_text_processing(text)
+
+        # Process the text
+        doc = nlp(text)
+
+        # Extract tokens (excluding stopwords and punctuation)
+        tokens = []
+        for token in doc:
+            # Get the lemma (base form) of the token
+            lemma = token.lemma_.lower().strip()
+
+            # Keep token if:
+            # 1. It's in our important terms, OR
+            # 2. It's a subject and longer than 1 character (subjects get special treatment), OR
+            # 3. It's longer than min_word_length, not a stopword, not punctuation
+            if (lemma in self.important_terms or
+                    (is_subject and len(lemma) > 1) or
+                    (len(lemma) >= self.min_word_length and
+                     lemma not in self.stop_words and
+                     not token.is_punct and not token.is_space)):
+                tokens.append(lemma)
+
+        # Extract named entities (these are often important regardless of length)
+        entities = []
+        for ent in doc.ents:
+            if len(ent.text) > 1:  # Ignore single-character entities
+                entities.append(ent.text.lower())
+
+        return tokens, entities
+
+    def _fallback_text_processing(self, text):
+        """Fallback method when spaCy is not available."""
+        # Basic tokenization
+        tokens = re.findall(r'\b\w+\b', text.lower())
+
+        # Filter short words and stopwords
+        filtered_tokens = []
+        for token in tokens:
+            if token in self.important_terms or (len(token) >= self.min_word_length and token not in self.stop_words):
+                filtered_tokens.append(token)
+
+        return filtered_tokens, []
+
+    @profile_function
+    def index_message(self, message_id, subject, body_text):
+        """
+        Index a message's content using spaCy for intelligent analysis.
+
+        Args:
+            message_id: ID of the message
+            subject: Subject line
+            body_text: Body text of the message
+        """
+        if not subject and not body_text:
+            return
+
+        # Process subject with special handling
+        subject_tokens, subject_entities = self._process_text_with_spacy(subject, is_subject=True)
+
+        # Process body
+        body_tokens, body_entities = self._process_text_with_spacy(body_text)
+
+        # Add to word index (combining subject and body tokens)
+        all_tokens = set(subject_tokens + body_tokens)
+        for token in all_tokens:
+            if token not in self.word_index:
+                self.word_index[token] = set()
+            self.word_index[token].add(message_id)
+
+        # Add to subject-specific index
+        for token in subject_tokens:
+            if token not in self.subject_index:
+                self.subject_index[token] = set()
+            self.subject_index[token].add(message_id)
+
+        # Add to entity index
+        all_entities = set(subject_entities + body_entities)
+        for entity in all_entities:
+            if entity not in self.entity_index:
+                self.entity_index[entity] = set()
+            self.entity_index[entity].add(message_id)
 
     @profile_function
     def process_email(self, email_data):
@@ -494,6 +660,13 @@ class OptimizedEmailGraphBuilder:
             message = self.create_message_node(email_data)
             if not message:
                 return False
+
+            # Extract text for indexing
+            subject = email_data.get("Subject", "")
+            body_plain = email_data.get("Body", {}).get("plain", "")
+
+            # Index the message content
+            self.index_message(message["id"], subject, body_plain)
 
             # Process sender (From)
             from_user = self.get_or_create_user(email_data["From"])
@@ -675,8 +848,6 @@ class OptimizedEmailGraphBuilder:
             if processed_threads % 100 == 0:
                 print(f"Processed {processed_threads}/{multi_message_threads} multi-message threads")
 
-
-
     def _serialize_node(self, node):
         """Convert a node to a JSON-serializable format."""
         import copy
@@ -690,6 +861,44 @@ class OptimizedEmailGraphBuilder:
                 node_copy[key] = value.tolist()
 
         return node_copy
+
+    def save_indices(self):
+        """Save the word, entity and subject indices to files."""
+        indices_dir = os.path.join(self.output_dir, "indices")
+        os.makedirs(indices_dir, exist_ok=True)
+
+        # Helper function to make sets JSON-serializable
+        def serialize(index):
+            return {key: list(values) for key, values in index.items()}
+
+        # Save all indices
+        with open(os.path.join(indices_dir, "word_index.json"), 'w') as f:
+            json.dump(serialize(self.word_index), f)
+
+        with open(os.path.join(indices_dir, "entity_index.json"), 'w') as f:
+            json.dump(serialize(self.entity_index), f)
+
+        with open(os.path.join(indices_dir, "subject_index.json"), 'w') as f:
+            json.dump(serialize(self.subject_index), f)
+
+    def load_indices(self):
+        """Load indices from files."""
+        indices_dir = os.path.join(self.output_dir, "indices")
+        if not os.path.exists(indices_dir):
+            return
+
+        # Helper function to convert lists back to sets
+        def deserialize(file_path):
+            with open(file_path, 'r') as f:
+                data = json.load(f)
+                return {key: set(values) for key, values in data.items()}
+
+        try:
+            self.word_index = deserialize(os.path.join(indices_dir, "word_index.json"))
+            self.entity_index = deserialize(os.path.join(indices_dir, "entity_index.json"))
+            self.subject_index = deserialize(os.path.join(indices_dir, "subject_index.json"))
+        except Exception as e:
+            print(f"Error loading indices: {str(e)}")
 
     @profile_function
     def build_graph_two_phase(self, emails):
@@ -706,6 +915,11 @@ class OptimizedEmailGraphBuilder:
         self.topics = {}
         self.relations = []
         self.connection_strength = {}
+
+        #Reset indices
+        self.word_index = {}
+        self.entity_index = {}
+        self.subject_index = {}
 
         # Pre-create the central user
 
@@ -753,6 +967,9 @@ class OptimizedEmailGraphBuilder:
         with open(topics_file, 'w', encoding='utf-8') as f:
             json.dump({k: self._serialize_node(v) for k, v in self.topics.items()}, f, ensure_ascii=False)
 
+        print("saving indices...")
+        self.save_indices()
+
         print(f"Phase 1 complete. Basic structure saved.")
 
         # Phase 2: Thread relations
@@ -770,9 +987,14 @@ class OptimizedEmailGraphBuilder:
         gc.collect()
 
         # Phase 3: Content similarity (most memory intensive)
-        print("Phase 3: Getting  accord thread content...")
+        print("Phase 3: getting accord thread...")
+        # To do
 
-        pass
+        # Save similarity relations
+        similarity_relations_file = os.path.join(self.output_dir, "similarity_relations.json")
+        with open(similarity_relations_file, 'w', encoding='utf-8') as f:
+            json.dump([self._serialize_node(r) for r in self.relations], f, ensure_ascii=False)
+
         content_relations_count = len(self.relations)
 
         # Save final metadata
@@ -793,7 +1015,6 @@ class OptimizedEmailGraphBuilder:
                 "threads": threads_file,
                 "topics": topics_file,
                 "thread_relations": thread_relations_file,
-                "accord_thread": None
             }
         }
 

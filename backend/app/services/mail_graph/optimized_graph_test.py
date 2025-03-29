@@ -1,7 +1,11 @@
+# optimized_graph_test.py
 import json
+import os
+import re
 import sys
 import argparse
 from pathlib import Path
+from datetime import datetime
 from collections import defaultdict, Counter
 
 
@@ -48,6 +52,7 @@ class OptimizedGraphQueryTool:
             if not self.central_user:
                 print("Warning: No central user found in the graph")
 
+
         # Build relation indexes
         self._build_relation_indexes()
 
@@ -65,7 +70,18 @@ class OptimizedGraphQueryTool:
             "relations": []
         }
 
-        if True:
+        # Phase 1: Load base components
+        phase1_dir = graph_dir / "phase1"
+        if phase1_dir.exists():
+            # Load from phase1 directory
+            for component in ["users", "messages", "threads", "topics"]:
+                component_file = phase1_dir / f"{component}.json"
+                if component_file.exists():
+                    component_data = self._load_json_file(component_file)
+                    if component_data:
+                        graph[component] = list(component_data.values())
+                        print(f"Loaded {len(graph[component])} {component} from phase1")
+        else:
             # Try to load from root directory if phase1 doesn't exist
             for component in ["users", "messages", "threads", "topics"]:
                 component_file = graph_dir / f"{component}.json"
@@ -319,8 +335,6 @@ class OptimizedGraphQueryTool:
         # Display threads
         for i, thread in enumerate(sorted_threads, 1):
             # Use placeholders for missing content
-
-            # error : thread save gmail_thread_name
             subject = self._get_message_attr(thread, "subject", "[No subject]")
 
             print(f"{i}. Subject: {subject}")
@@ -416,6 +430,55 @@ class OptimizedGraphQueryTool:
                 print(f"   Thread: {thread_subject} ({thread.get('message_count', 0)} messages)")
             print()
 
+    def find_similar_messages(self, message_id, limit=5):
+        """
+        Find messages similar to a given message.
+
+        Args:
+            message_id: ID of the reference message
+            limit: Maximum number of similar messages to display
+        """
+        if message_id not in self.message_map:
+            print(f"Message {message_id} not found in the graph")
+            return
+
+        reference_message = self.message_map[message_id]
+        # Use placeholders for missing content
+        subject = self._get_message_attr(reference_message, "subject", "[No subject]")
+        print(f"\n===== MESSAGES SIMILAR TO: '{subject}' =====")
+
+        # Find SIMILAR_CONTENT relations
+        similar_messages = []
+        for relation in self.relation_types.get("SIMILAR_CONTENT", []):
+            if relation["source_id"] == message_id:
+                target_id = relation["target_id"]
+                if target_id in self.message_map:
+                    similar_messages.append((self.message_map[target_id], relation.get("similarity_score", 0)))
+            elif relation["target_id"] == message_id:
+                source_id = relation["source_id"]
+                if source_id in self.message_map:
+                    similar_messages.append((self.message_map[source_id], relation.get("similarity_score", 0)))
+
+        if not similar_messages:
+            print("No similar messages found")
+            return
+
+        # Sort by similarity score (highest first)
+        sorted_similar = sorted(similar_messages, key=lambda x: x[1], reverse=True)
+
+        # Display similar messages
+        print(f"Similar messages found: {len(sorted_similar)}")
+        for i, (message, score) in enumerate(sorted_similar[:limit], 1):
+            # Use placeholders for missing content
+            msg_subject = self._get_message_attr(message, "subject", "[No subject]")
+            snippet = self._get_message_attr(message, "snippet", "[No preview available]")
+
+            print(f"{i}. Similarity: {score:.2f} - {msg_subject}")
+            print(f"   Date: {message.get('date', 'No date')}")
+            print(f"   From: {message.get('from', 'Unknown')}")
+            print(f"   Message ID: {message['id']}")
+            print(f"   {snippet}")
+            print()
 
     def find_user_connections(self, email=None, limit=10):
         """
@@ -607,6 +670,428 @@ class OptimizedGraphQueryTool:
                 print(f"   - Topics: {', '.join(topics)}")
             print()
 
+    def full_text_search(self, query, context_user=None, limit=10):
+        """
+        Perform a comprehensive search through indexed email messages using spaCy and fuzzy matching.
+
+        This function searches for messages matching the query terms, including handling:
+        - Exact word matches
+        - Entity recognition (names, organizations, etc.)
+        - Fuzzy matching for typos and spelling variations
+        - Special handling for subject-only searches
+
+        Args:
+            query: Text to search for
+            context_user: Email of a user to contextualize the search results
+            limit: Maximum number of results to display
+
+        Returns:
+            None (displays results to console)
+        """
+        print(f"\n===== SEARCH: '{query}' =====")
+
+        # Check if we have indices loaded
+        if not hasattr(self, 'word_index') or not self.word_index:
+            self._load_indices()
+
+        if not self.word_index:
+            print("Warning: Search indices not available. Results will be limited.")
+            return
+
+        # Check for subject-only search flag
+        subject_only = any(prefix in query.lower() for prefix in ["subject:", "sujet:"])
+        if subject_only:
+            # Remove the subject: prefix for processing
+            query = re.sub(r'(subject:|sujet:)\s*', '', query, flags=re.IGNORECASE)
+            print("Searching in subject lines only")
+
+        # Process the query with spaCy
+        query_data = self._process_query(query)
+
+        # Display query terms for debugging
+        print(f"Search terms: {', '.join(query_data['tokens'])}")
+        if query_data['entities']:
+            print(f"Detected entities: {', '.join(query_data['entities'])}")
+
+        # ===== PHASE 1: Collect matching message IDs =====
+        matches = self._find_matching_messages(query_data, subject_only)
+
+        if not matches:
+            print(f"No messages found matching '{query}'")
+            return
+
+        # ===== PHASE 2: Score and rank results =====
+        scored_results = self._score_search_results(matches, query_data, context_user)
+
+        # ===== PHASE 3: Display results =====
+        print(f"Found {len(scored_results)} messages matching your search")
+        self._display_search_results(scored_results, limit)
+
+    def _process_query(self, query):
+        """
+        Process a search query using spaCy (or fallback to basic processing).
+
+        Args:
+            query: Search query text
+
+        Returns:
+            dict: Processed query data with tokens, entities, and additional metadata
+        """
+        result = {
+            'tokens': [],
+            'entities': [],
+            'original': query,
+            'fuzzy_tokens': []
+        }
+
+        # Try to use spaCy if available
+        try:
+            import spacy
+            try:
+                # Try French model first, fall back to English
+                nlp = spacy.load("fr_core_news_sm")
+            except:
+                try:
+                    nlp = spacy.load("en_core_web_sm")
+                except:
+                    return self._fallback_query_processing(query)
+
+            # Process with spaCy
+            doc = nlp(query)
+
+            # Extract normalized tokens (excluding punctuation and stopwords)
+            custom_stopwords = {
+                "bonjour", "cordialement", "merci", "salutations", "le", "la", "les",
+                "un", "une", "et", "est", "de", "du", "des", "pour", "dans", "avec",
+                "hello", "regards", "thanks", "thank", "you", "please", "the", "a", "an"
+            }
+
+            # Extract tokens
+            for token in doc:
+                if (not token.is_punct and not token.is_space and
+                        token.lemma_.lower() not in custom_stopwords):
+                    result['tokens'].append(token.lemma_.lower())
+
+            # Extract entities
+            for ent in doc.ents:
+                result['entities'].append(ent.text.lower())
+
+        except ImportError:
+            # Fallback if spaCy is not available
+            return self._fallback_query_processing(query)
+
+        # Add fuzzy matching variations
+        if result['tokens']:
+            for token in result['tokens']:
+                if len(token) >= 3:  # Only do fuzzy matching for meaningful terms
+                    result['fuzzy_tokens'].extend(self._find_similar_terms(token))
+
+        return result
+
+    def _fallback_query_processing(self, query):
+        """
+        Basic query processing for when spaCy is not available.
+
+        Args:
+            query: Search query text
+
+        Returns:
+            dict: Processed query data with basic tokenization
+        """
+        # Basic tokenization
+        tokens = re.findall(r'\b\w+\b', query.lower())
+
+        # Remove common stopwords
+        stopwords = {"le", "la", "les", "un", "une", "et", "est", "de", "du", "des",
+                     "the", "a", "an", "and", "is", "of", "for", "to", "in", "with"}
+
+        filtered_tokens = [token for token in tokens if len(token) > 2 or token not in stopwords]
+
+        return {
+            'tokens': filtered_tokens,
+            'entities': [],
+            'original': query,
+            'fuzzy_tokens': []
+        }
+
+    def _find_similar_terms(self, word, max_distance=1):
+        """
+        Find terms in the word index that are similar to the given word.
+
+        Args:
+            word: The word to find similar terms for
+            max_distance: Maximum Levenshtein distance to consider a match
+
+        Returns:
+            list: Similar terms found in the index
+        """
+        similar_terms = []
+
+        # Only attempt fuzzy matching on reasonably sized words
+        if len(word) < 3:
+            return similar_terms
+
+        # For efficiency, only check words of similar length
+        for term in self.word_index:
+            # Skip very short terms or large length differences
+            if len(term) < 3 or abs(len(term) - len(word)) > 2:
+                continue
+
+            # Calculate edit distance
+            if self._levenshtein_distance(word, term) <= max_distance:
+                similar_terms.append(term)
+
+        return similar_terms
+
+    def _levenshtein_distance(self, s1, s2):
+        """
+        Calculate the Levenshtein (edit) distance between two strings.
+
+        Args:
+            s1: First string
+            s2: Second string
+
+        Returns:
+            int: Edit distance between the strings
+        """
+        # Base case: empty strings
+        if len(s1) == 0:
+            return len(s2)
+        if len(s2) == 0:
+            return len(s1)
+
+        # Initialize matrix
+        d = [[0 for _ in range(len(s2) + 1)] for _ in range(len(s1) + 1)]
+
+        # Fill first row and column
+        for i in range(len(s1) + 1):
+            d[i][0] = i
+        for j in range(len(s2) + 1):
+            d[0][j] = j
+
+        # Fill rest of matrix
+        for i in range(1, len(s1) + 1):
+            for j in range(1, len(s2) + 1):
+                cost = 0 if s1[i - 1] == s2[j - 1] else 1
+                d[i][j] = min(
+                    d[i - 1][j] + 1,  # deletion
+                    d[i][j - 1] + 1,  # insertion
+                    d[i - 1][j - 1] + cost  # substitution
+                )
+
+        return d[len(s1)][len(s2)]
+
+    def _find_matching_messages(self, query_data, subject_only=False):
+        """
+        Find messages that match the query terms.
+
+        Args:
+            query_data: Processed query information
+            subject_only: Whether to search only in subject lines
+
+        Returns:
+            dict: Message ID to match metadata mapping
+        """
+        matches = {}  # message_id -> match metadata
+
+        # Initialize indices if they don't exist (compatibility with existing code)
+        if not hasattr(self, 'word_index'):
+            self.word_index = {}
+        if not hasattr(self, 'entity_index'):
+            self.entity_index = {}
+        if not hasattr(self, 'subject_index'):
+            self.subject_index = {}
+
+        # Search in appropriate indices based on subject_only flag
+        search_indices = [self.subject_index] if subject_only else [self.word_index]
+
+        # Search for exact token matches
+        for token in query_data['tokens']:
+            for index in search_indices:
+                if token in index:
+                    for msg_id in index[token]:
+                        if msg_id not in matches:
+                            matches[msg_id] = {'exact_matches': 0, 'fuzzy_matches': 0, 'entity_matches': 0}
+                        matches[msg_id]['exact_matches'] += 1
+
+        # Search for entity matches (unless subject-only search)
+        if not subject_only and self.entity_index:
+            for entity in query_data['entities']:
+                if entity in self.entity_index:
+                    for msg_id in self.entity_index[entity]:
+                        if msg_id not in matches:
+                            matches[msg_id] = {'exact_matches': 0, 'fuzzy_matches': 0, 'entity_matches': 0}
+                        matches[msg_id]['entity_matches'] += 1
+
+        # Search for fuzzy matches
+        for token in query_data['fuzzy_tokens']:
+            for index in search_indices:
+                if token in index:
+                    for msg_id in index[token]:
+                        if msg_id not in matches:
+                            matches[msg_id] = {'exact_matches': 0, 'fuzzy_matches': 0, 'entity_matches': 0}
+                        matches[msg_id]['fuzzy_matches'] += 1
+
+        # Filter to only include message IDs that exist in the message map
+        return {msg_id: metadata for msg_id, metadata in matches.items() if msg_id in self.message_map}
+
+    def _score_search_results(self, matches, query_data, context_user=None):
+        """
+        Score search results based on relevance factors.
+
+        Args:
+            matches: Dictionary of message IDs and match metadata
+            query_data: Processed query information
+            context_user: Optional user email for contextual relevance
+
+        Returns:
+            list: Tuples of (message, score) sorted by descending score
+        """
+        scored_results = []
+
+        for msg_id, match_data in matches.items():
+            message = self.message_map[msg_id]
+            score = self._calculate_relevance_score(message, match_data, query_data, context_user)
+            scored_results.append((message, score))
+
+        # Sort by score (descending)
+        return sorted(scored_results, key=lambda x: x[1], reverse=True)
+
+    def _calculate_relevance_score(self, message, match_data, query_data, context_user=None):
+        """
+        Calculate a relevance score for a search result.
+
+        Args:
+            message: The message object
+            match_data: Metadata about how the message matched the query
+            query_data: Processed query information
+            context_user: Optional user email for contextual relevance
+
+        Returns:
+            float: Relevance score
+        """
+        score = 1.0  # Base score
+
+        # Factor 1: Number of exact matches
+        score += match_data['exact_matches'] * 2.0
+
+        # Factor 2: Entity matches (higher weight)
+        score += match_data['entity_matches'] * 3.0
+
+        # Factor 3: Fuzzy matches (lower weight)
+        score += match_data['fuzzy_matches'] * 0.5
+
+        # Factor 4: Subject matches
+        # Check if this message's ID is in the subject index for any query token
+        subject_match = False
+        if hasattr(self, 'subject_index') and self.subject_index:
+            for token in query_data['tokens']:
+                if token in self.subject_index and message['id'] in self.subject_index[token]:
+                    subject_match = True
+                    break
+
+        if subject_match:
+            score *= 2.0  # Double the score for subject matches
+
+        # Factor 5: Recency
+        try:
+            message_date = datetime.fromisoformat(message.get("date", ""))
+            days_old = (datetime.now() - message_date).days
+            if days_old < 30:  # Within a month
+                score *= 1.3
+            elif days_old < 90:  # Within 3 months
+                score *= 1.1
+        except (ValueError, TypeError):
+            pass
+
+        # Factor 6: Has attachment if query mentions attachments
+        attachment_terms = {"attach", "pièce", "document", "fichier", "file"}
+        if any(term in query_data['original'].lower() for term in attachment_terms):
+            if message.get("has_attachment", False):
+                score *= 1.5
+
+        # Factor 7: User context
+        if context_user:
+            # Prioritize messages where the context user is sender or recipient
+            if context_user == message.get("from", ""):
+                score *= 1.8  # User is sender
+            elif context_user in message.get("to", []):
+                score *= 1.5  # User is direct recipient
+            elif context_user in message.get("cc", []):
+                score *= 1.2  # User is in CC
+
+        return score
+
+    def _display_search_results(self, scored_results, limit):
+        """
+        Display search results in a formatted way.
+
+        Args:
+            scored_results: List of (message, score) tuples
+            limit: Maximum number of results to display
+        """
+        for i, (message, score) in enumerate(scored_results[:limit], 1):
+            # Get thread subject as a fallback for message subject
+            thread_subject = ""
+            if message.get("thread_id") in self.thread_map:
+                thread = self.thread_map[message.get("thread_id")]
+                thread_subject = self._get_message_attr(thread, "subject", "[No subject]")
+
+            # Use thread subject when message subject is not available
+            subject = self._get_message_attr(message, "subject", thread_subject or "[No subject]")
+
+            print(f"{i}. Message ID: {message['id']} (Relevance: {score:.2f})")
+            print(f"   - Date: {message.get('date', 'Unknown')}")
+            print(f"   - From: {message.get('from', 'Unknown')}")
+            print(f"   - Subject: {subject}")
+            print(f"   - Has attachments: {message.get('has_attachment', False)}")
+
+            # Show recipients
+            to_list = ', '.join(message.get('to', []))
+            if len(to_list) > 50:
+                to_list = to_list[:47] + "..."
+            print(f"   - To: {to_list}")
+
+            # Display thread information
+            thread = self.thread_map.get(message.get("thread_id"))
+            if thread:
+                print(f"   - Thread: {thread_subject}")
+                print(f"   - Messages in thread: {thread.get('message_count', 0)}")
+            print()
+
+    def _load_indices(self):
+        """Load search indices from the indices directory."""
+        indices_dir = os.path.join(self.graph_dir, "indices")
+
+        if not os.path.exists(indices_dir):
+            print("No indices directory found.")
+            return False
+
+        try:
+            # Helper function to load an index
+            def load_index(filename):
+                file_path = os.path.join(indices_dir, filename)
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        # Convert lists back to sets
+                        return {key: set(values) for key, values in data.items()}
+                return {}
+
+            # Load each index
+            self.word_index = load_index("word_index.json")
+            self.entity_index = load_index("entity_index.json")
+            self.subject_index = load_index("subject_index.json")
+
+            print(f"Loaded search indices:")
+            print(f"- Word index: {len(self.word_index)} terms")
+            print(f"- Entity index: {len(self.entity_index)} entities")
+            print(f"- Subject index: {len(self.subject_index)} terms")
+
+            return True
+        except Exception as e:
+            print(f"Error loading indices: {str(e)}")
+            return False
 
 
 def main():
