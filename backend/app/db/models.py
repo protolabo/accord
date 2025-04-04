@@ -29,6 +29,7 @@ class Email(Document):
     subject: str
     received_at: datetime
     is_processed: bool = False
+    is_read: bool = False
 
     class Settings:
         name = "emails"

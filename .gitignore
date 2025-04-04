@@ -45,3 +45,6 @@ backend/test/__pycache__/test_emails.cpython-39-pytest-8.3.5.pyc
 backend/test/__pycache__/test_models.cpython-39-pytest-8.3.5.pyc
 backend/pytest.ini
 backend/app/services/ai/emailGenClass.py
+backend/test/test.py
+backend/app/services/ai/semantic_emails_1000_classified.json
+backend/app/services/ai/semantic_emails_1000_classified2.json
