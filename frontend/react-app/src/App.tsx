@@ -1,23 +1,13 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
-import Login from "./pages/Login";
+import AuthCallback from "./components/AuthCallback";
 
 function App() {
-  // Désactivé temporairement pour le développement
-  const isAuthenticated = true; // On force l'authentification à true
-
   return (
     <Routes>
-      <Route
-        path="/login"
-        element={isAuthenticated ? <Navigate to="/home" replace /> : <Login />}
-      />
-      <Route
-        path="/home"
-        element={<Home />} // Retiré la vérification d'authentification
-      />
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/auth/callback" element={<Login />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
     </Routes>
   );
 }

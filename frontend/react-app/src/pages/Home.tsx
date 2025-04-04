@@ -9,7 +9,6 @@ import {
   FaSun,
   FaSearch,
   FaArrowLeft,
-  FaSearchPlus,
 } from "react-icons/fa";
 import { twMerge } from "tailwind-merge";
 import AttentionGauge from "../components/AttentionGauge";
@@ -19,6 +18,10 @@ import ThreadSection from "../pages/ThreadSection";
 import ThreadDetail from "../components/ThreadDetail";
 import UserProfileModal from "../components/UserProfileModal";
 import SearchPopup from "../components/search/SearchPopup";
+import EmailLogin from "../components/EmailLogin";
+import emailAPIService, {
+  StandardizedEmail as EmailServiceEmail,
+} from "../services/EmailService";
 import {
   mockEmails,
   mockNotifications,
@@ -26,9 +29,33 @@ import {
   mockEstimatedTimes,
   mockTopContacts,
 } from "../data/mockData";
-import type { Email } from "../components/types";
+// Remove this import to avoid conflict
+// import type { Email } from "../components/types";
 import ResizeHandle from "../components/ResizeHandle";
 import { useNavigate } from "react-router-dom";
+
+// Define Email interface for the component
+interface Email {
+  "Message-ID": string;
+  Subject: string;
+  From: string;
+  To: string;
+  Cc: string;
+  Date: string;
+  "Content-Type": string;
+  Body: string;
+  IsRead: boolean;
+  Attachments: {
+    filename: string;
+    contentType: string;
+    size: number;
+    contentId?: string;
+    url?: string;
+  }[];
+  Categories: string[];
+  Importance: "high" | "normal" | "low";
+  ThreadId: string;
+}
 
 interface HomeState {
   searchTerm: string;
@@ -55,10 +82,16 @@ interface HomeState {
     timeBlock: number; // minutes
     endTime: Date | null;
   };
+  isAuthenticated: boolean;
+  emails: Email[];
+  isLoading: boolean;
 }
 
+// Add type cast to ensure mockEmails matches our Email interface
+const typedMockEmails = mockEmails as unknown as Email[];
+
 const Home: React.FC = () => {
-  // Etat initial
+  // Initial state
   const initialState: HomeState = {
     searchTerm: "",
     darkMode: false,
@@ -86,13 +119,87 @@ const Home: React.FC = () => {
       timeBlock: 25,
       endTime: null,
     },
+    isAuthenticated: false,
+    emails: [],
+    isLoading: false,
   };
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [state, setState] = useState<HomeState>(initialState);
+  const navigate = useNavigate();
 
-  // Effet pour le mode sombre
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const isAuth = emailAPIService.isAuthenticated();
+      setState((prev) => ({ ...prev, isAuthenticated: isAuth }));
+
+      if (isAuth) {
+        fetchEmails();
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // Fetch emails from the selected email service
+  const fetchEmails = async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      if (emailAPIService.isAuthenticated()) {
+        const serviceEmails = await emailAPIService.fetchEmails();
+
+        // Convert service emails to the format expected by the app
+        const convertedEmails: Email[] = serviceEmails.map((email) => ({
+          "Message-ID": email.id,
+          Subject: email.subject,
+          From: email.from,
+          To: email.to.join(", "),
+          Cc: email.cc.join(", "),
+          Date: email.date.toString(),
+          "Content-Type":
+            email.bodyType === "html" ? "text/html" : "text/plain",
+          Body: email.body,
+          IsRead: email.isRead,
+          Attachments: email.attachments,
+          Categories: email.categories,
+          Importance: email.importance,
+          ThreadId: email.threadId || email.id,
+        }));
+
+        setState((prev) => ({
+          ...prev,
+          emails: convertedEmails,
+          isLoading: false,
+        }));
+      } else {
+        // Fall back to mock data if not authenticated
+        setState((prev) => ({
+          ...prev,
+          emails: typedMockEmails,
+          isLoading: false,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching emails:", error);
+      // Fall back to mock data on error
+      setState((prev) => ({
+        ...prev,
+        emails: typedMockEmails,
+        isLoading: false,
+      }));
+    }
+  };
+
+  // Handle successful login
+  const handleLoginSuccess = () => {
+    setState((prev) => ({ ...prev, isAuthenticated: true }));
+    fetchEmails();
+  };
+
+  // Effect for dark mode
   useEffect(() => {
     if (state.darkMode) {
       document.documentElement.classList.add("dark");
@@ -101,14 +208,14 @@ const Home: React.FC = () => {
     }
   }, [state.darkMode]);
 
-  // Filtrer les emails
-  const filteredEmails = mockEmails.filter(
+  // Filter emails
+  const filteredEmails = state.emails.filter(
     (email) =>
       email.Subject.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
       email.From.toLowerCase().includes(state.searchTerm.toLowerCase())
   );
 
-  // Grouper les emails par catégorie
+  // Group emails by category
   const groupEmailsByCategory = (emails: Email[]) => {
     const grouped: { [key: string]: Email[] } = {};
     emails.forEach((email) => {
@@ -122,7 +229,7 @@ const Home: React.FC = () => {
     return grouped;
   };
 
-  const groupedEmails = groupEmailsByCategory(mockEmails);
+  const groupedEmails = groupEmailsByCategory(state.emails);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState((prev) => ({ ...prev, searchTerm: e.target.value }));
@@ -172,7 +279,7 @@ const Home: React.FC = () => {
       } else if (action === "collapse") {
         newSizes[sectionName] = 0.5;
 
-        // Ajuster les autres sections
+        // Adjust other sections
         const otherSections = Object.keys(newSizes).filter(
           (k) => k !== sectionName
         );
@@ -180,7 +287,7 @@ const Home: React.FC = () => {
           newSizes[key] = 1.25;
         });
       } else {
-        // Réinitialiser toutes les sections à taille égale
+        // Reset all sections to equal size
         Object.keys(newSizes).forEach((key) => {
           newSizes[key] = 1;
         });
@@ -190,13 +297,29 @@ const Home: React.FC = () => {
     });
   };
 
-  const handleThreadSelect = (email: Email) => {
+  const handleThreadSelect = useCallback(async (email: Email) => {
     setState((prev) => ({
       ...prev,
       selectedThread: email,
       showThreadDetail: true,
     }));
-  };
+
+    // Mark as read if using real email service
+    if (emailAPIService.isAuthenticated() && email && !email.IsRead) {
+      try {
+        await emailAPIService.markAsRead(email["Message-ID"]);
+        // Update the email in state to reflect it's now read
+        setState((prev) => ({
+          ...prev,
+          emails: prev.emails.map((e) =>
+            e["Message-ID"] === email["Message-ID"] ? { ...e, IsRead: true } : e
+          ),
+        }));
+      } catch (error) {
+        console.error("Error marking email as read:", error);
+      }
+    }
+  }, []);
 
   const handleBackToList = () => {
     setState((prev) => ({
@@ -206,7 +329,7 @@ const Home: React.FC = () => {
     }));
   };
 
-  // resize again - Gestionnaire evenement
+  // resize event handlers
   const handleResizeStart = useCallback(
     (index: number, clientX: number) => {
       const sectionSizes = { ...state.sectionSizes };
@@ -294,7 +417,7 @@ const Home: React.FC = () => {
     };
   }, [state.isResizing, handleMouseMove, handleMouseUp]);
 
-  // Calcul de la largeur totale pour normaliser les tailles
+  // Calculate total width to normalize sizes
   const totalSize = Object.values(
     state.sectionSizes || {
       Actions: 1,
@@ -340,7 +463,7 @@ const Home: React.FC = () => {
                 </motion.button>
               )}
             </div>
-            {/* Barre de recherche */}
+            {/* Search bar */}
             <div className="flex-1 max-w-xl mx-auto">
               <div className="relative">
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -428,7 +551,7 @@ const Home: React.FC = () => {
                 )}
               </div>
 
-              {/* Profil*/}
+              {/* Profile*/}
               <div className="relative">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -448,9 +571,11 @@ const Home: React.FC = () => {
         </div>
       </motion.header>
 
-      {/* Contenu principal */}
+      {/* Main content */}
       <main className="container mx-auto p-4">
-        {state.showThreadDetail ? (
+        {!state.isAuthenticated ? (
+          <EmailLogin onLogin={handleLoginSuccess} />
+        ) : state.showThreadDetail ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -463,7 +588,7 @@ const Home: React.FC = () => {
             />
           </motion.div>
         ) : (
-          // sections Home
+          // Home sections
           <div
             ref={containerRef}
             className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-[85rem] mx-auto"
@@ -474,7 +599,7 @@ const Home: React.FC = () => {
                 keyof typeof totalActions
               >
             ).map((section, index) => {
-              // Calculer le pourcentage de largeur
+              // Calculate the width percentage
               const sizePercent =
                 (state.sectionSizes[section] / totalSize) * 100;
               const isExpanded = state.sectionSizes[section] > 1;
@@ -499,7 +624,7 @@ const Home: React.FC = () => {
                   >
                     <AttentionGauge
                       level={mockPriorityLevels[section]}
-                      previousLevel={null} // or provide an actual previous level if available
+                      previousLevel={null}
                       section={section}
                       estimatedTime={
                         mockEstimatedTimes[
@@ -546,7 +671,11 @@ const Home: React.FC = () => {
                     </div>
 
                     <div className="p-4 flex-grow overflow-auto">
-                      {section === "Threads" ? (
+                      {state.isLoading ? (
+                        <div className="flex justify-center items-center h-full">
+                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+                        </div>
+                      ) : section === "Threads" ? (
                         <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
                           <ThreadSection
                             groupedEmails={groupedEmails}
@@ -608,7 +737,7 @@ const Home: React.FC = () => {
               <span className="text-2xl font-bold">+</span>
             </motion.button>
 
-            {/* contact fréquents Panel */}
+            {/* Frequent contacts Panel */}
             <div className="fixed right-6 top-24 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-40">
               <h3 className="text-lg font-semibold mb-4 dark:text-white">
                 Contacts fréquents
@@ -639,7 +768,7 @@ const Home: React.FC = () => {
                 ))}
               </div>
             </div>
-            {/* message rapide Popup */}
+            {/* Quick message Popup */}
             {state.showComposePopup && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -665,25 +794,82 @@ const Home: React.FC = () => {
                     </button>
                   </div>
 
-                  <form className="space-y-4">
+                  <form
+                    className="space-y-4"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!emailAPIService.isAuthenticated()) {
+                        alert("Veuillez vous connecter pour envoyer un email");
+                        return;
+                      }
+
+                      // Get form data
+                      const formData = new FormData(e.currentTarget);
+                      const to = (formData.get("to") as string)
+                        .split(",")
+                        .map((e) => e.trim());
+                      const cc = (formData.get("cc") as string)
+                        .split(",")
+                        .map((e) => e.trim());
+                      const subject = formData.get("subject") as string;
+                      const body = formData.get("body") as string;
+
+                      try {
+                        const result = await emailAPIService.sendEmail({
+                          subject,
+                          from: "", // The API will use the authenticated user's email
+                          to,
+                          cc,
+                          body,
+                          bodyType: "text",
+                          attachments: [],
+                          categories: [],
+                          importance: "normal",
+                          isRead: true,
+                        });
+
+                        if (result.success) {
+                          alert("Message envoyé avec succès!");
+                          setState((prev) => ({
+                            ...prev,
+                            showComposePopup: false,
+                          }));
+                          // Refresh emails to include the sent message
+                          fetchEmails();
+                        } else {
+                          alert(
+                            "Échec de l'envoi du message. Veuillez réessayer."
+                          );
+                        }
+                      } catch (error) {
+                        console.error("Error sending email:", error);
+                        alert(
+                          "Une erreur s'est produite lors de l'envoi du message."
+                        );
+                      }
+                    }}
+                  >
                     <div>
                       <input
                         type="email"
+                        name="to"
                         placeholder="À"
                         className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
                         onChange={(e) => {
-                          // Simulate recipient availability (on ira fetch ca quand on aura le backend)
+                          // Simulate recipient availability (we'll fetch this when we have the backend)
                           setState((prev) => ({
                             ...prev,
                             recipientAvailability: Math.random() * 100,
                           }));
                         }}
+                        required
                       />
                     </div>
 
                     <div>
                       <input
                         type="email"
+                        name="cc"
                         placeholder="Cc"
                         className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
                       />
@@ -692,8 +878,10 @@ const Home: React.FC = () => {
                     <div>
                       <input
                         type="text"
+                        name="subject"
                         placeholder="Objet"
                         className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
+                        required
                       />
                     </div>
 
@@ -715,13 +903,16 @@ const Home: React.FC = () => {
                     )}
 
                     <textarea
+                      name="body"
                       placeholder="Message"
                       rows={4}
                       className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg resize-none dark:bg-gray-700 dark:text-white"
+                      required
                     />
 
                     <div className="flex justify-end">
                       <motion.button
+                        type="submit"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
