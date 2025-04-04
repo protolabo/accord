@@ -80,7 +80,9 @@ class OutlookClient:
                     "email_id": msg["id"],
                     "subject": msg["subject"],
                     "sender": msg["from"]["emailAddress"]["address"],
-                    "received_at": msg["receivedDateTime"]
+                    "received_at": msg["receivedDateTime"],
+                    "cc": [cc["emailAddress"]["address"] for cc in msg.get("ccRecipients", [])],
+                    "bcc": [bcc["emailAddress"]["address"] for bcc in msg.get("bccRecipients", [])]
                 } for msg in data.get("value", [])])
 
                 next_link = data.get("@odata.nextLink")
@@ -103,3 +105,34 @@ class OutlookClient:
         except HTTPError as e:
             logger.error(f"Get email body failed: {e}")
             return ""
+        
+    # Forward an email
+    async def forward_email(self, email_id: str, to: list, comment: str = "") -> bool:
+        await self._check_token()
+        try:
+            payload = {
+                "comment": comment,
+                "toRecipients": [{"emailAddress": {"address": address}} for address in to]
+            }
+            response = await self.client.post(f"/me/messages/{email_id}/forward", json=payload)
+            response.raise_for_status()
+            return True
+        except HTTPError as e:
+            logger.error(f"Forward email failed: {e.response.status_code} - {e.response.text}")
+        except Exception as e:
+            logger.error(f"Unexpected error when forwarding email: {str(e)}")
+        return False
+    
+    # Reply email
+    async def reply_email(self, email_id: str, comment: str) -> bool:
+        await self._check_token()
+        try:
+            payload = {"comment": comment}
+            response = await self.client.post(f"/me/messages/{email_id}/reply", json=payload)
+            response.raise_for_status()
+            return True
+        except HTTPError as e:
+            logger.error(f"Reply email failed: {e.response.status_code} - {e.response.text}")
+        except Exception as e:
+            logger.error(f"Unexpected error when replying email: {str(e)}")
+        return False
