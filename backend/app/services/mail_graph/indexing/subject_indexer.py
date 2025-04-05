@@ -10,7 +10,7 @@ class SubjectIndexer:
 
         self.processed_messages = set()
 
-        self.stop_words =  mystopwords
+        self.stop_words =  mystopwords()
 
         # Regex patterns to clean up topics
         self.re_patterns = [

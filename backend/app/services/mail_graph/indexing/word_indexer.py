@@ -12,7 +12,7 @@ class WordIndexer:
 
         self.processed_messages = set()
 
-        self.stop_words = mystopwords
+        self.stop_words = mystopwords()
 
         try:
             import spacy

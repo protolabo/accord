@@ -6,7 +6,7 @@ from ..stopword import stopwords as mystopwords
 class TopicNodeManager:
 
     def __init__(self):
-        self.stop_words = mystopwords
+        self.stop_words = mystopwords()
 
 
     def extract_topics(self, email_data, topics_dict):

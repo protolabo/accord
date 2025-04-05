@@ -74,7 +74,7 @@ def main():
     build_start_time = time.time()
 
     #### ---------  Build graph using the coordinator --------- ####
-    result = graph_coordinator.build_graph_exec, emails
+    result = graph_coordinator.build_graph_exec(emails)
 
     build_time = time.time() - build_start_time
     log_memory_usage("after building graph")
