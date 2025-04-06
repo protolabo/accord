@@ -3,21 +3,21 @@ from collections import defaultdict
 
 
 class ThreadRelationProcessor:
-    """Processor for creating relationships between messages in the same thread."""
+    """Processor for creating relations between messages in the same thread."""
 
     def __init__(self):
         pass
 
     def process_thread_relations(self, messages, threads):
         """
-        Creates relationships between messages in the same thread.
+        Creates relations between messages in the same thread.
 
         Args:
         messages: Message dictionary
         threads: Thread dictionary
 
         Returns:
-        list: List of created relationships
+        list: List of created relations
         """
         # Group messages by thread_id
         thread_messages = defaultdict(list)
@@ -70,7 +70,7 @@ class ThreadRelationProcessor:
                 previous = sorted_messages[i - 1]
                 current = sorted_messages[i]
 
-                # Créer la relation REPLIED_TO
+                # create a REPLIED_TO relation
                 replied_relation = {
                     "id": str(uuid.uuid4()),
                     "type": "relation",
