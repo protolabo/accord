@@ -12,6 +12,14 @@ class Settings(BaseSettings):
     MICROSOFT_CLIENT_SECRET: str = "dummy_secret"
     MICROSOFT_TENANT_ID: str = "common"
     REDIRECT_URI: str = "http://localhost:8000/api/auth/outlook/callback"
+    
+    # Google Info
+    GMAIL_CLIENT_ID: str = "dummy_gmail_id"
+    GMAIL_CLIENT_SECRET: str = "dummy_gmail_secret"
+    GMAIL_REDIRECT_URI: str = "http://localhost:8000/api/auth/gmail/callback"
+    
+    # Email service settings
+    EMAIL_SYNC_INTERVAL: int = 300  # Intervalle en secondes pour la synchronisation des emails
 
 
     class Config:

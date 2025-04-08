@@ -4,44 +4,52 @@ export type EmailService = "gmail" | "outlook";
 
 export interface StandardizedEmail {
   id: string;
+  external_id: string;
+  platform: string;
   subject: string;
   from: string;
+  from_email: string;
   to: string[];
   cc: string[];
+  bcc?: string[];
   body: string;
   bodyType: "html" | "text";
-  date: Date;
+  date: string | Date;
   isRead: boolean;
+  isImportant: boolean;
   attachments: {
     filename: string;
-    contentType: string;
+    content_type: string;
     size: number;
-    contentId?: string;
+    content_id?: string;
     url?: string;
   }[];
   categories: string[];
-  importance: "high" | "normal" | "low";
+  labels?: string[];
   threadId?: string;
 }
 
 export interface Folder {
   id: string;
   name: string;
-  unreadCount: number;
+  platform: string;
+  type: string;
+  unreadCount?: number;
 }
 
 export interface UserProfile {
   email: string;
-  name: string;
+  name?: string;
   picture?: string;
+  platform: string;
+  authenticated: boolean;
 }
 
 export interface EmailFetchOptions {
   limit?: number;
-  offset?: number;
-  filter?: string;
-  includeAttachments?: boolean;
-  folderId?: string;
+  skip?: number;
+  folder?: string;
+  query?: string;
 }
 
 class EmailAPIService {
@@ -51,14 +59,13 @@ class EmailAPIService {
   private service: EmailService | null = null;
 
   constructor() {
-    this.baseUrl =
-      process.env.REACT_APP_API_URL || "http://localhost:3000/api/email";
+    this.baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
   }
 
   private getHeaders() {
     return {
       "Content-Type": "application/json",
-      ...(this.accessToken ? { accessToken: this.accessToken } : {}),
+      Authorization: this.accessToken ? `Bearer ${this.accessToken}` : "",
     };
   }
 
@@ -124,41 +131,36 @@ class EmailAPIService {
     return this;
   }
 
-  async getAuthUrl(): Promise<string> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+  async getAuthUrl(service: EmailService): Promise<string> {
     try {
-      const response = await axios.get(`${this.baseUrl}/${this.service}/auth`);
-      return response.data.authUrl;
+      // Notre nouvelle API utilise des routes différentes pour l'authentification
+      const response = await axios.get(`${this.baseUrl}/auth/${service}/login`);
+      return response.data.auth_url;
     } catch (error) {
-      console.error("Error getting auth URL:", error);
+      console.error(`Error getting ${service} auth URL:`, error);
       throw error;
     }
   }
 
   async handleAuthCallback(
-    code: string
+    code: string,
+    service: EmailService
   ): Promise<{ accessToken: string; refreshToken?: string }> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
     try {
       const response = await axios.get(
-        `${this.baseUrl}/${this.service}/auth/callback`,
+        `${this.baseUrl}/auth/${service}/callback`,
         {
           params: { code },
         }
       );
 
-      const { accessToken, refreshToken } = response.data;
-      this.setTokens(accessToken, refreshToken);
+      const { access_token, refresh_token } = response.data;
+      this.setTokens(access_token, refresh_token);
+      this.setService(service);
 
-      return { accessToken, refreshToken };
+      return { accessToken: access_token, refreshToken: refresh_token };
     } catch (error) {
-      console.error("Error handling auth callback:", error);
+      console.error(`Error handling ${service} auth callback:`, error);
       throw error;
     }
   }
@@ -166,10 +168,7 @@ class EmailAPIService {
   async fetchEmails(
     options: EmailFetchOptions = {}
   ): Promise<StandardizedEmail[]> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -177,15 +176,22 @@ class EmailAPIService {
     }
 
     try {
-      const response = await axios.get(
-        `${this.baseUrl}/${this.service}/emails`,
-        {
-          headers: this.getHeaders(),
-          params: options,
-        }
-      );
+      // Notre nouvelle API standardisée
+      const response = await axios.get(`${this.baseUrl}/emails`, {
+        headers: this.getHeaders(),
+        params: {
+          ...options,
+          platform: service,
+        },
+      });
 
-      return response.data.emails;
+      // Transformer les dates en objets Date
+      const emails = response.data.emails.map((email: any) => ({
+        ...email,
+        date: new Date(email.date),
+      }));
+
+      return emails;
     } catch (error) {
       console.error("Error fetching emails:", error);
       throw error;
@@ -193,10 +199,7 @@ class EmailAPIService {
   }
 
   async fetchEmailById(id: string): Promise<StandardizedEmail> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -204,27 +207,35 @@ class EmailAPIService {
     }
 
     try {
-      const response = await axios.get(
-        `${this.baseUrl}/${this.service}/emails/${id}`,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.get(`${this.baseUrl}/emails/${id}`, {
+        headers: this.getHeaders(),
+        params: {
+          platform: service,
+        },
+      });
 
-      return response.data.email;
+      // Transformer la date en objet Date
+      const email = {
+        ...response.data,
+        date: new Date(response.data.date),
+      };
+
+      return email;
     } catch (error) {
       console.error(`Error fetching email with ID ${id}:`, error);
       throw error;
     }
   }
 
-  async sendEmail(
-    email: Omit<StandardizedEmail, "id" | "date">
-  ): Promise<{ success: boolean; id?: string }> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+  async sendEmail(email: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    body: string;
+    body_type: string;
+  }): Promise<{ success: boolean; message_id?: string }> {
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -232,13 +243,12 @@ class EmailAPIService {
     }
 
     try {
-      const response = await axios.post(
-        `${this.baseUrl}/${this.service}/emails`,
-        email,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.post(`${this.baseUrl}/emails`, email, {
+        headers: this.getHeaders(),
+        params: {
+          platform: service,
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -247,11 +257,8 @@ class EmailAPIService {
     }
   }
 
-  async markAsRead(id: string): Promise<boolean> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+  async markAsRead(id: string, read: boolean = true): Promise<boolean> {
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -260,10 +267,14 @@ class EmailAPIService {
 
     try {
       const response = await axios.patch(
-        `${this.baseUrl}/${this.service}/emails/${id}/read`,
+        `${this.baseUrl}/emails/${id}/read`,
         {},
         {
           headers: this.getHeaders(),
+          params: {
+            platform: service,
+            read,
+          },
         }
       );
 
@@ -275,10 +286,7 @@ class EmailAPIService {
   }
 
   async getFolders(): Promise<Folder[]> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -286,12 +294,12 @@ class EmailAPIService {
     }
 
     try {
-      const response = await axios.get(
-        `${this.baseUrl}/${this.service}/folders`,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.get(`${this.baseUrl}/folders`, {
+        headers: this.getHeaders(),
+        params: {
+          platform: service,
+        },
+      });
 
       return response.data.folders;
     } catch (error) {
@@ -301,10 +309,7 @@ class EmailAPIService {
   }
 
   async getUserProfile(): Promise<UserProfile> {
-    if (!this.service) {
-      throw new Error("Email service not selected");
-    }
-
+    const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
 
     if (!this.accessToken) {
@@ -312,14 +317,14 @@ class EmailAPIService {
     }
 
     try {
-      const response = await axios.get(
-        `${this.baseUrl}/${this.service}/profile`,
-        {
-          headers: this.getHeaders(),
-        }
-      );
+      const response = await axios.get(`${this.baseUrl}/profile`, {
+        headers: this.getHeaders(),
+        params: {
+          platform: service,
+        },
+      });
 
-      return response.data.profile;
+      return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
       throw error;
