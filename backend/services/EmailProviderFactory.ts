@@ -36,6 +36,9 @@ class EmailProviderFactory {
           process.env.GMAIL_CLIENT_SECRET || "",
           process.env.GMAIL_REDIRECT_URI || ""
         );
+        console.log(
+          `Created Gmail provider with redirect URI: ${process.env.GMAIL_REDIRECT_URI}`
+        );
         break;
 
       case "outlook":
@@ -44,6 +47,9 @@ class EmailProviderFactory {
           process.env.OUTLOOK_CLIENT_SECRET || "",
           process.env.OUTLOOK_REDIRECT_URI || "",
           process.env.OUTLOOK_TENANT_ID || "common"
+        );
+        console.log(
+          `Created Outlook provider with redirect URI: ${process.env.OUTLOOK_REDIRECT_URI}`
         );
         break;
 

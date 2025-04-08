@@ -14,8 +14,10 @@
     "cross-env": "^7.0.3",
     "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
+    "http-proxy-middleware": "^3.0.3",
     "wait-on": "^7.2.0"
   },
+  "proxy": "http://localhost:3001",
   "build": {
     "appId": "com.accord.app",
     "productName": "Accord",
