@@ -9,7 +9,7 @@ import {
   FaTrash,
   FaLightbulb
 } from 'react-icons/fa';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import type { ThreadDetailProps, Email, Attachment } from '../components/types';
 
 interface LocationState {
