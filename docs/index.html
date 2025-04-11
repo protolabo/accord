@@ -1,379 +1,867 @@
 <!DOCTYPE html>
 <html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Projet IFT3150 | StepOn</title>
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/normalize.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body>
+  <body>
     <header class="page-header">
-        <!-- <img class="logo" style="display: block" src="" height="120" alt="" /> -->
-    
-        <h1 class="page-title">
-            Accord <br>
-            <span style="font-size: 0.6em; font-weight: 500;">IFT3150 &ndash; Projet informatique</span>
-        </h1>
-        
-        
-        <ul class="bare-list project-infos">
-            <!-- <li class="info ico ico-supervisor">
+      <!-- <img class="logo" style="display: block" src="" height="120" alt="" /> -->
+
+      <h1 class="page-title">
+        Accord <br />
+        <span style="font-size: 0.6em; font-weight: 500"
+          >IFT3150 &ndash; Projet informatique</span
+        >
+      </h1>
+
+      <ul class="bare-list project-infos">
+        <!-- <li class="info ico ico-supervisor">
                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M404.7 79.78h-2.8c-7.5.26-15.8 1.73-24.8 4.3-18 5.16-38.4 14.56-59.3 25.78-41.9 22.4-85.8 52-121.5 68.6-26.4 12.4-59.3 20.4-89.8 27.5-30.5 7.1-58.95 13.4-74.36 20.6-7.13 3.4-10.9 6.9-12.71 9.9-1.8 2.9-2.1 5.2-1.44 8.4 1.32 6.4 8.57 15.4 18.49 21.9l3.29 2.1c162.63-2.3 289.43-13.7 387.73-52.6 2.1-17.6 6.7-34.7 16.5-48.5v-.1l.1-.1c24.5-32.2 8.9-72.58-22.4-84.89-5-1.95-10.7-2.91-17-2.93zm21.9 185.12c-44.2 25.1-103.8 37-169.2 41.2-68.7 4.4-143.7.1-213.52-7.8l1.89 14c31.19 3.2 98.53 11.8 172.83 11.5 77.2-.3 159.6-11.3 208.6-46.2-.2-4.1-.4-8.3-.6-12.7zm7.1 30.2c-46.9 31.5-113.8 42.9-179.9 45.8 44.7 39 89.3 55.1 127.3 59.1 45.2 4.8 81.5-8.7 94.8-19.8 13-10.8 17.5-19.5 18.3-26.2.7-6.8-2-13.3-8.2-20.5-11.3-13.4-33.5-26.4-52.3-38.4z"></path></svg>
             </li> -->
-            <li class="info supervisor" title="Superviseur: Louis-Edouard LAFONTANT">
-                <svg class="ico" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M480 288c0-80.25-49.28-148.92-119.19-177.62L320 192V80a16 16 0 0 0-16-16h-96a16 16 0 0 0-16 16v112l-40.81-81.62C81.28 139.08 32 207.75 32 288v64h448zm16 96H16a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h480a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"></path></svg>
-                <span class="content">Louis-Edouard LAFONTANT</span>
-            </li>
-            <li class="info team" title="Étudiant: Louis FORRER">
-                <svg class="ico" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 640 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM609.3 512H471.4c5.4-9.4 8.6-20.3 8.6-32v-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2h61.4C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7zM432 256c-31 0-59-12.6-79.3-32.9C372.4 196.5 384 163.6 384 128c0-26.8-6.6-52.1-18.3-74.3C384.3 40.1 407.2 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112z"></path></svg>
-                <span class="content">Louis FORRER, Hervé Mbalolyako NGISSE</span>
-            </li>
-        </ul>
+        <li
+          class="info supervisor"
+          title="Superviseur: Louis-Edouard LAFONTANT"
+        >
+          <svg
+            class="ico"
+            stroke="currentColor"
+            fill="currentColor"
+            stroke-width="0"
+            viewBox="0 0 512 512"
+            height="1em"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M480 288c0-80.25-49.28-148.92-119.19-177.62L320 192V80a16 16 0 0 0-16-16h-96a16 16 0 0 0-16 16v112l-40.81-81.62C81.28 139.08 32 207.75 32 288v64h448zm16 96H16a16 16 0 0 0-16 16v32a16 16 0 0 0 16 16h480a16 16 0 0 0 16-16v-32a16 16 0 0 0-16-16z"
+            ></path>
+          </svg>
+          <span class="content">Louis-Edouard LAFONTANT</span>
+        </li>
+        <li class="info team" title="Étudiant: Louis FORRER">
+          <svg
+            class="ico"
+            stroke="currentColor"
+            fill="currentColor"
+            stroke-width="0"
+            viewBox="0 0 640 512"
+            height="1em"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM609.3 512H471.4c5.4-9.4 8.6-20.3 8.6-32v-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2h61.4C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7zM432 256c-31 0-59-12.6-79.3-32.9C372.4 196.5 384 163.6 384 128c0-26.8-6.6-52.1-18.3-74.3C384.3 40.1 407.2 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112z"
+            ></path>
+          </svg>
+          <span class="content">Louis FORRER, Hervé Mbalolyako NGISSE</span>
+        </li>
+      </ul>
 
-        <ul class="bare-list project-links">
-            <li class="project-link repo">
-                <a class="bare-link" target="_blank" href="https://github.com/protolabo/accord/">
-                    Code source <img class="ico" src="images/github-mark-white.svg" alt="Logo GitHub">
-                </a>
-            </li>
-            <li class="project-link doc">
-                <a class="bare-link disabled" href="#">
-                    Rapport <svg class="ico" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M272 41.69V188a4 4 0 0 0 4 4h146.31a2 2 0 0 0 1.42-3.41L275.41 40.27a2 2 0 0 0-3.41 1.42z"></path><path d="M248 224a8 8 0 0 1-8-8V32H92a12 12 0 0 0-12 12v424a12 12 0 0 0 12 12h328a12 12 0 0 0 12-12V224zm104 160H160v-32h192zm0-80H160v-32h192z"></path></svg>
-                </a>
-            </li>
-            <li class="project-link doc">
-                <a class="bare-link disabled" href="#">
-                    Présentation <svg class="ico" stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 256 256" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Z"></path></svg>
-                </a>
-            </li>
-        </ul>
+      <ul class="bare-list project-links">
+        <li class="project-link repo">
+          <a
+            class="bare-link"
+            target="_blank"
+            href="https://github.com/protolabo/accord/"
+          >
+            Code source
+            <img
+              class="ico"
+              src="images/github-mark-white.svg"
+              alt="Logo GitHub"
+            />
+          </a>
+        </li>
+        <li class="project-link doc">
+          <a class="bare-link" href="./assert/accord_rapport.pdf">
+            Rapport
+            <svg
+              class="ico"
+              stroke="currentColor"
+              fill="currentColor"
+              stroke-width="0"
+              viewBox="0 0 512 512"
+              height="1em"
+              width="1em"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M272 41.69V188a4 4 0 0 0 4 4h146.31a2 2 0 0 0 1.42-3.41L275.41 40.27a2 2 0 0 0-3.41 1.42z"
+              ></path>
+              <path
+                d="M248 224a8 8 0 0 1-8-8V32H92a12 12 0 0 0-12 12v424a12 12 0 0 0 12 12h328a12 12 0 0 0 12-12V224zm104 160H160v-32h192zm0-80H160v-32h192z"
+              ></path>
+            </svg>
+          </a>
+        </li>
+        <li class="project-link doc">
+          <a class="bare-link disabled" href="#">
+            Présentation
+            <svg
+              class="ico"
+              stroke="currentColor"
+              fill="currentColor"
+              stroke-width="0"
+              viewBox="0 0 256 256"
+              height="1em"
+              width="1em"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Z"
+              ></path>
+            </svg>
+          </a>
+        </li>
+      </ul>
     </header>
 
     <main class="page-body">
-        <header class="content-wrapper">
-            <h2>Description du projet</h2>
-            
-            <!-- TODO: Description du contexte -->
-            <p>
-                
-            </p>
+      <header class="content-wrapper">
+        <h2>Description du projet</h2>
+        <!-- Description du contexte -->
+        <p>
+          Accord est bien plus qu'une simple solution de gestion d'emails. C'est
+          une véritable révolution dans la façon dont les entreprises
+          interagissent avec leur messagerie. Au cœur d'Accord se trouve un
+          moteur d'IA sophistiqué qui comprend le contexte et le contenu de
+          chaque message avec une précision inégalée. Grâce à des modèles de
+          machine learning et au traitement du langage naturel, Accord
+          catégorise automatiquement vos emails, détecte leur niveau de priorité
+          et même le sentiment qu'ils expriment.
+        </p>
 
-            <!-- TODO: Description de la problématique ou motivation -->
-            <p>
-                
-            </p>		
+        <!-- Description de la problématique ou motivation -->
+        <p>
+          Fini le temps perdu à trier manuellement votre boîte de réception !
+          Trouver un email ancien ou une pièce jointe égarée n'a jamais été
+          aussi simple grâce à la recherche intelligente d'Accord. De plus, vous
+          n'aurez plus besoin de vous soucier de répondre aux emails quand vous
+          êtes occupé. La gestion des emails est devenue une tâche chronophage
+          qui réduit la productivité des professionnels. Les utilisateurs sont
+          submergés par le volume de messages, la difficulté à distinguer
+          l'important de l'accessoire, et le besoin constant de rester connectés
+          même dans des moments d'indisponibilité.
+        </p>
 
-            <!-- TODO: Description de la proposition et des objectifs -->
-            <p>
-                
-            </p>
+        <!-- Description de la proposition et des objectifs -->
+        <p>
+          Accord va plus loin en introduisant des sections intelligentes qui
+          transforment votre façon de traiter les emails.
+        </p>
+        <ul>
+          <li>
+            La section <strong>"Actions"</strong> regroupe tous les messages qui
+            nécessitent votre intervention, comme confirmer un rendez-vous ou
+            approuver une demande.
+          </li>
+          <li>
+            La section <strong>"Informations"</strong> quant à elle, rassemble
+            les notifications et messages informatifs qui ne requièrent pas
+            d'action immédiate de votre part.
+          </li>
+          <li>
+            La section <strong>"Thread"</strong> organise intelligemment vos
+            conversations en regroupant les messages liés, vous permettant de
+            suivre facilement le fil des échanges complexes et de comprendre le
+            contexte global de chaque discussion.
+          </li>
+        </ul>
+
+        <p>
+          La détection de disponibilité d'Accord utilise des algorithmes avancés
+          pour informer intelligemment vos correspondants de votre situation,
+          que vous soyez en réunion, en vacances ou concentré sur une tâche
+          importante. Enfin, Accord a été pensé pour une intégration
+          transparente et un déploiement à grande échelle. Que vous soyez une
+          petite équipe ou une grande organisation, Accord s'adapte à vos
+          besoins et à vos workflows existants.
+        </p>
+      </header>
+
+      <section class="content-wrapper">
+        <h2>Exigences</h2>
+        <h3>Besoins fonctionnels & Besoins non fonctionnels</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0">
+          <thead>
+            <tr style="background-color: #f5f5f5">
+              <th
+                style="padding: 12px; border: 1px solid #ddd; text-align: left"
+              >
+                Catégorie
+              </th>
+              <th
+                style="padding: 12px; border: 1px solid #ddd; text-align: left"
+              >
+                Besoins fonctionnels
+              </th>
+              <th
+                style="padding: 12px; border: 1px solid #ddd; text-align: left"
+              >
+                Besoins non fonctionnels
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Authentification</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Création de compte<br />
+                • Connexion via compte existant<br />
+                • Gestion sécurisée des sessions
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">-</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Configuration</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Configuration IMAP/SMTP<br />
+                • Synchronisation des emails<br />
+                • Support multi-comptes<br />
+                • Validation visuelle
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Mode hors-ligne<br />
+                • Synchronisation automatique
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Interface</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Vue liste/threads<br />
+                • Filtres et recherche<br />
+                • Regroupement par thèmes<br />
+                • Vue unifiée<br />
+                • Priorisation visuelle<br />
+                • Mode focus
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Interface drag-and-drop<br />
+                • Création visuelle de règles
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Classification</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Catégorisation automatique<br />
+                • Reclassement manuel pour affiner l’algorithme<br />
+                • Regroupement intelligent<br />
+                • Recommandations d'actions
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Analyse de sentiment<br />
+                • Suggestions de réponses semi-personnalisées selon le contenu
+                de l’e-mail <br />
+                • Suggestions de réponses via des variables comme l'horaire
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Synthèse</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Résumé automatique<br />
+                • Vue dédiée<br />
+                • Interaction avec synthèses<br />
+                • Résumés périodiques
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Statistiques avancées<br />
+                • Mesure de charge cognitive basée sur des paramètres comme la
+                longueur, <br />
+                le type d'e-mails, ou le délai moyen de réponse
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Disponibilité</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Jauge d'attention<br />
+                • Paramétrage auto/manuel<br />
+                • Statut visuel<br />
+                • Synchronisation calendrier
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Intégration calendriers externes<br />
+                • Génération de tâches
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Suivi</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Historique des actions<br />
+                • Évolution de la boîte<br />
+                • Analyse des actions
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Temps de réponse moyen<br />
+                • Statistiques de volume<br />
+                • Métriques de performance
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                <strong>Notifications</strong>
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Alertes configurables<br />
+                • Plages horaires<br />
+                • Intégration jauge attention
+              </td>
+              <td style="padding: 12px; border: 1px solid #ddd">
+                • Alertes de ton critique<br />
+                • Notifications groupées
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- <h3>Besoins Non Fonctionnels</h3> -->
+      </section>
+
+      <section class="content-wrapper">
+        <h2>Infrastructure</h2>
+      </section>
+
+      <section class="content-wrapper progress-section">
+        <header class="progress-section-header">
+          <h2 style="font-size: 3.3em; font-weight: 800">
+            Rapport d'avancement
+          </h2>
+          <ul class="bare-list phases">
+            <li class="phase fit-content current" title="Exigences & Analyse">
+              Exigences & Analyse
+            </li>
+            <li class="phase fit-content" title="Prototypage & Conception">
+              Prototypage & Conception
+            </li>
+            <li
+              class="phase fit-content"
+              title="Implémentation: Infrastructure & Application"
+            >
+              Implémentation: Infrastructure & Application
+            </li>
+            <li class="phase fit-content" title="Validation">Validation</li>
+          </ul>
+          <div class="timeline"></div>
         </header>
 
-        
-        <section class="content-wrapper">
-            <h2>Exigences</h2>
-            <h3>Besoins fonctionnels & Besoins non fonctionnels</h3>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <thead>
-                   <tr style="background-color: #f5f5f5;">
-                       <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Catégorie</th>
-                       <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Besoins fonctionnels</th>
-                       <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Besoins non fonctionnels</th>
-                   </tr>
-               </thead>
-               <tbody>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Authentification</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Création de compte<br>
-                           • Connexion via compte existant<br>
-                           • Gestion sécurisée des sessions
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">-</td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Configuration</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Configuration IMAP/SMTP<br>
-                           • Synchronisation des emails<br>
-                           • Support multi-comptes<br>
-                           • Validation visuelle
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Mode hors-ligne<br>
-                           • Synchronisation automatique
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Interface</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Vue liste/threads<br>
-                           • Filtres et recherche<br>
-                           • Regroupement par thèmes<br>
-                           • Vue unifiée<br>
-                           • Priorisation visuelle<br>
-                           • Mode focus
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Interface drag-and-drop<br>
-                           • Création visuelle de règles
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Classification</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Catégorisation automatique<br>
-                           • Reclassement manuel pour affiner l’algorithme<br>
-                           • Regroupement intelligent<br>
-                           • Recommandations d'actions
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Analyse de sentiment<br>
-                           • Suggestions de réponses  semi-personnalisées selon le contenu de l’e-mail <br>
-                           • Suggestions de réponses via des variables comme l'horaire
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Synthèse</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Résumé automatique<br>
-                           • Vue dédiée<br>
-                           • Interaction avec synthèses<br>
-                           • Résumés périodiques
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Statistiques avancées<br>
-                           • Mesure de charge cognitive basée sur des paramètres comme la longueur, <br>  le type d'e-mails, ou le délai moyen de réponse
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Disponibilité</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Jauge d'attention<br>
-                           • Paramétrage auto/manuel<br>
-                           • Statut visuel<br>
-                           • Synchronisation calendrier
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Intégration calendriers externes<br>
-                           • Génération de tâches
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Suivi</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Historique des actions<br>
-                           • Évolution de la boîte<br>
-                           • Analyse des actions
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Temps de réponse moyen<br>
-                           • Statistiques de volume<br>
-                           • Métriques de performance
-                       </td>
-                   </tr>
-                   <tr>
-                       <td style="padding: 12px; border: 1px solid #ddd;"><strong>Notifications</strong></td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Alertes configurables<br>
-                           • Plages horaires<br>
-                           • Intégration jauge attention
-                       </td>
-                       <td style="padding: 12px; border: 1px solid #ddd;">
-                           • Alertes de ton critique<br>
-                           • Notifications groupées
-                       </td>
-                   </tr>
-               </tbody>
-            </table>
-                
-            <!-- <h3>Besoins Non Fonctionnels</h3> -->
-        </section>
-
-        <section class="content-wrapper">
-            <h2>Infrastructure</h2>
-           
-        </section>
-
-        <section class="content-wrapper progress-section">
-            <header class="progress-section-header">
-                <h2 style="font-size: 3.3em; font-weight: 800;">Rapport d'avancement</h2>
-                <ul class="bare-list phases">
-                    <li class="phase fit-content current" title="Exigences & Analyse">Exigences & Analyse</li>
-                    <li class="phase fit-content" title="Prototypage & Conception">Prototypage & Conception</li>
-                    <li class="phase fit-content" title="Implémentation: Infrastructure & Application">Implémentation: Infrastructure & Application</li>
-                    <li class="phase fit-content" title="Validation">Validation</li>
-                </ul>
-                <div class="timeline"></div>
-            </header>
-          
-            <section class="week">
-                <header class="week-header">
-                    <h3 class="week-title">Semaine 1 &ndash;
-                        <time datetime="2024-09-09">Lundi 13 janvier 2025</time>
-                    </h3>
-                    <p>Ouverture de projet & Élaboration des exigences</p>
-                </header>
-                <div class="week-content">
-                    <h4 class="title">Objectifs</h4>
-                    
-
-
-                    <ul>
-                        <li>Se familiariser avec les outils qui seront utilisés pour le projet: Electron, React, FastAPI</li>
-                        <li>Produire une première version de l'échéancier</li>
-                        <li>Brainstormez des idées pour capturer le concept de jauge d'attention (fonctionnalités, algorithmes, ou visuels dans l'interface).</li>
-                        <li>Recherchez et documentez brièvement des solutions existantes qui servent de wrappers ou d'agrégateurs pour la messagerie et les courriels.</li>
-                        <li>Recherchez et documentez brièvement des outils ou techniques de classification ou synthèse de messages.</li>
-                    </ul>
-
-                    <h4 class="title">Réalisations</h4>
-                    <ul>
-                        <li>Exploration de plusieurs applications essayant d’implémenter l’IA pour les courriels, notamment Spark.</li>
-                        <li>Choix de se concentrer sur les courriels plutôt que la messagerie (trop de bruit et débit de messages important) afin de «réinventer la façon dont on utilise les emails aujourd’hui».</li>
-                        <li>Discussion autour de la «jauge d’attention» et de ses différentes manières de représentation.</li>
-                        <li>Début de croquis sur papier pour le design de l’application.</li>
-                        <li>Exploration des solutions avec Electron.</li>
-                    </ul>
-
-                    <h4 class="title">Notes</h4>
-                    <p></p>
-                </div>
-                </section>
-                    <section class="week">
-                    <header class="week-header">
-                    <h3 class="week-title">Semaine 2 &ndash;
-                        <time datetime="2024-09-09">Lundi 20 janvier 2025</time>
-                    </h3>
-                    <p>Approfondissement de l'analyse des exigences</p>
-                </header>
-                <div class="week-content">
-                    <h4 class="title">Objectifs</h4>
-                    
-
-
-                    <ul>
-                        <li>Personnalisation avancée : Analysez des solutions offrant des fonctionnalités de personnalisation poussée. => Établir une liste de fonctionnalités pertinentes.</li>
-                        <li>Prototypez une interface : Dessinez des prototypes jetables illustrant des fonctionnalités clés de l'application (ex: jauge d’attention, priorisation des messages, personnalisation).  => Prototypes de 2 à 3 écrans.</li>
-                        <li>Techniques de classification avancées : Recherchez des outils ou techniques de classification de messages. => Établir des critères de classification et une procédure (algorithme simplifié) pour la classification.</li>
-                        <li>Synthèse et résumé : Étudiez des solutions intégrant des techniques de synthèse ou de résumé automatique. => Une idée ou un exemple montrant comment cette fonctionnalité pourrait être intégrée au projet.</li>
-            
-                    </ul>
-
-                    <h4 class="title">Réalisations</h4>
-                    <ul>
-                        <li>Discussions approfondies sur le prototypage et le design de l’application, avec un focus sur l’expérience utilisateur.</li>
-                        <li>Analyse des fonctionnalités clés : personnalisation avancée, gestion des priorités et synthèse automatique des messages.</li>
-                        <li>Recherche et comparaison des solutions existantes intégrant des techniques de classification et de résumé automatique.</li>
-                        <li>Exploration des outils et plateformes pouvant être intégrés au projet.</li>
-                        <li>Définition des premiers critères de classification et priorisation des messages.</li>
-                        <li>Préparation des prochaines étapes vers les premières maquettes fonctionnelles.</li>
-                    </ul>
-
-                    <h4 class="title">Notes</h4>
-                    <p></p>
-                </div>
-            </section>
-        
         <section class="week">
-        <header class="week-header">
-        <h3 class="week-title">Semaine 3 et 4 &ndash;
-            <time datetime="2024-09-09">Lundi 27 janvier 2025,  Lundi 3 Février 2025</time>
-        </h3>
-        <p>Modélisation de l’application</p>
-    </header>
-    <div class="week-content">
-        <h4 class="title">Objectifs</h4>
-        
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 1 &ndash;
+              <time datetime="2024-09-09">Lundi 13 janvier 2025</time>
+            </h3>
+            <p>Ouverture de projet & Élaboration des exigences</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
 
+            <ul>
+              <li>
+                Se familiariser avec les outils qui seront utilisés pour le
+                projet: Electron, React, FastAPI
+              </li>
+              <li>Produire une première version de l'échéancier</li>
+              <li>
+                Brainstormez des idées pour capturer le concept de jauge
+                d'attention (fonctionnalités, algorithmes, ou visuels dans
+                l'interface).
+              </li>
+              <li>
+                Recherchez et documentez brièvement des solutions existantes qui
+                servent de wrappers ou d'agrégateurs pour la messagerie et les
+                courriels.
+              </li>
+              <li>
+                Recherchez et documentez brièvement des outils ou techniques de
+                classification ou synthèse de messages.
+              </li>
+            </ul>
 
-        <ul>
-            <li>Lister les besoins fonctionnels
-                <ul>
-                    <li>Créer un document listant les fonctionnalités essentielles et optionnelles.</li>
-                    <li>Préciser des scénarios d’usage (brefs justificatifs) en lien avec l'objectif de l'application.</li>
-                </ul>
-            </li>
-            <li>Dessiner les flux principaux de l'application</li>
-            <li>Prototyper les vues et interactions de l’application (Figma)
-                <ul>
-                    <li>Vues : Accueil, Message, Profil, Thread, Journal.</li>
-                    <li>Jauge d'attention/de disponibilité.</li>
-                </ul>
-            </li>
-            <li>Commencer le modèle de données et l'architecture générale
-                <ul>
-                    <li>Établir un schéma conceptuel (entités, attributs, relations).</li>
-                    <li>Créer une première version de l'architecture en suivant le modèle C4 (niveau 2).</li>
-                </ul>
-            </li>
-            <li>Choisir les algorithmes de classification de message, de synthèse de message et d'estimation d'effort cognitif
-                <ul>
-                    <li>Préciser la provenance des données, les étapes de prétraitement, et les besoins techniques en termes d’infrastructure.</li>
-                    <li>Prototyper un exemple de classification ou de synthèse en code.</li>
-                </ul>
-            </li>
-        </ul>
-        <p><strong>Rappel</strong>: Nous commencerons l'implémentation à la semaine 4.</p>
-        
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>
+                Exploration de plusieurs applications essayant d’implémenter
+                l’IA pour les courriels, notamment Spark.
+              </li>
+              <li>
+                Choix de se concentrer sur les courriels plutôt que la
+                messagerie (trop de bruit et débit de messages important) afin
+                de «réinventer la façon dont on utilise les emails aujourd’hui».
+              </li>
+              <li>
+                Discussion autour de la «jauge d’attention» et de ses
+                différentes manières de représentation.
+              </li>
+              <li>
+                Début de croquis sur papier pour le design de l’application.
+              </li>
+              <li>Exploration des solutions avec Electron.</li>
+            </ul>
 
-        <h4 class="title">Réalisations</h4>
-           <ul>
-               <li>Mise en place réussie du premier prototype d'Accord avec validation des fonctionnalités de base</li>
-               <li>Établissement de l'architecture initiale de la base de données MongoDB :
-                   <ul>
-                       <li>Définition des collections principales</li>
-                       <li>Structure des relations entre données</li>
-                       <li>Schémas de validation</li>
-                   </ul>
-               </li>
-               <li>Identification et validation d'un dataset pertinent pour l'entraînement des modèles de classification</li>
-               <li>Finalisation de la stack technique :
-                   <ul>
-                       <li>Frontend : ReactJS -Electron</li>
-                       <li>Backend : Python - FastAPI</li>
-                       <li>Base de données : MongoDB</li>
-                   </ul>
-               </li>
-           </ul>
-
-           <h4 class="title">Réalisations en images</h4>
-           <ul>
-               <li>Prototype jetable initial : <img src="./images/IMG_2013.JPG" alt="Prototype jetable" style="width: 400px; height: 300px; object-fit: cover;"></li>
-<li>Prototype interactif : <img src="./images/image%20(1).PNG" alt="Prototype interactif" style="width: 400px; height: 300px; object-fit: cover;"></li>
-           </ul>
-
-           <h4 class="title">Notes</h4>
-           <p>
-               Suite à l'évaluation des différentes approches, nous avons opté pour le prototype interactif en raison de sa flexibilité et de son potentiel d'évolution. Concernant la gestion de l'indisponibilité des utilisateurs, nous pensons développé une solution hybride :
-               <br><br>
-               Pour les utilisateurs d'Accord : Une jauge de disponibilité dynamique s'affiche lors de la saisie du destinataire, permettant une visibilité immédiate du statut.
-               <br><br>
-               Pour les non-utilisateurs : Implémentation d'un système d'encodage de réponses automatiques intégré aux messages. Ces réponses apparaissent comme des messages standards pour les non-utilisateurs tout en étant interprétables par Accord, assurant ainsi une compatibilité universelle.
-           </p>
-    </div>
-</section>
+            <h4 class="title">Notes</h4>
+            <p></p>
+          </div>
         </section>
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 2 &ndash;
+              <time datetime="2024-09-09">Lundi 20 janvier 2025</time>
+            </h3>
+            <p>Approfondissement de l'analyse des exigences</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+
+            <ul>
+              <li>
+                Personnalisation avancée : Analysez des solutions offrant des
+                fonctionnalités de personnalisation poussée. => Établir une
+                liste de fonctionnalités pertinentes.
+              </li>
+              <li>
+                Prototypez une interface : Dessinez des prototypes jetables
+                illustrant des fonctionnalités clés de l'application (ex: jauge
+                d’attention, priorisation des messages, personnalisation). =>
+                Prototypes de 2 à 3 écrans.
+              </li>
+              <li>
+                Techniques de classification avancées : Recherchez des outils ou
+                techniques de classification de messages. => Établir des
+                critères de classification et une procédure (algorithme
+                simplifié) pour la classification.
+              </li>
+              <li>
+                Synthèse et résumé : Étudiez des solutions intégrant des
+                techniques de synthèse ou de résumé automatique. => Une idée ou
+                un exemple montrant comment cette fonctionnalité pourrait être
+                intégrée au projet.
+              </li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>
+                Discussions approfondies sur le prototypage et le design de
+                l’application, avec un focus sur l’expérience utilisateur.
+              </li>
+              <li>
+                Analyse des fonctionnalités clés : personnalisation avancée,
+                gestion des priorités et synthèse automatique des messages.
+              </li>
+              <li>
+                Recherche et comparaison des solutions existantes intégrant des
+                techniques de classification et de résumé automatique.
+              </li>
+              <li>
+                Exploration des outils et plateformes pouvant être intégrés au
+                projet.
+              </li>
+              <li>
+                Définition des premiers critères de classification et
+                priorisation des messages.
+              </li>
+              <li>
+                Préparation des prochaines étapes vers les premières maquettes
+                fonctionnelles.
+              </li>
+            </ul>
+
+            <h4 class="title">Notes</h4>
+            <p></p>
+          </div>
+        </section>
+
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 3 et 4 &ndash;
+              <time datetime="2024-09-09"
+                >Lundi 27 janvier 2025, Lundi 3 Février 2025</time
+              >
+            </h3>
+            <p>Modélisation de l’application</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+
+            <ul>
+              <li>
+                Lister les besoins fonctionnels
+                <ul>
+                  <li>
+                    Créer un document listant les fonctionnalités essentielles
+                    et optionnelles.
+                  </li>
+                  <li>
+                    Préciser des scénarios d’usage (brefs justificatifs) en lien
+                    avec l'objectif de l'application.
+                  </li>
+                </ul>
+              </li>
+              <li>Dessiner les flux principaux de l'application</li>
+              <li>
+                Prototyper les vues et interactions de l’application (Figma)
+                <ul>
+                  <li>Vues : Accueil, Message, Profil, Thread, Journal.</li>
+                  <li>Jauge d'attention/de disponibilité.</li>
+                </ul>
+              </li>
+              <li>
+                Commencer le modèle de données et l'architecture générale
+                <ul>
+                  <li>
+                    Établir un schéma conceptuel (entités, attributs,
+                    relations).
+                  </li>
+                  <li>
+                    Créer une première version de l'architecture en suivant le
+                    modèle C4 (niveau 2).
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Choisir les algorithmes de classification de message, de
+                synthèse de message et d'estimation d'effort cognitif
+                <ul>
+                  <li>
+                    Préciser la provenance des données, les étapes de
+                    prétraitement, et les besoins techniques en termes
+                    d’infrastructure.
+                  </li>
+                  <li>
+                    Prototyper un exemple de classification ou de synthèse en
+                    code.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <p>
+              <strong>Rappel</strong>: Nous commencerons l'implémentation à la
+              semaine 4.
+            </p>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>
+                Mise en place réussie du premier prototype d'Accord avec
+                validation des fonctionnalités de base
+              </li>
+              <li>
+                Établissement de l'architecture initiale de la base de données
+                MongoDB :
+                <ul>
+                  <li>Définition des collections principales</li>
+                  <li>Structure des relations entre données</li>
+                  <li>Schémas de validation</li>
+                </ul>
+              </li>
+              <li>
+                Identification et validation d'un dataset pertinent pour
+                l'entraînement des modèles de classification
+              </li>
+              <li>
+                Finalisation de la stack technique :
+                <ul>
+                  <li>Frontend : ReactJS -Electron</li>
+                  <li>Backend : Python - FastAPI</li>
+                  <li>Base de données : MongoDB</li>
+                </ul>
+              </li>
+            </ul>
+
+            <h4 class="title">Réalisations en images</h4>
+            <ul>
+              <li>
+                Prototype jetable initial :
+                <img
+                  src="./images/IMG_2013.JPG"
+                  alt="Prototype jetable"
+                  style="width: 400px; height: 300px; object-fit: cover"
+                />
+              </li>
+              <li>
+                Prototype interactif :
+                <img
+                  src="./images/image%20(1).PNG"
+                  alt="Prototype interactif"
+                  style="width: 400px; height: 300px; object-fit: cover"
+                />
+              </li>
+            </ul>
+
+            <h4 class="title">Notes</h4>
+            <p>
+              Suite à l'évaluation des différentes approches, nous avons opté
+              pour le prototype interactif en raison de sa flexibilité et de son
+              potentiel d'évolution. Concernant la gestion de l'indisponibilité
+              des utilisateurs, nous pensons développé une solution hybride :
+              <br /><br />
+              Pour les utilisateurs d'Accord : Une jauge de disponibilité
+              dynamique s'affiche lors de la saisie du destinataire, permettant
+              une visibilité immédiate du statut.
+              <br /><br />
+              Pour les non-utilisateurs : Implémentation d'un système d'encodage
+              de réponses automatiques intégré aux messages. Ces réponses
+              apparaissent comme des messages standards pour les
+              non-utilisateurs tout en étant interprétables par Accord, assurant
+              ainsi une compatibilité universelle.
+            </p>
+          </div>
+        </section>
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 5, 6 et 7 &ndash;
+              <time datetime="2025-02-10">Lundi 10, 17 et 24 février 2025</time>
+            </h3>
+            <p></p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+            <ul>
+              <li>Améliorer l'interprétation de la jauge d'attention.</li>
+              <li>Mettre en évidence la barre de recherche/commande.</li>
+              <li>
+                Intégrer l'accès au profil utilisateur sans ouvrir une nouvelle
+                fenêtre.
+              </li>
+              <li>
+                Grouper/catégoriser les informations dans la catégorie
+                Information/Annonces/Communiqués.
+              </li>
+              <li>
+                Libeller un ensemble de courriels pour entraîner le modèle de
+                classification.
+              </li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>
+                Un bon début pour la jauge d'attention, mais elle est difficile
+                à interpréter actuellement.
+              </li>
+              <li>
+                Les métriques affichées sont intéressantes pour enrichir le
+                profil de l'utilisateur, mais ne semblent pas pertinentes pour
+                l'utilisateur.
+              </li>
+              <li>
+                La barre de recherche/commande devrait être mise en évidence
+                (position centrée au-dessus des catégories).
+              </li>
+              <li>
+                Discussion sur la recherche sous forme de chatbot, ouvrant un
+                petit contexte de dialogue.
+              </li>
+              <li>
+                Accès au profil utilisateur sans ouvrir une nouvelle fenêtre,
+                mais plutôt "par-dessus" la page active.
+              </li>
+              <li>
+                Catégorie Information/Annonces/Communiqués risque de se remplir
+                très vite, trouver un moyen de grouper/catégoriser les
+                informations.
+              </li>
+              <li>
+                Difficulté dans la synthèse due à la taille des courriels
+                (souvent trop courts).
+              </li>
+              <li>
+                Libeller un ensemble de courriels (~500) pour entraîner le
+                modèle de classification.
+              </li>
+              <li>
+                Prétraitement: Voir l'effet de stopwords et d'un jeu de
+                pondération selon la position du mot dans le texte (hint:
+                Subject > Body).
+              </li>
+              <li>
+                On ne stockera pas les courriels dans la BD, mais utiliser un
+                identifiant pour conserver la trace/référence du courriel.
+              </li>
+
+              <li>
+                Effet de la période de la journée sur la priorisation des
+                messages.
+              </li>
+              <li>
+                Travail sur les fonctionnalités UI d'ajustement/repositionnement
+                des grandes catégories (boîtes).
+              </li>
+            </ul>
+
+            <h4 class="title">Notes</h4>
+            <p>
+              Nous sommes actuellement dans la phase de peaufinage de
+              l'interface et de développement du backend. Nous prévoyons, à la
+              semaine prochaine (retour de relâche), de lier le frontend et le
+              backend.
+            </p>
+            <li>
+              Prototype react actuelle :
+              <img
+                src="./images/react-proto.png"
+                alt="Prototype react"
+                style="width: 400px; height: 300px; object-fit: cover"
+              />
+            </li>
+          </div>
+        </section>
+
+        <!-- Nouvelles sections hebdomadaires -->
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 8 &ndash;
+              <time datetime="2025-03-03">Lundi 3 mars 2025</time>
+            </h3>
+            <p>Algorithmes de recherche et préparation BD</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+            <ul>
+              <li>Développer les algorithmes de recherche</li>
+              <li>Peaufiner l'interface utilisateur</li>
+              <li>Initialiser la base de données</li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>
+                Implémentation d'un algorithme de recherche basé sur TF-IDF
+              </li>
+              <li>Amélioration de la barre de recherche avec suggestions</li>
+              <li>
+                Configuration des schémas MongoDB pour les utilisateurs et
+                messages
+              </li>
+              <li>
+                Ajout des indicateurs visuels pour les résultats de recherche
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 9 &ndash;
+              <time datetime="2025-03-10">Lundi 10 mars 2025</time>
+            </h3>
+            <p>Interface utilisateur et préparation des connexions API</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+            <ul>
+              <li>Continuer le développement des algorithmes de recherche</li>
+              <li>Finaliser l'interface utilisateur</li>
+              <li>Préparer les connexions front-end/back-end</li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>Optimisation de l'indexation pour la recherche</li>
+              <li>Implémentation du mode sombre</li>
+              <li>Configuration des points d'API RESTful</li>
+              <li>Prototype fonctionnel de recherche avec suggestions</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 10 &ndash;
+              <time datetime="2025-03-17">Lundi 17 mars 2025</time>
+            </h3>
+            <p>Connexions API et synchronisation</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+            <ul>
+              <li>Implémenter les connexions avec les API de messagerie</li>
+              <li>Développer le système de synchronisation</li>
+              <li>Commencer la modélisation des graphes de messages</li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>Intégration avec Gmail API et protocoles IMAP/SMTP</li>
+              <li>
+                Développement de la synchronisation incrémentale des courriels
+              </li>
+              <li>
+                Création de la structure de données pour les fils de discussion
+              </li>
+              <li>Mise en place d'un système de notification en temps réel</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="week">
+          <header class="week-header">
+            <h3 class="week-title">
+              Semaine 11 et 12 &ndash;
+              <time datetime="2025-03-24">Lundi 24 et 31 mars 2025</time>
+            </h3>
+            <p>Modélisation des graphes et analyse de sentiment</p>
+          </header>
+          <div class="week-content">
+            <h4 class="title">Objectifs</h4>
+            <ul>
+              <li>Modéliser les graphes de messages et d'utilisateurs</li>
+              <li>Améliorer le modèle de traitement des mails</li>
+              <li>Implémenter l'analyse de sentiment</li>
+            </ul>
+
+            <h4 class="title">Réalisations</h4>
+            <ul>
+              <li>Modèle de graphe pour visualiser les réseaux d'échange</li>
+              <li>Optimisation du pipeline de prétraitement</li>
+              <li>Intégration d'un modèle d'analyse de sentiment</li>
+              <li>Système d'extraction d'entités dans les emails</li>
+            </ul>
+          </div>
+        </section>
+
     </main>
 
     <footer class="page-footer">
-        <a href="https://github.com/protolabo/accord/" target="_blank">Répertoire GitHub</a>
-        <p>Dernière mise à jour: 24 janvier 2025</p>
+      <a href="https://github.com/protolabo/accord/" target="_blank"
+        >Répertoire GitHub</a
+      >
+      <p>Dernière mise à jour: 7 avril 2025</p>
     </footer>
 
     <script>
-        const NB_WEEK = 13;
-        let projetStart = new Date("2025-01-13");
-        let current = (Date.now() - projetStart) / 1000 / 60 / 60 / 24 / 7;
-        let progress = Math.round((current/NB_WEEK) * 100);
+      const NB_WEEK = 13;
+      let projetStart = new Date("2025-01-13");
+      let current = (Date.now() - projetStart) / 1000 / 60 / 60 / 24 / 7;
+      let progress = Math.round((current / NB_WEEK) * 100);
 
-        let timeline = document.querySelector('.timeline');
-        timeline.style.background = `linear-gradient(to right, rgb(var(--accent)) ${progress}%, #d5d5d5 0%)`;
+      let timeline = document.querySelector(".timeline");
+      timeline.style.background = `linear-gradient(to right, rgb(var(--accent)) ${progress}%, #d5d5d5 0%)`;
     </script>
-</body>
-
+  </body>
 </html>

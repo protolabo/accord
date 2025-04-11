@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaInbox,
   FaChevronRight,
@@ -8,17 +8,29 @@ import {
   FaTag,
   FaArchive,
   FaStar,
-  FaRegStar
-} from 'react-icons/fa';
+  FaRegStar,
+} from "react-icons/fa";
 
 interface Email {
   "Message-ID": string;
-  Date: string;
+  Subject: string;
   From: string;
   To: string;
-  Subject: string;
+  Cc: string;
+  Date: string;
+  "Content-Type": string;
   Body: string;
+  IsRead: boolean;
+  Attachments: {
+    filename: string;
+    contentType: string;
+    size: number;
+    contentId?: string;
+    url?: string;
+  }[];
   Categories: string[];
+  Importance: "high" | "normal" | "low";
+  ThreadId: string;
 }
 
 interface ThreadCategoryProps {
@@ -50,7 +62,7 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
   onToggle,
   index,
   totalCategories,
-  onThreadSelect
+  onThreadSelect,
 }) => {
   const [starredThreads, setStarredThreads] = useState<Set<string>>(new Set());
 
@@ -68,12 +80,14 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
   const getThreadStatus = (date: string): ThreadStatus => {
     const now = new Date();
     const emailDate = new Date(date);
-    const diffDays = Math.round((now.getTime() - emailDate.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(
+      (now.getTime() - emailDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-    if (diffDays < 1) return { color: 'bg-green-500', text: 'Nouveau' };
-    if (diffDays < 3) return { color: 'bg-yellow-500', text: 'Récent' };
-    if (diffDays < 7) return { color: 'bg-orange-500', text: 'Cette semaine' };
-    return { color: 'bg-gray-500', text: 'Plus ancien' };
+    if (diffDays < 1) return { color: "bg-green-500", text: "Nouveau" };
+    if (diffDays < 3) return { color: "bg-yellow-500", text: "Récent" };
+    if (diffDays < 7) return { color: "bg-orange-500", text: "Cette semaine" };
+    return { color: "bg-gray-500", text: "Plus ancien" };
   };
 
   return (
@@ -115,7 +129,7 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
         {expanded && (
           <motion.div
             initial={{ height: 0 }}
-            animate={{ height: 'auto' }}
+            animate={{ height: "auto" }}
             exit={{ height: 0 }}
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
@@ -148,7 +162,9 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
                               <FaRegStar className="w-5 h-5" />
                             )}
                           </motion.button>
-                          <div className={`flex-shrink-0 w-2 h-2 rounded-full ${status.color}`} />
+                          <div
+                            className={`flex-shrink-0 w-2 h-2 rounded-full ${status.color}`}
+                          />
                           <h4 className="font-medium text-gray-900 dark:text-white truncate">
                             {email.Subject}
                           </h4>
@@ -162,8 +178,10 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
                             <FaClock className="w-4 h-4 mr-1" />
                             {new Date(email.Date).toLocaleDateString()}
                           </span>
-                          <span className="text-xs px-2 py-1 rounded-full bg-gray-100
-                          dark:bg-gray-600 text-gray-600 dark:text-gray-300">
+                          <span
+                            className="text-xs px-2 py-1 rounded-full bg-gray-100
+                          dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                          >
                             {status.text}
                           </span>
                         </div>
@@ -208,34 +226,51 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
 };
 
 // Composant principal ThreadSection
-const ThreadSection: React.FC<ThreadSectionProps> = ({ groupedEmails, onThreadSelect }) => {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-
-  const toggleCategory = (category: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (expandedCategories.has(category)) {
-      newExpanded.delete(category);
-    } else {
-      newExpanded.add(category);
-    }
-    setExpandedCategories(newExpanded);
-  };
-
-  const categories = Object.keys(groupedEmails);
-
+const ThreadSection: React.FC<ThreadSectionProps> = ({
+  groupedEmails,
+  onThreadSelect,
+}) => {
   return (
-    <div className="space-y-4">
-      {categories.map((category, index) => (
-        <ThreadCategory
+    <div className="space-y-6">
+      {Object.entries(groupedEmails).map(([category, emails]) => (
+        <div
           key={category}
-          category={category}
-          emails={groupedEmails[category]}
-          expanded={expandedCategories.has(category)}
-          onToggle={() => toggleCategory(category)}
-          index={index}
-          totalCategories={categories.length}
-          onThreadSelect={onThreadSelect}
-        />
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4"
+        >
+          <h3 className="text-lg font-semibold mb-3 dark:text-white">
+            {category}
+          </h3>
+          <div className="space-y-3">
+            {emails.map((email) => (
+              <motion.div
+                key={email["Message-ID"]}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-3 rounded-lg cursor-pointer ${
+                  email.IsRead
+                    ? "bg-gray-50 dark:bg-gray-700"
+                    : "bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500"
+                }`}
+                onClick={() => onThreadSelect(email)}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="text-sm font-medium dark:text-white">
+                    {email.From}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(email.Date).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="text-base font-semibold mt-1 dark:text-white">
+                  {email.Subject}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                  {email.Body.replace(/<[^>]*>?/gm, "")}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );

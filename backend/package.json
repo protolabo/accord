@@ -1,0 +1,29 @@
+{
+    "name": "accord-backend",
+    "version": "1.0.0",
+    "description": "Backend for Accord email client",
+    "main": "server.js",
+    "scripts": {
+        "start": "ts-node server.ts",
+        "dev": "nodemon --exec ts-node server.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@azure/msal-node": "^1.16.0",
+        "@microsoft/microsoft-graph-client": "^3.0.5",
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.21.2",
+        "googleapis": "^118.0.0",
+        "isomorphic-fetch": "^3.0.0"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.13",
+        "@types/express": "^4.17.17",
+        "@types/node": "^18.16.0",
+        "nodemon": "^2.0.22",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.0.4"
+    }
+}

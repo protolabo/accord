@@ -1,0 +1,11 @@
+temp/
+temp
+temp/todelete.txt
+output/
+output
+semantic_search
+semantic_search/
+test
+test/
+__pycache__/
+**/__pycache__/
