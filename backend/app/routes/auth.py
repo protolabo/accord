@@ -40,7 +40,7 @@ async def outlook_login():
         f"?client_id={settings.MICROSOFT_CLIENT_ID}"
         f"&response_type=code"
         f"&redirect_uri={settings.REDIRECT_URI}"
-        f"&scope=openid profile email Mail.Read Mail.ReadWrite Mail.Send"
+        f"&scope=openid%20profile%20email%20Mail.Read%20Mail.ReadWrite%20Mail.Send"
     }
 
 # Callback from outlook

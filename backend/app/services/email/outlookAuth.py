@@ -8,6 +8,15 @@ class OutlookAuth:
     # Get OAuth2 access token
     @staticmethod
     async def get_oauth_tokens(code: str) -> dict:
+        # Simulate outlook login
+        if settings.IS_DEMO:
+            return {
+                "access_token": "fake-access-token",
+                "refresh_token": "fake-refresh-token",
+                "expires_in": 3600
+            }
+        
+        # Real outlook login
         async with AsyncClient() as client:
             try:
                 token_response = await client.post(
@@ -32,6 +41,15 @@ class OutlookAuth:
     # Get User Profile
     @staticmethod
     async def get_user_profile(access_token: str) -> dict:
+        # Simulate outlook user profile
+        if settings.IS_DEMO:
+            return {
+                "id": "fake-microsoft-id-001",
+                "mail": "fake_mail_001@outlook.com",
+                "displayName": "fake_name_001"
+            }
+        
+        # Real user profile
         async with AsyncClient() as client:
             try:
                 response = await client.get(

@@ -21,7 +21,9 @@ class Settings(BaseSettings):
     # Email service settings
     EMAIL_SYNC_INTERVAL: int = 300  # Intervalle en secondes pour la synchronisation des emails
 
-
+    # Demo mode
+    IS_DEMO: bool = True
+    
     class Config:
         env_file = ".env"
 

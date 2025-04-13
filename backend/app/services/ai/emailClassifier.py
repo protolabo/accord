@@ -99,23 +99,23 @@ def email_classification(email_text, diff_threshold=0.05):
 
 
 # # Test
-# with open('backend/app/services/ai/semantic_emails_1000.json', 'r', encoding='utf-8') as f:
+# with open('data/enron_emails.json', 'r', encoding='utf-8') as f:
 #     email_data = json.load(f)
 
 # results = []
 
 # for email in email_data:
-#     text = f"{email['subject']} {email['body']}"
+#     metadata = email.get("metadata", {})
+#     text = f'{metadata.get("subject", "")} {email.get("body", "")}'
 #     predicted_result = email_classification(text)
 #     results.append({
-#         "id": email["id"],
-#         "subject": email["subject"],
-#         "true_category": email.get("category", "N/A"),
-#         "true_sub_cat": email.get("subcategory", "N/A"),
+#         "id": metadata.get("message_id", ""),
+#         "subject": metadata.get("subject", ""),
+#         "body": email.get("body", ""),
 #         "mains": predicted_result["main_class"],
 #         "subs": predicted_result["sub_classes"]
 #     })
 
-# with open('backend/app/services/ai/semantic_emails_1000_classified2.json', 'w', encoding='utf-8') as f_out:
+# with open('data/enron_emails_predicted.json', 'w', encoding='utf-8') as f_out:
 #     json.dump(results, f_out, ensure_ascii=False, indent=2)
 

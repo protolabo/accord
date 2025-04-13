@@ -8,6 +8,17 @@ logger = logging.getLogger(__name__)
 
 # Refresh Outlook Access Token
 async def refresh_outlook_token(user: User) -> bool:
+    # Simulate token refresh
+    if settings.IS_DEMO:
+        user.outlook_tokens = {
+            "access_token": "dummy_access_token_refreshed",
+            "refresh_token": user.outlook_tokens.get("refresh_token", "dummy_refresh_token"),
+            "expires_at": datetime.now() + timedelta(seconds=3600)
+        }
+        await user.save()
+        return True
+    
+    # Real token refresh process
     try:
         async with AsyncClient() as client:
             response = await client.post(
@@ -48,6 +59,11 @@ class OutlookClient:
 
     # Check token status and refresh
     async def _check_token(self) -> None:
+        # Do not check in simulate state
+        if settings.IS_DEMO:
+            return
+        
+        # Real check process
         if self.user.is_token_expired:
             success = await refresh_outlook_token(self.user)
             if success:
