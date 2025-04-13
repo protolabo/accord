@@ -23,7 +23,8 @@ class Settings(BaseSettings):
 
     # Demo mode
     IS_DEMO: bool = True
-    
+    MOCK_DATA_FILE: str = 'data/mock_emails.json'
+
     class Config:
         env_file = ".env"
 

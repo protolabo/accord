@@ -2,7 +2,9 @@ from app.core.config import settings
 from app.db.models import User
 from httpx import AsyncClient, HTTPError
 from datetime import datetime, timedelta
+from typing import List, Optional
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,7 @@ class OutlookClient:
             headers={"Authorization": f"Bearer {user.outlook_tokens['access_token']}"}
         )
 
+
     # Check token status and refresh
     async def _check_token(self) -> None:
         # Do not check in simulate state
@@ -71,12 +74,30 @@ class OutlookClient:
             else:
                 raise Exception("Cannot Refresh Access Token")
 
+
     # Get Emails from Outlook
     async def get_emails(self, since: datetime) -> list:
         await self._check_token()
         all_emails = []
         next_link = None
 
+        # Simulate get emails (get data from mock emails file)
+        if settings.IS_DEMO:
+            try:
+                with open(settings.MOCK_DATA_FILE, 'r', encoding='utf-8') as f:
+                    email_data = json.load(f)
+                
+                for email in email_data:
+                    if datetime.strptime(email["date"], "%Y-%m-%d %H:%M:%S") >= since:
+                        email_filtered = {key: value for key, value in email.items() if key != "body"}
+                        all_emails.append(email_filtered)
+            
+                return all_emails
+            except Exception as e:
+                logger.error(f"Read mock data failed: {e}")
+                return all_emails
+        
+        # Real get email process
         while True:
             try:
                 if next_link:
@@ -111,9 +132,26 @@ class OutlookClient:
         
         return all_emails
 
+
     # Get email body
     async def get_email_content(self, email_id: str) -> str:
         await self._check_token()
+
+        # Simulation
+        if settings.IS_DEMO:
+            try:
+                with open(settings.MOCK_DATA_FILE, 'r', encoding='utf-8') as f:
+                    emails = json.load(f)
+                for email in emails:
+                    if email.get("id") == email_id:
+                        return email.get("body", "")
+                logger.error(f"No email found with id: {email_id}")
+                return ""
+            except Exception as e:
+                logger.error(f"Read mock data failed: {e}")
+                return ""
+            
+        # Real process
         try:
             response = await self.client.get(f"/me/messages/{email_id}?$select=body")
             response.raise_for_status()
@@ -122,9 +160,17 @@ class OutlookClient:
             logger.error(f"Get email body failed: {e}")
             return ""
         
+
     # Forward an email
     async def forward_email(self, email_id: str, to: list, comment: str = "") -> bool:
         await self._check_token()
+
+        # Simulate forwarding email
+        if settings.IS_DEMO:
+            logger.info(f"Simulate forwarding: Email_ID={email_id}, Receiver={to}, Comment={comment}")
+            return True
+         
+        # Real process
         try:
             payload = {
                 "comment": comment,
@@ -139,9 +185,17 @@ class OutlookClient:
             logger.error(f"Unexpected error when forwarding email: {str(e)}")
         return False
     
+
     # Reply email
     async def reply_email(self, email_id: str, comment: str) -> bool:
         await self._check_token()
+
+        # Simulate replying
+        if settings.IS_DEMO:
+            logger.info(f"Simulate replying: Email_ID={email_id}, Reply_content={comment}")
+            return True
+        
+        # Real process
         try:
             payload = {"comment": comment}
             response = await self.client.post(f"/me/messages/{email_id}/reply", json=payload)
@@ -152,3 +206,62 @@ class OutlookClient:
         except Exception as e:
             logger.error(f"Unexpected error when replying email: {str(e)}")
         return False
+    
+
+    # Send email
+    async def send_email(self, subject: str, content: str, to: List[str], cc: Optional[List[str]] = None, bcc: Optional[List[str]] = None, content_type: str = "HTML") -> bool:
+        await self._check_token()
+        
+        # Simulate sending email
+        if settings.IS_DEMO:
+            logger.info(f"Simulate sending email: Subject='{subject}', Receiver={to}, Cc={cc}, Bcc={bcc}, Content='{content[:50]}...'")
+            return True
+
+        # Real sending process
+        message = {
+            "subject": subject,
+            "body": {
+                "contentType": content_type,
+                "content": content
+            },
+            "toRecipients": [{"emailAddress": {"address": email}} for email in to]
+        }
+        if cc:
+            message["ccRecipients"] = [{"emailAddress": {"address": email}} for email in cc]
+        if bcc:
+            message["bccRecipients"] = [{"emailAddress": {"address": email}} for email in bcc]
+        
+        payload = {"message": message, "saveToSentItems": "true"}
+        
+        try:
+            response = await self.client.post("/me/sendMail", json=payload)
+            response.raise_for_status()
+            return True
+        except HTTPError as e:
+            logger.error(f"Failed sending email: {e.response.status_code} - {e.response.text}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error when sending email: {str(e)}")
+            return False
+    
+
+    # Delete email
+    async def delete_email(self, email_id: str) -> bool:
+        await self._check_token()
+        
+        # Simulation 
+        if settings.IS_DEMO:
+            logger.info(f"Simulate deleting email: Email_ID={email_id}")
+            return True
+        
+        # Real process
+        try:
+            response = await self.client.delete(f"/me/messages/{email_id}")
+            response.raise_for_status()
+            return True
+        except HTTPError as e:
+            logger.error(f"Failed delete email: {e.response.status_code} - {e.response.text}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error when deleting email: {str(e)}")
+            return False
