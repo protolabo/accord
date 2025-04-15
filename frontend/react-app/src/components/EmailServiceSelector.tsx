@@ -15,6 +15,7 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
   const [selectedService, setSelectedService] = useState<EmailService | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Check if a service is already selected
@@ -26,6 +27,7 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
 
   const handleServiceSelect = async (service: EmailService) => {
     try {
+      setIsLoading(true);
       setSelectedService(service);
       emailAPIService.setService(service);
       onServiceSelect(service);
@@ -33,10 +35,22 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
       // If not authenticated, redirect to auth URL
       if (!emailAPIService.isAuthenticated()) {
         const authUrl = await emailAPIService.getAuthUrl();
-        window.location.href = authUrl;
+        // Open the auth URL in a popup window
+        const popupWidth = 600;
+        const popupHeight = 700;
+        const left = window.screenX + (window.outerWidth - popupWidth) / 2;
+        const top = window.screenY + (window.outerHeight - popupHeight) / 2;
+
+        window.open(
+          authUrl,
+          `${service}_auth`,
+          `width=${popupWidth},height=${popupHeight},left=${left},top=${top}`
+        );
       }
     } catch (error) {
       console.error("Error selecting service:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,6 +70,7 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
                 : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
             }`}
           onClick={() => handleServiceSelect("gmail")}
+          disabled={isLoading}
         >
           <FaGoogle className="text-3xl mb-2" />
           <span>Gmail</span>
@@ -71,11 +86,17 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
                 : "bg-white dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
             }`}
           onClick={() => handleServiceSelect("outlook")}
+          disabled={isLoading}
         >
           <FaMicrosoft className="text-3xl mb-2" />
           <span>Outlook</span>
         </motion.button>
       </div>
+      {isLoading && (
+        <div className="mt-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        </div>
+      )}
     </div>
   );
 };

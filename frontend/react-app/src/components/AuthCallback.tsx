@@ -18,18 +18,33 @@ const AuthCallback: React.FC = () => {
       }
 
       try {
-        // Get the service from localStorage since it might not be in the URL
-        const service = emailAPIService.getService();
+        setStatus("Authentification réussie!");
 
-        if (!service) {
-          setStatus("Erreur: Service de messagerie non spécifié");
-          return;
+        // If this is running in a popup window, send the auth code to the parent window
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(
+            {
+              type: "auth_callback",
+              code,
+            },
+            window.location.origin
+          );
+
+          // Close the popup after sending the message
+          setTimeout(() => window.close(), 1000);
+        } else {
+          // Handle the case where it's not in a popup (fallback)
+          const service = emailAPIService.getService();
+
+          if (!service) {
+            setStatus("Erreur: Service de messagerie non spécifié");
+            return;
+          }
+
+          await emailAPIService.handleAuthCallback(code);
+          setStatus("Authentification réussie! Redirection...");
+          setTimeout(() => navigate("/"), 1500);
         }
-
-        await emailAPIService.handleAuthCallback(code);
-        setStatus("Authentification réussie! Redirection...");
-        // Redirect after a short delay
-        setTimeout(() => navigate("/"), 1500);
       } catch (error) {
         console.error("Authentication error:", error);
         setStatus("Erreur d'authentification. Veuillez réessayer.");

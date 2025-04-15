@@ -1,14 +1,15 @@
 import os
 import pickle
 import json
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import InstalledAppFlow, Flow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 import requests
 
-from settings import (
+# Correction de l'importation pour utiliser le chemin relatif correct
+from app.email_providers.google.settings import (
     GOOGLE_CREDENTIALS_PATH,
     TOKEN_DIR,
     GOOGLE_SCOPES,
