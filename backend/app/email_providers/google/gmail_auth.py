@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from datetime import datetime, timedelta
 import requests
 
-from settings import (
+from backend.app.email_providers.google.settings import (
     GOOGLE_CREDENTIALS_PATH,
     TOKEN_DIR,
     GOOGLE_SCOPES,

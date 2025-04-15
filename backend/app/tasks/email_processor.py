@@ -1,5 +1,5 @@
 from backend.app.email_providers.google.gmail_service import GmailService
-from backend.app.services.email_storage import EmailStorage
+from backend.app.email_providers.google.email_storage import EmailStorage
 
 import os
 
