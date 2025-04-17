@@ -9,9 +9,9 @@ from google.oauth2.credentials import Credentials
 from app.db.models import User
 from app.core.config import settings
 from app.email_providers.google.gmail_auth import GmailAuthManager
-from app.services.email.outlookAuth import OutlookAuth
+from backend.app.services.auth.outlookAuth import OutlookAuth
 from app.services.email.email_service import StandardizedEmail, EmailService
-from app.routes.auth import get_current_user
+from app.core.security import get_current_user
 
 class EmailProvider:
     """

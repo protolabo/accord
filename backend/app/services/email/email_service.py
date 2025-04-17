@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Union, Any
 from pydantic import BaseModel, EmailStr
 from fastapi import HTTPException
+from app.db.models import User
 
 class StandardizedAttachment(BaseModel):
     filename: str
@@ -30,6 +31,18 @@ class StandardizedEmail(BaseModel):
     categories: List[str] = []
     labels: List[str] = []
     attachments: List[StandardizedAttachment] = []
+
+
+async def get_providers(user: User) -> list[EmailProvider]:
+    providers = []
+    if user.gmail_tokens and not user.gmail_tokens_expired:
+        providers.append(GmailEmailProvider(user))
+    if user.outlook_tokens and not user.outlook_tokens_expired:
+        providers.append(OutlookEmailProvider(user))
+    if not providers:
+        raise HTTPException(400, "Please authorize a platform")
+    return providers
+
 
 class EmailService:
     """

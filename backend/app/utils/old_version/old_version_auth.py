@@ -1,24 +1,22 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2AuthorizationCodeBearer
-from jose import jwt
-from httpx import AsyncClient
-from app.core.config import settings
-from app.db.models import User
-from app.services.email.outlookAuth import OutlookAuth
-from app.email_providers.google.gmail_auth import GmailAuthManager
 from datetime import datetime, timedelta
+
+from app.core.config import settings
 from app.core.security import create_jwt_token
-import os
+from app.db.models import User, EmailAccount, TokenInfo
+from backend.app.services.auth.outlookAuth import OutlookAuth
+from app.email_providers.google.gmail_auth import GmailAuthManager
 
 router = APIRouter()
+SUPPORTED = {"outlook", "gmail"}
 
-oauth2_scheme = OAuth2AuthorizationCodeBearer(
-    authorizationUrl=f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize",
-    tokenUrl=f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/token"
-)
+# -----------------------------
+
 
 # Get login url for Outlook
-@router.get("/outlook/login")
+@router.get("auth/outlook/login")
 async def outlook_login():
     return {
         "auth_url": f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/authorize"
@@ -29,7 +27,7 @@ async def outlook_login():
     }
 
 # Callback from outlook
-@router.get("/outlook/callback")
+@router.get("auth/outlook/callback")
 async def outlook_callback(code: str): # Paremeter code returned directly by microsoft service ex./outlook/callback?code=YOUR_AUTH_CODE
     # Get Access Token
     tokens = await OutlookAuth.get_oauth_tokens(code)
@@ -42,12 +40,13 @@ async def outlook_callback(code: str): # Paremeter code returned directly by mic
     if not user:
         user = User(
             microsoft_id=user_info["id"],
-            email=user_info["mail"],
+            microsoft_mail=user_info["mail"],
             outlook_tokens={
                 "access_token": tokens["access_token"],
                 "refresh_token": tokens["refresh_token"],
                 "expires_at": datetime.now() + timedelta(seconds=tokens["expires_in"])
-            }
+            },
+            platform="outlook"
         )
     else:
         user.outlook_tokens = {
@@ -59,15 +58,15 @@ async def outlook_callback(code: str): # Paremeter code returned directly by mic
     
     # Generate JWT Token
     return {
-        "jwt_token": create_jwt_token({"sub": user.microsoft_id}),
+        "jwt_token": create_jwt_token({"sub": user.microsoft_id, "platform": user.platform}),
         "user_info": {
-            "email": user.email,
+            "email": user.microsoft_mail,
             "microsoft_id": user.microsoft_id
         }
     }
 
 # Get login url for Gmail
-@router.get("/gmail/login")
+@router.get("auth/gmail/login")
 async def gmail_login():
     # Initialize Gmail Auth Manager with your credentials
     from app.email_providers.google.settings import GOOGLE_CREDENTIALS_PATH, TOKEN_DIR
@@ -84,7 +83,7 @@ async def gmail_login():
     }
 
 # Callback from Gmail
-@router.get("/gmail/callback")
+@router.get("auth/gmail/callback")
 async def gmail_callback(code: str, state: str = None):
     # Initialize Gmail Auth Manager
     from app.email_providers.google.settings import GOOGLE_CREDENTIALS_PATH, TOKEN_DIR
@@ -100,13 +99,14 @@ async def gmail_callback(code: str, state: str = None):
     user = await User.find_one(User.email == user_info["email"])
     if not user:
         user = User(
-            email=user_info["email"],
+            google_mail=user_info["email"],
             google_id=user_info["id"],
             gmail_tokens={
                 "access_token": tokens["access_token"],
                 "refresh_token": tokens.get("refresh_token"),
                 "expires_at": datetime.now() + timedelta(seconds=tokens["expires_in"])
-            }
+            },
+            platform="gmail"
         )
     else:
         # Update tokens
@@ -120,9 +120,9 @@ async def gmail_callback(code: str, state: str = None):
     
     # Generate JWT token
     return {
-        "jwt_token": create_jwt_token({"sub": user.microsoft_id}),
+        "jwt_token": create_jwt_token({"sub": user.google_id, "platform": user.platform}),
         "user_info": {
-            "email": user.email,
+            "email": user.google_mail,
             "google_id": user.google_id
         }
     }
