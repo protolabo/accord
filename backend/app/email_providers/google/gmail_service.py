@@ -5,7 +5,7 @@ from email.header import decode_header
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from datetime import datetime
-from gmail_auth import GmailAuthManager
+from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 
 
 class GmailService:
@@ -147,7 +147,7 @@ class GmailService:
                     "html": ""
                 },
                 "Attachments": [],
-                "Categories": [],  # Sera rempli par le service de classification
+                "Categories": [],
                 "Snippet": message.get('snippet', ''),
                 "Internal-Date": self._format_timestamp(message.get('internalDate'))
             }

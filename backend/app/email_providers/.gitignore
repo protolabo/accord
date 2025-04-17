@@ -1,0 +1,8 @@
+# Ignore tous les dossiers nommés "credentials" à n'importe quel niveau
+**/credentials/
+
+# Ignore les dossiers spécifiques et tout leur contenu
+google/credentials/
+google/secure_storage/
+google/tokens/
+

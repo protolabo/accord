@@ -59,7 +59,8 @@ class EmailAPIService {
   private service: EmailService | null = null;
 
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000/api";
+    // Pointing to FastAPI backend on port 8000
+    this.baseUrl = process.env.REACT_APP_API_URL || "http://localhost:8000";
   }
 
   private getHeaders() {
@@ -131,36 +132,42 @@ class EmailAPIService {
     return this;
   }
 
-  async getAuthUrl(service: EmailService): Promise<string> {
+  async getAuthUrl(): Promise<string> {
     try {
-      // Notre nouvelle API utilise des routes différentes pour l'authentification
-      const response = await axios.get(`${this.baseUrl}/auth/${service}/login`);
+      const service = this.getService();
+      if (!service) {
+        throw new Error("No email service selected");
+      }
+
+      // Use the correct FastAPI route paths from your backend/app/routes/auth.py
+      const response = await axios.get(`${this.baseUrl}/${service}/login`);
       return response.data.auth_url;
     } catch (error) {
-      console.error(`Error getting ${service} auth URL:`, error);
+      console.error(`Error getting auth URL:`, error);
       throw error;
     }
   }
 
   async handleAuthCallback(
-    code: string,
-    service: EmailService
+    code: string
   ): Promise<{ accessToken: string; refreshToken?: string }> {
     try {
-      const response = await axios.get(
-        `${this.baseUrl}/auth/${service}/callback`,
-        {
-          params: { code },
-        }
-      );
+      const service = this.getService();
+      if (!service) {
+        throw new Error("No email service selected");
+      }
+
+      // Use the correct callback endpoint path from your backend/app/routes/auth.py
+      const response = await axios.get(`${this.baseUrl}/${service}/callback`, {
+        params: { code },
+      });
 
       const { access_token, refresh_token } = response.data;
       this.setTokens(access_token, refresh_token);
-      this.setService(service);
 
-      return { accessToken: access_token, refreshToken: refresh_token };
+      return { accessToken: access_token, RefreshToken: refresh_token };
     } catch (error) {
-      console.error(`Error handling ${service} auth callback:`, error);
+      console.error(`Error handling auth callback:`, error);
       throw error;
     }
   }
@@ -176,7 +183,7 @@ class EmailAPIService {
     }
 
     try {
-      // Notre nouvelle API standardisée
+      // Using the correct FastAPI route path from your backend/app/routes/emails.py
       const response = await axios.get(`${this.baseUrl}/emails`, {
         headers: this.getHeaders(),
         params: {

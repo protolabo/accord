@@ -2,9 +2,9 @@ from fastapi import APIRouter, Query, Request, HTTPException, Depends
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.responses import HTMLResponse
 
-from gmail_auth import GmailAuthManager
-from backend.app.processing.email_processor import normalize_email_for_storage
-from settings import GOOGLE_CREDENTIALS_PATH, TOKEN_DIR
+from backend.app.tasks.email_processor import normalize_email_for_storage
+from backend.app.email_providers.google.gmail_auth import GmailAuthManager
+from backend.app.email_providers.google.settings import GOOGLE_CREDENTIALS_PATH, TOKEN_DIR
 import uuid
 
 router = APIRouter()

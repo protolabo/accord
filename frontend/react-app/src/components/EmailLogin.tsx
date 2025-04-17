@@ -17,17 +17,42 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    // Check for OAuth callback in URL
+    // Listen for messages from the popup window
+    const handleAuthMessage = (event: MessageEvent) => {
+      // Only accept messages from the same origin
+      if (event.origin !== window.location.origin) return;
+
+      if (
+        event.data &&
+        event.data.type === "auth_callback" &&
+        event.data.code
+      ) {
+        handleAuthCallback(event.data.code);
+      }
+    };
+
+    window.addEventListener("message", handleAuthMessage);
+
+    // Check for OAuth callback in URL (in case we're not using popup)
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
     const service = emailAPIService.getService();
 
     if (code && service) {
       handleAuthCallback(code);
+
+      // Remove code from URL without refreshing
+      const url = new URL(window.location.href);
+      url.searchParams.delete("code");
+      window.history.replaceState({}, document.title, url.toString());
     } else if (emailAPIService.isAuthenticated()) {
       // Already authenticated, try to get user profile
       fetchUserProfile();
     }
+
+    return () => {
+      window.removeEventListener("message", handleAuthMessage);
+    };
   }, []);
 
   const handleAuthCallback = async (code: string) => {
@@ -36,11 +61,6 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
 
     try {
       await emailAPIService.handleAuthCallback(code);
-
-      // Remove code from URL without refreshing
-      const url = new URL(window.location.href);
-      url.searchParams.delete("code");
-      window.history.replaceState({}, document.title, url.toString());
 
       // Fetch user profile
       await fetchUserProfile();
@@ -97,7 +117,7 @@ const EmailLogin: React.FC<EmailLoginProps> = ({ onLogin }) => {
               />
             )}
             <h3 className="text-lg font-semibold dark:text-white">
-              {userProfile.name}
+              {userProfile.name || userProfile.email}
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
               {userProfile.email}
