@@ -5,7 +5,7 @@ import asyncio
 from app.core.config import settings
 from app.db.connection import init_db
 from app.routes import auth, emails
-from app.tasks.email_sync import start_email_sync_task
+from backend.app.utils.old_version.old_email_sync import start_email_sync_task
 
 app = FastAPI(
     title="Accord API",
