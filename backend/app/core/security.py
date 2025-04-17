@@ -27,7 +27,7 @@ current_user = get_current_user
 # Create JWT Token
 def create_jwt_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now() + timedelta(hours=4)
+    expire = datetime.now() + timedelta(hours=8)
     to_encode.update({"exp": expire})
     return jwt.encode(
         to_encode,

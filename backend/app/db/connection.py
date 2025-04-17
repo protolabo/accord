@@ -22,7 +22,7 @@ db = client[settings.DB_NAME]
 async def init_db():
     await init_beanie(
         database=db,
-        document_models=[User, Email]  # 列出所有文档模型类
+        document_models=[User, Email]
     )
 
 

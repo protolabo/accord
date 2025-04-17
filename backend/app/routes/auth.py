@@ -17,21 +17,6 @@ oauth2_scheme = OAuth2AuthorizationCodeBearer(
     tokenUrl=f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT_ID}/oauth2/v2.0/token"
 )
 
-# Token validation
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
-    try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-        email = payload.get("sub")
-        if email is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    except jwt.JWTError:
-        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-    
-    user = await User.find_one(User.email == email)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
-
 # Get login url for Outlook
 @router.get("/outlook/login")
 async def outlook_login():
@@ -74,7 +59,7 @@ async def outlook_callback(code: str): # Paremeter code returned directly by mic
     
     # Generate JWT Token
     return {
-        "access_token": create_jwt_token(user.email),
+        "jwt_token": create_jwt_token({"sub": user.microsoft_id}),
         "user_info": {
             "email": user.email,
             "microsoft_id": user.microsoft_id
@@ -135,7 +120,7 @@ async def gmail_callback(code: str, state: str = None):
     
     # Generate JWT token
     return {
-        "access_token": create_jwt_token(user.email),
+        "jwt_token": create_jwt_token({"sub": user.microsoft_id}),
         "user_info": {
             "email": user.email,
             "google_id": user.google_id

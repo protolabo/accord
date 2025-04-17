@@ -27,7 +27,7 @@ class OutlookAuth:
                         "code": code,
                         "grant_type": "authorization_code",
                         "redirect_uri": settings.REDIRECT_URI,
-                        "scope": "openid profile email Mail.Read"
+                        "scope": "openid profile email Mail.Read Mail.ReadWrite Mail.Send"
                     }
                 )
                 token_response.raise_for_status()

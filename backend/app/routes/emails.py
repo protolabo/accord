@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Any
 from fastapi import APIRouter, Depends, Query, HTTPException, Body
 from app.services.email.email_provider import EmailProvider, get_email_provider
 from app.services.email.email_service import StandardizedEmail
-from app.routes.auth import get_current_user
+from app.core.security import get_current_user
 from app.db.models import User
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
