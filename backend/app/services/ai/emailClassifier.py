@@ -28,15 +28,16 @@ def hierarchical_classify(email_text, main_threshold=0.10, sub_threshold=0.2, to
     email_embed = model.encode([email_text])
 
     # Choose main class
-    main_similarities = cosine_similarity(email_embed, main_embeddings)[0]
+    main_sims = cosine_similarity(email_embed, main_embeddings)[0]
 
-    valid_index = [i for i, score in enumerate(main_similarities) if score >= main_threshold]
-    valid_index = sorted(valid_index, key=lambda i: -main_similarities[i])[:top_k]
+    valid_idxs = sorted(
+        [i for i, s in enumerate(main_sims) if s >= main_threshold],
+        key=lambda i: -main_sims[i]
+    )[:top_k]
 
-    if not valid_index:
+    if not valid_idxs:
         return {"mains": [], "subs": []}
-
-    candidate_mains = [(list(categories.keys())[i], float(main_similarities[i])) for i in valid_index]
+    candidate_mains = [(list(categories.keys())[i], float(main_sims[i])) for i in valid_idxs]
 
     # Choose sub class
     dynamic_sub_embeds = []
@@ -93,29 +94,28 @@ def email_classification(email_text, diff_threshold=0.05):
     selected_subs = [sub for sub in subs_sorted if (highest_conf - sub["confidence"]) <= diff_threshold]
 
     main_classes = list(set([sub["main_class"] for sub in selected_subs]))
-    sub_classes = [sub["sub_class"] for sub in selected_subs]
+    sub_classes = [(sub["sub_class"],sub["confidence"]) for sub in selected_subs]
 
     return {"main_class": main_classes, "sub_classes": sub_classes}
 
 
 # # Test
-# with open('data/enron_emails.json', 'r', encoding='utf-8') as f:
+# with open('data/mock_emails.json', 'r', encoding='utf-8') as f:
 #     email_data = json.load(f)
 
 # results = []
 
 # for email in email_data:
-#     metadata = email.get("metadata", {})
-#     text = f'{metadata.get("subject", "")} {email.get("body", "")}'
+#     text = f'{email.get("subject", "")} {email.get("body", "")}'
 #     predicted_result = email_classification(text)
 #     results.append({
-#         "id": metadata.get("message_id", ""),
-#         "subject": metadata.get("subject", ""),
+#         "id": email.get("message_id", ""),
+#         "subject": email.get("subject", ""),
 #         "body": email.get("body", ""),
 #         "mains": predicted_result["main_class"],
 #         "subs": predicted_result["sub_classes"]
 #     })
 
-# with open('data/enron_emails_predicted.json', 'w', encoding='utf-8') as f_out:
+# with open('data/mock_emails_predicted.json', 'w', encoding='utf-8') as f_out:
 #     json.dump(results, f_out, ensure_ascii=False, indent=2)
 
