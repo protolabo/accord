@@ -99,23 +99,3 @@ def email_classification(email_text, diff_threshold=0.05):
     return {"main_class": main_classes, "sub_classes": sub_classes}
 
 
-# # Test
-# with open('data/mock_emails.json', 'r', encoding='utf-8') as f:
-#     email_data = json.load(f)
-
-# results = []
-
-# for email in email_data:
-#     text = f'{email.get("subject", "")} {email.get("body", "")}'
-#     predicted_result = email_classification(text)
-#     results.append({
-#         "id": email.get("message_id", ""),
-#         "subject": email.get("subject", ""),
-#         "body": email.get("body", ""),
-#         "mains": predicted_result["main_class"],
-#         "subs": predicted_result["sub_classes"]
-#     })
-
-# with open('data/mock_emails_predicted.json', 'w', encoding='utf-8') as f_out:
-#     json.dump(results, f_out, ensure_ascii=False, indent=2)
-
