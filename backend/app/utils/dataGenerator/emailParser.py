@@ -122,6 +122,9 @@ class EnronEmailParser:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(processed_emails, f, indent=4, ensure_ascii=False)
 
+
+""""
 if __name__ == "__main__":
-    parser = EnronEmailParser('data/emails.csv')
-    parser.process_dataset('data/emails.json', max_emails=1000)
+    parser = EnronEmailParser('emails.csv')
+    parser.process_dataset('emails.json', max_emails=100_000)
+"""
