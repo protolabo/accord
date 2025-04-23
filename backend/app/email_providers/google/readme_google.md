@@ -5,7 +5,6 @@
 - Authentification OAuth2 avec Google (flux d'autorisation via navigateur)
 - Gestion des tokens d'authentification (génération, stockage sécurisé, rafraîchissement)
 - Récupération des emails depuis l'API Gmail (avec support de pagination)
-- Export des emails vers des fichiers JSON (par lots pour gérer les grands volumes)
 - Endpoints API pour déclencher l'authentification et l'export des emails
 - Exécution des exports en arrière-plan pour ne pas bloquer les requêtes HTTP
 
@@ -22,7 +21,6 @@
 - `gmail_auth.py` - Gestion de l'authentification OAuth2 avec Google
 - `gmail_service.py` - Service pour interagir avec l'API Gmail
 - `auth.py` - Routes FastAPI pour l'authentification et l'export
-- `export_gmail_to_json.py` - Fonctions pour l'export des emails vers JSON
 
 ## Utilisation des API
 
@@ -39,21 +37,6 @@ Une fois authentifié, l'utilisateur peut vérifier son statut :
 GET /auth/status?email=utilisateur@gmail.com
 ```
 
-### Export des emails
-
-Pour déclencher un export des emails :
-
-```
-POST /export/gmail
-{
-    "email": "utilisateur@gmail.com", 
-    "max_emails": 1000,         // optionnel, null = tous
-    "output_dir": "./data",     // optionnel
-    "batch_size": 5000          // optionnel
-}
-```
-
-Cette opération s'exécute en arrière-plan et retourne immédiatement une confirmation.
 
 
 
@@ -116,9 +99,4 @@ Les tokens d'authentification sont stockés localement dans le répertoire TOKEN
 - Veillez à ce que les permissions des fichiers soient correctement configurées
 - Ne partagez pas les tokens entre différentes installations
 
-## Limitations connues
-
-- La récupération de très grandes boîtes mail (>50 000 emails) peut être lente
-- Les pièces jointes ne sont pas enregistré juste les metadonnéées qui est collecté
-- L'API Gmail peut appliquer des limites de quota qui ralentissent le processus
 

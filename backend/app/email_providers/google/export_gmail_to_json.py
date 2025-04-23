@@ -9,6 +9,7 @@ from backend.app.email_providers.google.settings import Config
 from backend.app.email_providers.google.gmail_service import GmailService
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
+from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
 
 
 def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=5000):
@@ -147,8 +148,21 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print(f"Tous les emails ont été exportés vers: {output_dir}")
 
 
-            ## continuer le processus
-            
+            # construction du graphe
+            try:
+                # en production
+                build_graph_main(input_dir="./data",output_dir="./data/output/graph", central_user=emails)
+
+                #pour le test
+                build_graph_main()
+
+            except Exception as e:
+                print(f"\nError: {str(e)}")
+                import traceback
+                traceback.print_exc()
+
+            # classifier de mails
+
 
             return index
 
