@@ -36,6 +36,8 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
     auth_manager = GmailAuthManager()
     gmail_service = GmailService()
 
+    auth_completion_events = {}
+
     user_id = normalize_email_for_storage(email)
 
     # Vérification de l'authentification avec retry limité
@@ -52,13 +54,38 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print(f"URL d'authentification: {auth_url}")
             webbrowser.open(auth_url)
             print("\nSuivez les étapes dans le navigateur pour vous authentifier avec Google.")
-            print("Une fois l'authentification terminée, vous serez redirigé vers votre application.")
-            print("\nAppuyez sur Entrée une fois l'authentification terminée pour continuer...")
-            input()
+            print("Une fois l'authentification terminée, cliquez sur 'Terminer l'authentification'.")
 
-            # Laisser un peu de temps pour que les fichiers soient correctement écrits
+            # Créer une clé unique pour cet email
+            key = email or "last_auth"
+
+            # Initialiser l'événement
+            auth_completion_events[key] = False
+
+            # Attendre que l'utilisateur termine l'authentification dans le navigateur
+            max_wait_time = 120
+            start_time = time.time()
+
+            print("En attente de confirmation d'authentification...")
+            while not auth_completion_events.get(key, False):
+                time.sleep(1)
+
+                # Vérifier si l'authentification est réussie directement
+                if auth_manager.is_authenticated(user_id):
+                    break
+
+                if time.time() - start_time > max_wait_time:
+                    print("Délai d'attente dépassé pour l'authentification.")
+                    break  # Sortir de la boucle d'attente, mais continuer les tentatives
+
+
             time.sleep(2)
 
+            # Nettoyer l'événement une fois utilisé
+            if key in auth_completion_events:
+                del auth_completion_events[key]
+
+            # Vérifier si l'authentification a réussi
             is_authenticated = auth_manager.is_authenticated(user_id)
             if is_authenticated:
                 print("Authentification réussie...✅")
@@ -121,5 +148,3 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
         import traceback
         traceback.print_exc()
         return None
-
-

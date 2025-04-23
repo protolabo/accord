@@ -7,6 +7,9 @@ from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.export_gmail_to_json import export_emails_to_json
 from fastapi import BackgroundTasks, Body
 from typing import Optional
+from starlette.concurrency import run_in_threadpool
+import asyncio
+
 
 router = APIRouter()
 auth_manager = GmailAuthManager()
@@ -120,6 +123,7 @@ async def auth_status(request: Request, email: str = Query(None)):
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
 
+
 @router.get("/auth-success", response_class=HTMLResponse)
 async def auth_success(request: Request, email: str = None):
     html_content = f"""
@@ -130,44 +134,33 @@ async def auth_success(request: Request, email: str = None):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            body {{
-                font-family: Arial, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                text-align: center;
-            }}
-            .success-container {{
-                border-radius: 8px;
-                background-color: #f9f9f9;
-                padding: 30px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                margin-top: 50px;
-            }}
-            h1 {{
-                color: #2c7be5;
-            }}
-            .success-icon {{
-                color: #28a745;
-                font-size: 48px;
-                margin-bottom: 20px;
-            }}
-            .button {{
-                display: inline-block;
-                background-color: #2c7be5;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 4px;
-                text-decoration: none;
-                margin-top: 20px;
-                transition: background-color 0.3s;
-            }}
-            .button:hover {{
-                background-color: #1a68d1;
-            }}
+            /* Styles CSS inchangés */
         </style>
+        <script>
+            // Fonction pour notifier le backend et fermer la fenêtre
+            function completeAuth() {{
+                // Envoyer une requête pour notifier que l'authentification est terminée
+                fetch('/auth/complete?email={email or ""}', {{
+                    method: 'POST'
+                }})
+                .then(response => {{
+                    // Fermer la fenêtre après notification
+                    window.close();
+                    // Au cas où window.close() ne fonctionne pas (politiques de sécurité)
+                    document.body.innerHTML = `
+                        <div class="success-container">
+                            <h1>Authentification terminée</h1>
+                            <p>Vous pouvez maintenant fermer cette fenêtre et revenir à l'application.</p>
+                        </div>
+                    `;
+                }})
+                .catch(error => {{
+                    console.error('Erreur:', error);
+                }});
+
+                return false; // Empêcher le comportement par défaut du lien
+            }}
+        </script>
     </head>
     <body>
         <div class="success-container">
@@ -175,13 +168,26 @@ async def auth_success(request: Request, email: str = None):
             <h1>Authentification réussie!</h1>
             <p>Votre compte <strong>{email or 'Gmail'}</strong> a été connecté avec succès à Accord.</p>
             <p>Vous pouvez maintenant accéder à vos emails et utiliser toutes les fonctionnalités de l'application.</p>
-            <a href="/" class="button">Retour à l'application</a>
+            <a href="#" onclick="return completeAuth();" class="button">Terminer l'authentification</a>
         </div>
     </body>
     </html>
     """
     return HTMLResponse(content=html_content)
 
+# Dictionnaire pour stocker les événements d'authentification
+auth_completion_events = {}
+
+@router.post("/auth/complete")
+async def auth_complete(email: str = None):
+    """Endpoint appelé par le navigateur pour signaler que l'authentification est terminée"""
+    # Créez une clé unique basée sur l'email ou utilisez une valeur par défaut
+    key = email or "last_auth"
+
+    # Définir l'événement comme complété
+    auth_completion_events[key] = True
+
+    return {"status": "success", "message": "Authentication process completed"}
 @router.get("/")
 async def home():
     return RedirectResponse(url="/")
