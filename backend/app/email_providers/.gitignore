@@ -5,4 +5,4 @@
 google/credentials/
 google/secure_storage/
 google/tokens/
-
+google/credentials.json

@@ -1,59 +1,46 @@
-# app/main.py
+import uvicorn
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-import asyncio
-from app.core.config import settings
-from app.db.connection import init_db
-from app.routes import auth, emails
-from backend.app.utils.old_version.old_email_sync import start_email_sync_task
+from starlette.middleware.sessions import SessionMiddleware
+from backend.app.email_providers.google.auth import  router as auth_router
+import sys
+from backend.app.killer_process import  kill_processes_on_port
+from backend.app.utils.dataGenerator import mainGenerator as mockdataGenerator
+from backend.app.email_providers.google.export_gmail_to_json import export_emails_to_json as auth_export_gmail
+import secrets
 
-app = FastAPI(
-    title="Accord API",
-    description="API pour l'application Accord de gestion d'emails",
-    version="1.0.0"
-)
+app = FastAPI()
 
-# Configurer CORS
+SECRET_KEY = secrets.token_hex(16)
+
+# Configuration du middleware de session
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifiez les domaines autorisés
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    SessionMiddleware,
+    secret_key=SECRET_KEY,
+    session_cookie="accord_session",
+    max_age=1800 
 )
 
-# Tâche de synchronisation des emails
-email_sync_task = None
+app.include_router(auth_router)
 
-# Événement de démarrage pour initialiser la base de données et démarrer les tâches
-@app.on_event("startup")
-async def startup_db_client():
-    # Initialiser la connexion à la base de données
-    await init_db()
-    
-    # Démarrer la tâche de synchronisation des emails en arrière-plan
-    global email_sync_task
-    email_sync_task = asyncio.create_task(start_email_sync_task())
+if __name__ == "__main__":
+    if kill_processes_on_port(8000):
+        print("Port 8000 is now available...")
+        uvicorn.run(app, host="0.0.0.0", port=8000)
 
-# Événement d'arrêt pour nettoyer les ressources
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    # Annuler la tâche de synchronisation si elle est en cours
-    global email_sync_task
-    if email_sync_task:
-        email_sync_task.cancel()
-        try:
-            await email_sync_task
-        except asyncio.CancelledError:
-            pass
+        ### README PROCESS ###
 
-# Inclure les routes
-app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-app.include_router(emails.router, prefix="/api", tags=["Emails"])
+        ## etape 1 : generation du mockdata , en production cette phase sera supprime
+            #mockdataGenerator.main()
 
-# Route de base pour vérifier que l'API fonctionne
-@app.get("/", tags=["Root"])
-async def read_root():
-    return {"message": "Bienvenue sur l'API Accord", "status": "online"}
+        ## etape 2: authentification & export mails
+        """
+                Args: email, max_email=None,output_dir,batchsize
+        """
 
+            # pour tester : auth_export_gmail("johndoe@gmail.com",10,"./data",5000)
+            # pour relier au bouton se connecter :  "/export/gmail" {...}
+            # les messages sont sauvegardé dans app/data
 
+    else:
+        print("Failed to free port 8000")
+        sys.exit(1)

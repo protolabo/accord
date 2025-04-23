@@ -9,7 +9,7 @@ import os
 from tqdm import tqdm
 
 # Imports for the Enron data management module
-from enron_data_manager import EnronDataManager  # backend/app/utils/enron_data_manager.py
+from backend.app.utils.dataGenerator.enron_data_manager import EnronDataManager
 
 # Initialize the Enron data manager with a minimum length
 enron_manager = EnronDataManager('emails.json', min_body_length=150)
@@ -572,9 +572,3 @@ def generate_massive_dataset(total_emails=1000,  output_dir="mock_data"):
     print(f"Mailbox generated for {primary_user['name']} ({primary_user['email']})")
 
     return index
-
-"""
-if __name__ == "__main__":
-    # Generate 1000 mock emails for a personal mailbox
-    generate_massive_dataset(1000,  "mockdata")
-"""

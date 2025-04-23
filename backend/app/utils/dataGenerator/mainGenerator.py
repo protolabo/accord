@@ -1,7 +1,7 @@
 import os
 import sys
-from emailParser import EnronEmailParser
-from generatorMail import generate_massive_dataset
+from backend.app.utils.dataGenerator.emailParser import EnronEmailParser
+from backend.app.utils.dataGenerator.generatorMail import generate_massive_dataset
 
 def main():
     # Chemins des fichiers

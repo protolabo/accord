@@ -1,47 +1,47 @@
 import os
-from pathlib import Path
 import secrets
+from pathlib import Path
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+class Config:
+    BASE_DIR =  Path(__file__).resolve().parent.parent.parent.parent
 
-# Chemin vers le répertoire contenant les credentials Google
-GOOGLE_CREDENTIALS_PATH = os.environ.get(
-    "GOOGLE_CREDENTIALS_PATH",
-    str(Path(__file__).parent / "credentials.json")
-)
+    # Configuration Google
+    GOOGLE_CREDENTIALS_PATH = os.environ.get(
+        "GOOGLE_CREDENTIALS_PATH",
+        str(BASE_DIR / "app" / "email_providers" / "google" / "credentials.json")
+    )
 
-# Répertoire pour stocker les tokens
-TOKEN_DIR = os.environ.get(
-    "GOOGLE_TOKEN_DIR", 
-    str(Path(__file__).parent / "tokens")
-)
+    TOKEN_DIR = os.environ.get(
+        "GOOGLE_TOKEN_DIR",
+        str(BASE_DIR / "app" / "email_providers" / "google" / "tokens")
+    )
 
-# Répertoire pour stocker les données temporaires
-TEMP_STORAGE_DIR = os.path.join(BASE_DIR, "secure_storage", "temp_data")
+    TEMP_STORAGE_DIR = BASE_DIR / "secure_storage" / "temp_data"
+    OUTPUT_DIR = BASE_DIR / "secure_storage" / "tokens"
 
-# Répertoire pour les outputs
-OUTPUT_DIR = os.path.join(BASE_DIR, "secure_storage", "tokens")
+    OAUTH_REDIRECT_URI = os.environ.get(
+        "GMAIL_REDIRECT_URI",
+        "http://localhost:8000/api/auth/gmail/callback"
+    )
 
-# URL de redirection pour l'authentification OAuth2
-OAUTH_REDIRECT_URI = os.environ.get(
-    "GMAIL_REDIRECT_URI",
-    "http://localhost:8000/api/auth/gmail/callback"
-)
+    # Scopes requis pour Gmail
+    GOOGLE_SCOPES = [
+        "https://www.googleapis.com/auth/gmail.readonly",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/gmail.compose",
+        "https://www.googleapis.com/auth/gmail.modify",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "openid"
+    ]
 
-# Scopes requis pour Gmail
-GOOGLE_SCOPES = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/gmail.compose",
-    "https://www.googleapis.com/auth/gmail.modify",
-    "https://www.googleapis.com/auth/userinfo.email",
-    "https://www.googleapis.com/auth/userinfo.profile"
-]
+    SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", secrets.token_hex(32))
 
-SESSION_SECRET_KEY = os.environ.get("SESSION_SECRET_KEY", secrets.token_hex(32))
-
-# S'assurer que les répertoires existent
-os.makedirs(os.path.dirname(GOOGLE_CREDENTIALS_PATH), exist_ok=True)
-os.makedirs(TOKEN_DIR, exist_ok=True)
-os.makedirs(TEMP_STORAGE_DIR, exist_ok=True)
+    @classmethod
+    def ensure_directories(cls):
+        # creation de repertoire
+        os.makedirs(os.path.dirname(cls.GOOGLE_CREDENTIALS_PATH), exist_ok=True)
+        os.makedirs(cls.TOKEN_DIR, exist_ok=True)
+        os.makedirs(cls.TEMP_STORAGE_DIR, exist_ok=True)
+        os.makedirs(cls.OUTPUT_DIR, exist_ok=True)
