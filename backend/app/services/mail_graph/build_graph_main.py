@@ -16,7 +16,7 @@ def log_memory_usage(label):
     """Log current memory usage with a label."""
     print(f"Memory usage ({label}): {memory_usage_gb():.2f} GB")
 
-def main(input_dir = "mockdata",output_dir = "output/graph",central_user = "alexandre.dupont@acmecorp.com",max_emails = None):
+def main(input_dir = "'../../data/mockdata",output_dir = "'../../data/mockdata/output/graph",central_user = "alexandre.dupont@acmecorp.com",max_emails = None):
     """Main function to build email graph."""
 
     # Record start time

@@ -7,7 +7,7 @@ def main():
     # Chemins des fichiers
     csv_path = 'emails.csv'
     json_path = 'emails.json'
-    output_dir = 'mockdata'
+    output_dir = '../../data/mockdata'
     
 
     if not os.path.exists(csv_path):
@@ -33,6 +33,6 @@ def main():
     
     print("\nProcessus complet terminé avec succès!")
 
-if __name__ == "__main__":
-    print("=== GÉNÉRATEUR D'EMAILS POUR LE PROJET ACCORD ===")
-    main()
+#if __name__ == "__main__":
+#    print("=== GÉNÉRATEUR D'EMAILS POUR LE PROJET ACCORD ===")
+#    main()

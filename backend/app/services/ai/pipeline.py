@@ -3,7 +3,7 @@ from backend.app.services.ai.emailClassifier import email_classification
 import json
 
 def process_email(raw_email: dict) -> dict:
-    body = raw_email.get("Body", {}) 
+    body = raw_email.get("Body", {})
     plain_text = body.get("plain", "") if isinstance(body, dict) else ""
     sanitized_body = sanitize_numbers(plain_text)
     preprocessed = preprocess_email(sanitized_body, keep_paragraphs=False)

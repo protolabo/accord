@@ -549,7 +549,7 @@ def generate_massive_dataset(total_emails=1000,  output_dir="mock_data"):
     emails.sort(key=lambda x: x["Internal-Date"])
 
     # Save all emails to one file
-    output_file = os.path.join(output_dir, "all_emails.json")
+    output_file = os.path.join(output_dir, "emails_batch_1.json")
     print(f"Saving all emails to {output_file}...")
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(emails, f, indent=2, ensure_ascii=False)
@@ -559,7 +559,7 @@ def generate_massive_dataset(total_emails=1000,  output_dir="mock_data"):
         "total_emails": total_emails,
         "user_email": primary_user["email"],
         "user_name": primary_user["name"],
-        "file": "all_emails.json",
+        "file": "emails_batch_1.json",
         "generation_date": datetime.now().isoformat(),
         "data_source": "Enron dataset" if enron_available else "Synthetic data"
     }

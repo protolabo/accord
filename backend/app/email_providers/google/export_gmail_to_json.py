@@ -11,7 +11,7 @@ from backend.app.email_providers.google.email_utils import normalize_email_for_s
 from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
 
 
-def classify_exported_emails(output_dir):
+def classify_exported_emails(output_dir = '../../data/mockdata'):
     """
     Traite tous les fichiers batch exportés pour ajouter les classifications d'emails.
 
@@ -199,7 +199,11 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
 
             print("\nLancement de la classification des emails...")
             try:
-                classify_exported_emails(output_dir)
+                # En production
+                #classify_exported_emails(output_dir)
+
+                #test
+                classify_exported_emails()
                 print("Classification des emails terminée avec succès ✅")
             except Exception as e:
                 print(f"\nErreur lors de la classification des emails: {str(e)}")
@@ -210,7 +214,7 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print("\nLancement de la construction du graphe...")
             try:
                 # en production
-                #build_graph_main(input_dir="./data",output_dir="./data/output/graph", central_user=emails)
+                #build_graph_main(input_dir="../../data",output_dir="'../../data/output/graph", central_user=emails)
 
                 #pour le test
                 build_graph_main()
@@ -232,4 +236,4 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
         return None
 
 #if __name__ == "__main__":
-#    export_emails_to_json("x@gmail.com",10,"./data",5000)
+#    export_emails_to_json("x@gmail.com",10,'../../data,5000)
