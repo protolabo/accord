@@ -41,13 +41,13 @@ python emailParser.py
   - [x] Identifier les relations entre emails
   - [x] Identifier les relations entre contacts
 
-- [ ] **Étape 5: Classification des emails**
+- [x] **Étape 5: Classification des emails**
 
 - [ ] **Étape 6: Génération des threads**
 
 - [x] **Étape 7: Stockage de notre structures de connexion de mails**
 
-- [ ] **Étape 8: Nettoyage des données brutes**
+- [x] **Étape 8: Nettoyage des données brutes**
 
 
 ## Recherche Sémantique

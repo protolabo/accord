@@ -237,5 +237,5 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
         traceback.print_exc()
         return None
 
-#if __name__ == "__main__":
-#    export_emails_to_json("x@gmail.com",100,'../data',5000)
+if __name__ == "__main__":
+    export_emails_to_json("x@gmail.com",100,'../data',5000)
