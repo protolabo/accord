@@ -71,7 +71,12 @@
         }
     },
     "Spam":{
-        "description": "Unsolicited or malicious content not requested by the user, including phishing attempts, scam offers, bulk ads, or fraudulent messages. Characterized by suspicious links, grammatical errors, or false urgency claims. Excludes legitimate subscription emails (see Ads & Subscriptions).",
-        "subcategories":{}
+    "description": "Unsolicited or malicious content not requested by the user, including phishing attempts, scam offers, bulk ads, or fraudulent messages. Characterized by suspicious links, grammatical errors, or false urgency claims. Excludes legitimate subscription emails (see Ads & Subscriptions).",
+    "subcategories":{
+        "Phishing Attempts": "Emails that falsely claim to be from legitimate organizations to steal sensitive information like passwords and credit card details. Often contain suspicious links and urgent language.",
+        "Scam Offers": "Fraudulent promotional emails making unrealistic promises like lottery wins, inheritance claims, or get-rich-quick schemes requiring upfront payment or personal information.",
+        "Malicious Attachments": "Emails containing harmful files designed to install malware, ransomware, or other unauthorized software on the recipient's device.",
+        "Bulk Spam": "Mass-distributed unsolicited messages with generic promotional content, often with poor formatting and grammar errors."
+        }
     }
 }

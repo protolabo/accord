@@ -3,7 +3,7 @@ import time
 import argparse
 import psutil
 from backend.app.services.mail_graph.graph_coordinator import GraphCoordinator
-from optimized_mock_data_service import OptimizedMockDataService
+from backend.app.services.mail_graph.optimized_mock_data_service import OptimizedMockDataService
 
 
 def memory_usage_gb():

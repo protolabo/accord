@@ -200,10 +200,10 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print("\nLancement de la classification des emails...")
             try:
                 # En production
-                #classify_exported_emails(output_dir)
+                classify_exported_emails(output_dir)
 
                 #test
-                classify_exported_emails()
+                #classify_exported_emails()
                 print("Classification des emails terminée avec succès ✅")
             except Exception as e:
                 print(f"\nErreur lors de la classification des emails: {str(e)}")
@@ -213,11 +213,11 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             # construction du graphe
             print("\nLancement de la construction du graphe...")
             try:
-                # en production
-                #build_graph_main(input_dir="../../data",output_dir="'../../data/output/graph", central_user=emails)
+                # En production
+                build_graph_main(input_dir=output_dir, output_dir=f"{output_dir}/graph", central_user=email)
 
-                #pour le test
-                build_graph_main()
+                # Pour le test
+                #build_graph_main()
                 print("construction du graphe terminée avec succès ✅")
 
             except Exception as e:
@@ -225,9 +225,11 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
                 import traceback
                 traceback.print_exc()
 
-
-
             return index
+
+        #classify_exported_emails(output_dir)
+        #build_graph_main(input_dir=output_dir, output_dir=f"{output_dir}/graph", central_user=email)
+
 
     except Exception as e:
         print(f"Erreur lors de l'export des emails: {str(e)}")
@@ -236,4 +238,4 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
         return None
 
 #if __name__ == "__main__":
-#    export_emails_to_json("x@gmail.com",10,'../../data,5000)
+#    export_emails_to_json("x@gmail.com",100,'../data',5000)

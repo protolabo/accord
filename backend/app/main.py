@@ -4,8 +4,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from backend.app.email_providers.google.auth import  router as auth_router
 import sys
 from backend.app.killer_process import  kill_processes_on_port
-from backend.app.utils.dataGenerator import mainGenerator as mockdataGenerator
-from backend.app.email_providers.google.export_gmail_to_json import export_emails_to_json as auth_export_gmail
 import secrets
 
 app = FastAPI()

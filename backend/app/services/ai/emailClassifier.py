@@ -2,11 +2,15 @@ from sentence_transformers import SentenceTransformer, util
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 import numpy as np
+import os
 
 model = SentenceTransformer('paraphrase-mpnet-base-v2')
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+json_path = os.path.join(current_dir, "category_desp.json")
 
-with open("backend/app/services/ai/category_desp.json", 'r', encoding='utf-8') as f:
+
+with open(json_path, 'r', encoding='utf-8') as f:
     categories = json.load(f)
 
 # Main class encoding
