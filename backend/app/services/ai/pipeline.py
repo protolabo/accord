@@ -3,9 +3,11 @@ from backend.app.services.ai.emailClassifier import email_classification
 import json
 
 def process_email(raw_email: dict) -> dict:
-    sanitized_body = sanitize_numbers(raw_email.get("body", ""))
+    body = raw_email.get("Body", {}) 
+    plain_text = body.get("plain", "") if isinstance(body, dict) else ""
+    sanitized_body = sanitize_numbers(plain_text)
     preprocessed = preprocess_email(sanitized_body, keep_paragraphs=False)
-    email_to_classified = f'{raw_email.get("subject", "")} {preprocessed}'
+    email_to_classified = f'{raw_email.get("Subject", "")} {preprocessed}'
     cls = email_classification(email_to_classified)
     return {
         "main_class": cls["main_class"],

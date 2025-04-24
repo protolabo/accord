@@ -1,7 +1,6 @@
 import os
 import json
 import time
-import argparse
 import webbrowser
 from datetime import datetime
 
@@ -10,6 +9,57 @@ from backend.app.email_providers.google.gmail_service import GmailService
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
 from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
+
+
+def classify_exported_emails(output_dir):
+    """
+    Traite tous les fichiers batch exportés pour ajouter les classifications d'emails.
+
+    Args:
+        output_dir: Répertoire contenant les fichiers batch
+    """
+    import os
+    import json
+    from backend.app.services.ai.pipeline import process_email
+
+    print(f"Classement des emails dans le répertoire: {output_dir}")
+    batch_files = [f for f in os.listdir(output_dir) if f.startswith("emails_batch_") and f.endswith(".json")]
+
+    for batch_file in batch_files:
+        batch_path = os.path.join(output_dir, batch_file)
+        print(f"Traitement du fichier: {batch_file}")
+
+        # Charger le contenu du fichier batch
+        with open(batch_path, 'r', encoding='utf-8') as f:
+            emails = json.load(f)
+
+        # Classifier chaque email
+        total_emails = len(emails)
+        for i, email in enumerate(emails):
+            if i % 100 == 0:
+                print(f"  Progression: {i}/{total_emails} emails traités")
+
+            try:
+                # Adaptation pour le format spécifique des emails Gmail
+                classification = process_email({
+                    "subject": email.get("Subject", ""),
+                    "body": email.get("Body", {}).get("plain", "")
+                })
+
+                # Ajouter les classifications comme nouvelles clés
+                email["accord_main_class"] = classification["main_class"]
+                email["accord_sub_classes"] = classification["sub_classes"]
+            except Exception as e:
+                # Ne rien faire pour l'instant, juste imprimer l'erreur
+                print(f"  Erreur lors du classement de l'email {i}: {str(e)}")
+
+        # Réécrire le fichier avec les emails mis à jour
+        with open(batch_path, 'w', encoding='utf-8') as f:
+            json.dump(emails, f, ensure_ascii=False, indent=2)
+
+        print(f"  Fichier {batch_file} mis à jour avec les classifications")
+
+    print("Classification des emails terminée")
 
 
 def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=5000):
@@ -107,7 +157,6 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
 
     try:
         if not is_authenticated_for_process :
-            # Récupération des emails
             print(f"Récupération des emails de {email}...")
             start_time = time.time()
 
@@ -148,20 +197,30 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print(f"Tous les emails ont été exportés vers: {output_dir}")
 
 
+            print("\nLancement de la classification des emails...")
+            try:
+                classify_exported_emails(output_dir)
+                print("Classification des emails terminée avec succès ✅")
+            except Exception as e:
+                print(f"\nErreur lors de la classification des emails: {str(e)}")
+                import traceback
+                traceback.print_exc()
+
             # construction du graphe
+            print("\nLancement de la construction du graphe...")
             try:
                 # en production
-                build_graph_main(input_dir="./data",output_dir="./data/output/graph", central_user=emails)
+                #build_graph_main(input_dir="./data",output_dir="./data/output/graph", central_user=emails)
 
                 #pour le test
                 build_graph_main()
+                print("construction du graphe terminée avec succès ✅")
 
             except Exception as e:
                 print(f"\nError: {str(e)}")
                 import traceback
                 traceback.print_exc()
 
-            # classifier de mails
 
 
             return index
