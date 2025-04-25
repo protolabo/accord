@@ -1,5 +1,5 @@
 import uuid
-from beanie import Document
+from beanie import Document, PydanticObjectId
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Literal
@@ -62,8 +62,7 @@ class Email(Document):
     platform: Literal["gmail", "outlook"]
     user_id_on_platform: str # For EmailAccount Search
 
-    # email_id: str = Field(index=True)
-    external_id: str = Field(index=True)  # ID from Platform
+    email_id: str = Field(index=True)
     thread_id: Optional[str] = None
     
     # Sender/recipient information
@@ -75,15 +74,13 @@ class Email(Document):
     
     # Content
     subject: str
-    body: Optional[str] = None
-    body_type: Optional[Literal["text", "html"]] = None
     
     # Metadata
     received_at: datetime
     is_read: bool = False
     is_important: bool = False
     categories: list[str] = Field(default_factory=list)
-    labels: list[str] = Field(default_factory=list)
+    threads: list[str] = Field(default_factory=list)
     
     # Attachments
     attachments: Optional[List[dict]] = None
@@ -126,6 +123,18 @@ class Email(Document):
         }
 
 
+class EmailThread(Document):
+    user_id: str
+    name: str
+    email_ids: List[PydanticObjectId] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
+
+    class Settings:
+        name = "email_threads"
+        indexes = [
+            [("user_id", 1), ("name", 1)],
+        ]
 
 
 # class User(Document):
