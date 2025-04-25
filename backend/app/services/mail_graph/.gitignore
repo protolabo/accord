@@ -9,5 +9,6 @@ test
 test/
 __pycache__/
 **/__pycache__/
+mockdata/
 
 
