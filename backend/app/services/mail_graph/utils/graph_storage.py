@@ -1,89 +1,121 @@
 import os
 import json
-from .json_serializer import serialize_node
+from .json_serializer import serialize_node, save_to_json
 
 
 class GraphStorage:
-
+    """Manages the storage of graphs in JSON files."""
 
     def __init__(self, output_dir):
-
-        self.output_dir = output_dir
-        os.makedirs(output_dir, exist_ok=True)
-
-    def save_nodes(self, users, messages, threads, topics):
         """
-        Saves all nodes in the graph.
+        Initializes the graph storage with separate directories for each graph.
 
         Args:
-        users: Dictionary of user nodes
-        messages: Dictionary of message nodes
-        threads: Dictionary of thread nodes
-        topics: Dictionary of topic nodes
+            output_dir: Main output directory
         """
+        self.output_dir = output_dir
 
-        users_file = os.path.join(self.output_dir, "users.json")
-        self._save_dict_to_json(users, users_file)
+        # Create the main directory
+        os.makedirs(output_dir, exist_ok=True)
 
-        messages_file = os.path.join(self.output_dir, "messages.json")
-        self._save_dict_to_json(messages, messages_file)
+        # Define and create subdirectories for each graph
+        self.user_graph_dir = os.path.join(output_dir, "user_graph")
+        self.message_graph_dir = os.path.join(output_dir, "message_graph")
 
+        os.makedirs(self.user_graph_dir, exist_ok=True)
+        os.makedirs(self.message_graph_dir, exist_ok=True)
 
-        threads_file = os.path.join(self.output_dir, "threads.json")
-        self._save_dict_to_json(threads, threads_file)
+    def save_user_graph(self, users, user_relations):
+        """
+        Saves the user graph in its dedicated directory.
 
+        Args:
+            users: Dictionary of user nodes
+            user_relations: List of user relations
+        """
+        users_file = os.path.join(self.user_graph_dir, "users.json")
+        save_to_json(users, users_file)
 
-        topics_file = os.path.join(self.output_dir, "topics.json")
-        self._save_dict_to_json(topics, topics_file)
+        relations_file = os.path.join(self.user_graph_dir, "relations.json")
+        save_to_json(user_relations, relations_file)
 
-    def save_thread_relations(self, relations):
+    def save_message_graph(self, messages, message_relations):
+        """
+        Saves the message graph in its dedicated directory.
 
-        relations_file = os.path.join(self.output_dir, "thread_relations.json")
-        self._save_list_to_json(relations, relations_file)
+        Args:
+            messages: Dictionary of message nodes
+            message_relations: List of message relations
+        """
+        messages_file = os.path.join(self.message_graph_dir, "messages.json")
+        save_to_json(messages, messages_file)
 
-
+        relations_file = os.path.join(self.message_graph_dir, "relations.json")
+        save_to_json(message_relations, relations_file)
 
     def save_metadata(self, metadata):
+        """
+        Saves the global project metadata in the main directory.
+
+        Args:
+            metadata: Metadata to save
+        """
+        # Update paths in metadata to reflect the new structure
+        if "output_files" in metadata:
+            metadata["output_files"] = {
+                "user_graph": {
+                    "users": os.path.join("user_graph", "users.json"),
+                    "relations": os.path.join("user_graph", "relations.json")
+                },
+                "message_graph": {
+                    "messages": os.path.join("message_graph", "messages.json"),
+                    "relations": os.path.join("message_graph", "relations.json")
+                }
+            }
+
         metadata_file = os.path.join(self.output_dir, "metadata.json")
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, ensure_ascii=False, indent=2)
 
-    def _save_dict_to_json(self, data_dict, filepath):
+    def load_user_graph(self):
+        """
+        Loads the user graph from its dedicated directory.
 
-        serialized_data = {k: serialize_node(v) for k, v in data_dict.items()}
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(serialized_data, f, ensure_ascii=False)
+        Returns:
+            tuple: (users, relations)
+        """
+        users = self._load_json_file(os.path.join(self.user_graph_dir, "users.json"))
+        relations = self._load_json_file(os.path.join(self.user_graph_dir, "relations.json"))
+        return users, relations
 
-    def _save_list_to_json(self, data_list, filepath):
+    def load_message_graph(self):
+        """
+        Loads the message graph from its dedicated directory.
 
-        serialized_data = [serialize_node(item) for item in data_list]
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(serialized_data, f, ensure_ascii=False)
+        Returns:
+            tuple: (messages, relations)
+        """
+        messages = self._load_json_file(os.path.join(self.message_graph_dir, "messages.json"))
+        relations = self._load_json_file(os.path.join(self.message_graph_dir, "relations.json"))
+        return messages, relations
 
-    def load_graph(self):
-        graph = {
-            "users": self._load_json_file("users.json"),
-            "messages": self._load_json_file("messages.json"),
-            "threads": self._load_json_file("threads.json"),
-            "topics": self._load_json_file("topics.json"),
-            "relations": []
-        }
+    def _load_json_file(self, filepath):
+        """
+        Loads a JSON file.
 
-        thread_relations = self._load_json_file("thread_relations.json")
-        if thread_relations:
-            graph["relations"].extend(thread_relations)
+        Args:
+            filepath: Complete file path
 
-
-
-    def _load_json_file(self, filename):
-        filepath = os.path.join(self.output_dir, filename)
+        Returns:
+            Loaded data or None in case of error
+        """
         if not os.path.exists(filepath):
-            print(f"Fichier {filename} non trouvé.")
+            print(f"File {os.path.basename(filepath)} not found at {filepath}")
             return None
 
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Erreur lors du chargement de {filename}: {str(e)}")
+            print(f"Error loading {os.path.basename(filepath)}: {str(e)}")
             return None

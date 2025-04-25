@@ -1,6 +1,5 @@
 import json
 import copy
-import numpy as np
 
 
 def serialize_node(node):
@@ -8,26 +7,24 @@ def serialize_node(node):
     Convert a node to a JSON-serializable format.
 
     Args:
-        node: Node dictionary to serialize
+        node: Dictionary of the node to serialize
 
     Returns:
         JSON-serializable version of the node
     """
     node_copy = copy.deepcopy(node)
 
-    # Convert any non-serializable values
+    # Convert non-serializable values
     for key, value in node_copy.items():
         if isinstance(value, (set, frozenset)):
             node_copy[key] = list(value)
-        elif isinstance(value, np.ndarray):
-            node_copy[key] = value.tolist()
 
     return node_copy
 
 
-def save_component_to_json(data, filepath, serialize=True):
+def save_to_json(data, filepath, serialize=True):
     """
-    Save a component (nodes or relations) to a JSON file.
+    Save data to a JSON file.
 
     Args:
         data: Data to save
@@ -43,4 +40,4 @@ def save_component_to_json(data, filepath, serialize=True):
         serialized_data = data
 
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(serialized_data, f, ensure_ascii=False)
+        json.dump(serialized_data, f, ensure_ascii=False, indent=2)

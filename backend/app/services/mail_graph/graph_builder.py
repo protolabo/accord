@@ -1,67 +1,58 @@
 from .nodes.user_node import UserNodeManager
 from .nodes.message_node import MessageNodeManager
-from .nodes.thread_node import ThreadNodeManager
-from .nodes.topic_node import TopicNodeManager
-from .relations.relation_factory import RelationFactory
-from .relations.connection_strength import ConnectionStrengthManager
+from .relations.user_relation import UserRelationManager
+from .relations.message_relation import MessageRelationManager
+from collections import defaultdict
 
 
 class GraphBuilder:
+    """Builds user and message graphs."""
 
     def __init__(self, central_user_email=None):
+        """
+        Initializes the graph builder.
 
+        Args:
+            central_user_email: Email of the central user (optional)
+        """
         # Initialize node managers
         self.user_manager = UserNodeManager(central_user_email)
         self.message_manager = MessageNodeManager()
-        self.thread_manager = ThreadNodeManager()
-        self.topic_manager = TopicNodeManager()
 
-        # Initialize the relationship manager
-        self.relation_factory = RelationFactory()
-
-        # Connection strength manager
-        self.connection_manager = ConnectionStrengthManager(central_user_email)
+        # Initialize relation managers
+        self.user_relation_manager = UserRelationManager()
+        self.message_relation_manager = MessageRelationManager()
 
         # Main collections
         self.users = {}  # email -> user_node
         self.messages = {}  # message_id -> message_node
-        self.threads = {}  # thread_id -> thread_node
-        self.topics = {}  # topic_id -> topic_node
-        self.relations = []  # list of all relations/edges
+        self.user_relations = []  # list of all user relations
+        self.message_relations = []  # list of all message relations
 
-        # Reference to the central user
         self.central_user_email = central_user_email
-        self.central_user_node = None
 
     def process_email(self, email_data):
         """
-        Processes an email and adds the nodes and relationships to the graph.
+        Processes an email and adds nodes and relations to the graphs.
+
+        Args:
+            email_data: Email data
 
         Returns:
-        bool: True if the email was successfully processed, False otherwise.
+            bool: True if the email was processed successfully, False otherwise
         """
         try:
-            # Create  message node
-            message = self.message_manager.create_message(email_data, self.messages, self.central_user_email)
+            # Create message node
+            message = self.message_manager.create_message(email_data, self.messages)
             if not message:
                 return False
 
-            # Update or create a thread for this message
-            thread = self.thread_manager.get_or_create_thread(email_data, self.threads, self.central_user_email)
-
-            #######
-            # Treat the sender of the email
+            # Process the email sender
             from_user = self.user_manager.get_or_create_user(email_data.get("From", ""), self.users)
+            if not from_user:
+                return False
 
-            # Creating the SENT_relation
-            # link a sender to their message
-            weight = 3 if from_user.get("is_central_user") else 1
-            sent_relation = self.relation_factory.create_sent_relation(from_user, message, weight=weight)
-            self.relations.append(sent_relation)
-
-
-            #######
-            # Process recipients (To)
+            # Process the main recipients (To)
             to_emails = email_data.get("To", "").split(",") if email_data.get("To") else []
             for email in to_emails:
                 if not email.strip():
@@ -69,20 +60,16 @@ class GraphBuilder:
 
                 to_user = self.user_manager.get_or_create_user(email.strip(), self.users)
                 if to_user:
-                    # Create the RECEIVED relation
-                    received_rel = self.relation_factory.create_received_relation(message, to_user)
-                    self.relations.append(received_rel)
+                    # Create EMAILED relation between users (initialize with 0)
+                    emailed_rel = self.user_relation_manager.create_relation(from_user, to_user, "EMAILED", 0)
+                    if emailed_rel not in self.user_relations:
+                        self.user_relations.append(emailed_rel)
 
-                    # Create the EMAILED relation between users
-                    if from_user:
-                        emailed_rel = self.relation_factory.create_emailed_relation(from_user, to_user)
-                        self.relations.append(emailed_rel)
+                    # Update connection strength
+                    weight = 3 if from_user.get("is_central_user") else 1
+                    self.user_relation_manager.update_connection_strength(from_user, to_user, weight=weight)
 
-                        # Update connection strength
-                        self.connection_manager.update_connection_strength(from_user, to_user)
-
-            #####
-            # Treat recipients as copied (CC)
+            # Process CC recipients
             cc_emails = email_data.get("Cc", "").split(",") if email_data.get("Cc") else []
             for email in cc_emails:
                 if not email.strip():
@@ -90,53 +77,69 @@ class GraphBuilder:
 
                 cc_user = self.user_manager.get_or_create_user(email.strip(), self.users)
                 if cc_user:
+                    # Create EMAILED relation between users (initialize with 0)
+                    emailed_cc_rel = self.user_relation_manager.create_relation(from_user, cc_user, "EMAILED", 0)
+                    if emailed_cc_rel not in self.user_relations:
+                        self.user_relations.append(emailed_cc_rel)
 
-                    # Create CC relation (Message→User)
-                    cc_rel = self.relation_factory.create_cc_relation(message, cc_user)
-                    self.relations.append(cc_rel)
+                    # Update connection strength with reduced weight for CC
+                    weight = 1 if from_user.get("is_central_user") else 0.5
+                    self.user_relation_manager.update_connection_strength(from_user, cc_user, weight=weight)
 
-                    # relation EMAILED_CC between Users
-                    if from_user:
-                        emailed_cc_rel = self.relation_factory.create_emailed_cc_relation(from_user, cc_user)
-                        self.relations.append(emailed_cc_rel)
-
-                        # Update connection strength (less weight for CC)
-                        self.connection_manager.update_connection_strength(from_user, cc_user, weight=0.5)
-
-            ######
-            # Treat (BCC) recipients
+            # Process BCC recipients
             bcc_emails = email_data.get("Bcc", "").split(",") if email_data.get("Bcc") else []
             for email in bcc_emails:
                 if not email.strip():
                     continue
 
-                # create user node
                 bcc_user = self.user_manager.get_or_create_user(email.strip(), self.users)
                 if bcc_user:
-                    # Create BCC relation (Message→User)
-                    bcc_rel = self.relation_factory.create_bcc_relation(message, bcc_user)
-                    self.relations.append(bcc_rel)
+                    # Create EMAILED relation between users (initialize with 0)
+                    emailed_bcc_rel = self.user_relation_manager.create_relation(from_user, bcc_user, "EMAILED", 0)
+                    if emailed_bcc_rel not in self.user_relations:
+                        self.user_relations.append(emailed_bcc_rel)
 
-                    if from_user:
-                        emailed_bcc_rel = self.relation_factory.create_emailed_bcc_relation(from_user, bcc_user)
-                        self.relations.append(emailed_bcc_rel)
-
-                        # Update connection strength (less weight for CC)
-                        self.connection_manager.update_connection_strength(from_user, bcc_user, weight=0.3)
-
-
-            ###############
-            # Extract topics via the topic manager
-            topics = self.topic_manager.extract_topics(email_data, self.topics)
-            for topic in topics:
-                topic_rel = self.relation_factory.create_topic_relation(message, topic)
-                self.relations.append(topic_rel)
-
-                # Add the topic to the thread's list of topics
-                self.thread_manager.add_topic_to_thread(thread, topic)
+                    # Update connection strength with even more reduced weight for BCC
+                    weight = 0.9 if from_user.get("is_central_user") else 0.3
+                    self.user_relation_manager.update_connection_strength(from_user, bcc_user, weight=weight)
 
             return True
 
         except Exception as e:
             print(f"Error processing email {email_data.get('Message-ID')}: {str(e)}")
             return False
+
+    def build_message_thread_relations(self):
+        """
+        Builds relations between messages belonging to the same thread.
+        """
+        # Group messages by thread_id
+        thread_messages = defaultdict(list)
+
+        for message_id, message in self.messages.items():
+            thread_id = message.get("thread_id")
+            if thread_id:
+                thread_messages[thread_id].append(message_id)
+
+        # Process each thread
+        for thread_id, message_ids in thread_messages.items():
+            # Ignore threads with a single message
+            if len(message_ids) <= 1:
+                continue
+
+            # Get the messages
+            thread_msgs = [self.messages[mid] for mid in message_ids if mid in self.messages]
+
+            # Sort messages by date
+            sorted_messages = sorted(thread_msgs, key=lambda x: x.get("date", ""))
+
+            # Create REPLIED_TO relations between consecutive messages
+            for i in range(1, len(sorted_messages)):
+                previous = sorted_messages[i - 1]
+                current = sorted_messages[i]
+
+                # Create REPLIED_TO relation
+                replied_relation = self.message_relation_manager.create_thread_relation(
+                    current, previous, "REPLIED_TO", 1.0
+                )
+                self.message_relations.append(replied_relation)
