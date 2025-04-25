@@ -84,49 +84,29 @@ class OptimizedMockDataService:
         return all_emails
 
 
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description='Build email graphs with optimized performance.')
-
-    parser.add_argument('--input-dir', type=str, default='mockdata',
-                        help='Directory containing test JSON data files')
-
-    parser.add_argument('--output-dir', type=str, default='output/graph',
-                        help='Directory for saving graph output')
-
-    parser.add_argument('--central-user', type=str, default='alexandre.dupont@acmecorp.com',
-                        help='Email of the central user for the graph')
-
-    parser.add_argument('--max-emails', type=int, default=None,
-                        help='Maximum number of emails to process (default: all)')
-
-    return parser.parse_args()
-
-
-def main():
+def main(input_dir = "'../../data/mockdata",output_dir = "'../../data/mockdata/output/graph",central_user = "alexandre.dupont@acmecorp.com",max_emails = None):
     """Main function to build email graphs."""
-    args = parse_args()
 
     # Record start time
     start_time = time.time()
     log_memory_usage("start")
 
     # Create output directory
-    os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
     # Initialize services to manipulate JSON test data
-    mock_service = OptimizedMockDataService(args.input_dir, args.output_dir)
+    mock_service = OptimizedMockDataService(input_dir, output_dir)
 
     # Load test data
-    emails = mock_service.get_all_email_batches(max_emails=args.max_emails)
+    emails = mock_service.get_all_email_batches(max_emails= max_emails)
 
     log_memory_usage("after loading emails")
     print(f"Loaded {len(emails)} emails in {time.time() - start_time:.2f} seconds")
 
     # Initialize graph coordinator
     graph_coordinator = GraphCoordinator(
-        central_user_email=args.central_user,
-        output_dir=args.output_dir
+        central_user_email= central_user,
+        output_dir=output_dir
     )
 
     build_start_time = time.time()
@@ -157,14 +137,8 @@ def main():
     print(f"Build time: {build_time:.2f} seconds ({build_time / 60:.2f} minutes)")
     print(f"Processing rate: {stats['processing_rate']:.2f} emails/second")
     print(f"Peak memory usage: {stats['peak_memory_gb']:.2f} GB")
-    print(f"Results saved to: {args.output_dir}")
+    print(f"Results saved to: {output_dir}")
 
 
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"\nError: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
+#if __name__ == "__main__":
+#    main()

@@ -20,7 +20,7 @@ async def export_gmail(
         background_tasks: BackgroundTasks,
         email: str = Body(...),
         max_emails: Optional[int] = Body(None),
-        output_dir: Optional[str] = Body("./data"),
+        output_dir: Optional[str] = Body("../data"),
         batch_size: Optional[int] = Body(5000)
 ):
     """Endpoint pour déclencher l'export des emails Gmail"""
@@ -122,6 +122,8 @@ async def auth_status(request: Request, email: str = Query(None)):
         error_message = f"Erreur lors de la vérification du statut d'authentification: {str(e)}"
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
+
+
 
 
 @router.get("/auth-success", response_class=HTMLResponse)
