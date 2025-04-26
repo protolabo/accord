@@ -249,4 +249,4 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
         return None
 
 #if __name__ == "__main__":
-#    flowDemarrage("x.hn63@gmail.com", 1, get_file_path("backend/app/data/mockdata"), 5000)
+#    flowDemarrage("x.@gmail.com", 1, get_file_path("backend/app/data/mockdata"), 5000)

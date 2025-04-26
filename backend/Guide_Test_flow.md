@@ -24,17 +24,17 @@ Vous avez deux options pour tester le flux de traitement des emails :
 
 1. Démarrez le serveur FastAPI en exécutant l'application principale :
    ```bash
-   python -m backend.app.main
+   python -m backend.main
    ```
 
 2. Ouvrez le script d'exportation des emails dans votre éditeur :
    ```
-   backend/app/email_providers/google/export_gmail_to_json.py
+   backend/app/services/flow_demarrage.py
    ```
 
 3. Exécutez la fonction d'exportation avec votre adresse email :
    ```python
-   export_emails_to_json("votre.email@gmail.com", 1, "../data", 5000)
+   flowDemarrage("votre.email@gmail.com", 1, "../data", 5000)
    ```
    
    Explication des paramètres :
