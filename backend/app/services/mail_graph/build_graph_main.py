@@ -1,10 +1,9 @@
 import os
 import time
-import argparse
 import psutil
-from pathlib import Path
 import json
 from backend.app.services.mail_graph.graph_coordinator import GraphCoordinator
+from backend.app.utils.absolute_path import get_file_path
 
 
 def memory_usage_gb():
@@ -21,7 +20,7 @@ def log_memory_usage(label):
 class OptimizedMockDataService:
     """Service to read and manipulate test JSON data."""
 
-    def __init__(self, mock_data_dir="mockdata", output_dir="output"):
+    def __init__(self, mock_data_dir, output_dir):
         """
         Initializes the optimized test data service.
 
@@ -29,8 +28,8 @@ class OptimizedMockDataService:
             mock_data_dir: Path to directory containing test data files
             output_dir: Path to directory for output files
         """
-        self.mock_data_dir = Path(mock_data_dir)
-        self.output_dir = Path(output_dir)
+        self.mock_data_dir = mock_data_dir
+        self.output_dir = output_dir
 
         # Create output directory if it doesn't exist
         self.output_dir.mkdir(exist_ok=True, parents=True)
@@ -84,21 +83,23 @@ class OptimizedMockDataService:
         return all_emails
 
 
-def main(input_dir = "'../../data/mockdata",output_dir = "'../../data/mockdata/output/graph",central_user = "alexandre.dupont@acmecorp.com",max_emails = None):
+def main(input_dir = None ,output_dir = get_file_path("backend/app/data/mockdata/graph"),central_user = "alexander.smith@gmail.com",max_emails = None):
     """Main function to build email graphs."""
 
     # Record start time
     start_time = time.time()
     log_memory_usage("start")
 
-    # Create output directory
-    os.makedirs(output_dir, exist_ok=True)
 
     # Initialize services to manipulate JSON test data
-    mock_service = OptimizedMockDataService(input_dir, output_dir)
+    if input_dir is None :
+        input_dir = get_file_path("backend/app/data/mockdata/emails.json")
+        emails = json.load(open(input_dir, 'r', encoding='utf-8'))
 
-    # Load test data
-    emails = mock_service.get_all_email_batches(max_emails= max_emails)
+    else :
+        mock_service = OptimizedMockDataService(input_dir, output_dir)
+        emails = mock_service.get_all_email_batches(max_emails=max_emails)
+
 
     log_memory_usage("after loading emails")
     print(f"Loaded {len(emails)} emails in {time.time() - start_time:.2f} seconds")

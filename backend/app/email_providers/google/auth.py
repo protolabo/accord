@@ -4,12 +4,9 @@ from starlette.responses import HTMLResponse
 import uuid
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
-from backend.app.email_providers.google.export_gmail_to_json import export_emails_to_json
+from backend.app.services.flow_demarrage import flowDemarrage
 from fastapi import BackgroundTasks, Body
 from typing import Optional
-from starlette.concurrency import run_in_threadpool
-import asyncio
-
 
 router = APIRouter()
 auth_manager = GmailAuthManager()
@@ -25,7 +22,7 @@ async def export_gmail(
 ):
     """Endpoint pour déclencher l'export des emails Gmail"""
     background_tasks.add_task(
-        export_emails_to_json,
+        flowDemarrage,
         email=email,
         max_emails=max_emails,
         output_dir=output_dir,

@@ -1,4 +1,4 @@
-# Module d'Authentification et d'Export Gmail
+# Module d'Authentification  Gmail
 
 ## Fonctionnalités principales
 

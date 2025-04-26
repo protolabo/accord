@@ -9,9 +9,10 @@ from backend.app.email_providers.google.gmail_service import GmailService
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
 from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
+from backend.app.utils.absolute_path import get_file_path
 
 
-def classify_exported_emails(output_dir = '../../data/mockdata'):
+def classify_exported_emails(output_dir = None):
     """
     Traite tous les fichiers batch exportés pour ajouter les classifications d'emails.
 
@@ -23,7 +24,19 @@ def classify_exported_emails(output_dir = '../../data/mockdata'):
     from backend.app.services.ai.pipeline import process_email
 
     print(f"Classement des emails dans le répertoire: {output_dir}")
-    batch_files = [f for f in os.listdir(output_dir) if f.startswith("emails_batch_") and f.endswith(".json")]
+
+    default_output_dir = get_file_path("backend/app/data/mockdata")
+
+    # important pour le test
+    if output_dir is None:
+        output_dir = default_output_dir
+
+    is_default_directory = (output_dir == default_output_dir)
+
+    if is_default_directory:
+        batch_files = [f for f in os.listdir(output_dir) if f == "emails.json"]
+    else:
+        batch_files = [f for f in os.listdir(output_dir) if f.startswith("emails") and f.endswith(".json")]
 
     for batch_file in batch_files:
         batch_path = os.path.join(output_dir, batch_file)
@@ -40,13 +53,11 @@ def classify_exported_emails(output_dir = '../../data/mockdata'):
                 print(f"  Progression: {i}/{total_emails} emails traités")
 
             try:
-                # Adaptation pour le format spécifique des emails Gmail
                 classification = process_email({
                     "subject": email.get("Subject", ""),
                     "body": email.get("Body", {}).get("plain", "")
                 })
 
-                # Ajouter les classifications comme nouvelles clés
                 email["accord_main_class"] = classification["main_class"]
                 email["accord_sub_classes"] = classification["sub_classes"]
             except Exception as e:
@@ -62,7 +73,7 @@ def classify_exported_emails(output_dir = '../../data/mockdata'):
     print("Classification des emails terminée")
 
 
-def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=5000):
+def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
     """
     Exporte tous les emails de la boîte Gmail vers des fichiers JSON.
 
@@ -200,10 +211,10 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print("\nLancement de la classification des emails...")
             try:
                 # En production
-                classify_exported_emails(output_dir)
+                #classify_exported_emails(output_dir)
 
-                #test
-                #classify_exported_emails()
+                # En test
+                classify_exported_emails()
                 print("Classification des emails terminée avec succès ✅")
             except Exception as e:
                 print(f"\nErreur lors de la classification des emails: {str(e)}")
@@ -214,10 +225,10 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
             print("\nLancement de la construction du graphe...")
             try:
                 # En production
-                build_graph_main(input_dir=output_dir, output_dir=f"{output_dir}/graph", central_user=email)
+                #build_graph_main(input_dir=output_dir, output_dir=get_file_path("backend/app/data/mockdata/graph"), central_user=email)
 
-                # Pour le test
-                #build_graph_main()
+                # En le test
+                build_graph_main()
                 print("construction du graphe terminée avec succès ✅")
 
             except Exception as e:
@@ -237,5 +248,5 @@ def export_emails_to_json(email, max_emails=None, output_dir=None, batch_size=50
         traceback.print_exc()
         return None
 
-if __name__ == "__main__":
-    export_emails_to_json("x@gmail.com",100,'../data',5000)
+#if __name__ == "__main__":
+#    flowDemarrage("x.hn63@gmail.com", 1, get_file_path("backend/app/data/mockdata"), 5000)

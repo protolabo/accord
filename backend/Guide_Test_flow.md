@@ -34,7 +34,7 @@ Vous avez deux options pour tester le flux de traitement des emails :
 
 3. Exécutez la fonction d'exportation avec votre adresse email :
    ```python
-   export_emails_to_json("votre.email@gmail.com", 100, "../data", 5000)
+   export_emails_to_json("votre.email@gmail.com", 1, "../data", 5000)
    ```
    
    Explication des paramètres :
@@ -58,19 +58,14 @@ Lors de l'exécution, le système va :
 
 Si vous préférez ne pas utiliser vos emails réels ou ne pouvez pas accéder à l'API de Google, vous pouvez tester avec des données simulées :
 
-1. Générez des données d'emails simulées en exécutant :
-   ```python
-   # Exécuter le générateur de données simulées
-   from backend.app.utils.dataGenerator.mainGenerator import main as mockdataGenerator
-   mockdataGenerator()
-   ```
+1. mockdata deja disponible dans backend/app/data/mockdata une version non-modifié est disponible : backend/docs/mockdata_sans_modification.json
 
-2. Modifiez le script d'exportation pour utiliser des données simulées au lieu de l'API Google :
-   - Ouvrez `backend/app/email_providers/google/export_gmail_to_json.py`
+2. Modifiez le script du flow demarrage pour utiliser des données simulées au lieu de l'API Google :
+   - Ouvrez `backend/app/services/flow_demarrage.py`
    - Commentez ces lignes :
      ```python
      classify_exported_emails(output_dir)
-     build_graph_main(input_dir=output_dir, output_dir=f"{output_dir}/graph", central_user=email)
+     build_graph_main(input_dir=output_dir, output_dir=get_file_path("backend/app/data/mockdata/graph"), central_user=email)
      ```
    - Décommentez ces lignes :
      ```python
