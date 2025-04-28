@@ -11,6 +11,7 @@ const AuthCallback: React.FC = () => {
     const handleCallback = async () => {
       const searchParams = new URLSearchParams(location.search);
       const code = searchParams.get("code");
+      const email = searchParams.get("email");
 
       if (!code) {
         setStatus("Erreur: Code d'autorisation manquant");
@@ -18,35 +19,80 @@ const AuthCallback: React.FC = () => {
       }
 
       try {
+        const service = emailAPIService.getService();
+
+        if (!service) {
+          setStatus("Erreur: Service de messagerie non spécifié");
+          return;
+        }
+
+        // Traiter le code d'authentification
+        await emailAPIService.handleAuthCallback(code);
         setStatus("Authentification réussie!");
 
-        // If this is running in a popup window, send the auth code to the parent window
+        // Si cette page est dans une fenêtre popup, envoyer un message à la fenêtre parente
         if (window.opener && !window.opener.closed) {
+          // Obtenir l'email de l'utilisateur si possible
+          let userEmail = email;
+          try {
+            if (!userEmail) {
+              const profile = await emailAPIService.getUserProfile();
+              userEmail = profile.email;
+            }
+          } catch (e) {
+            console.error(
+              "Impossible de récupérer le profil de l'utilisateur:",
+              e
+            );
+          }
+
+          // Envoyer un message à la fenêtre parente indiquant que l'authentification est réussie
           window.opener.postMessage(
             {
-              type: "auth_callback",
-              code,
+              type: "authSuccess",
+              service,
+              email: userEmail,
             },
             window.location.origin
           );
 
-          // Close the popup after sending the message
-          setTimeout(() => window.close(), 1000);
-        } else {
-          // Handle the case where it's not in a popup (fallback)
-          const service = emailAPIService.getService();
+          // Si le service est Gmail, lancer l'exportation automatiquement
+          if (service === "gmail" && userEmail) {
+            try {
+              // Tenter de lancer l'exportation directement depuis la fenêtre de callback
+              await emailAPIService.exportGmailEmails(
+                userEmail,
+                null, // max_emails - null pour tous récupérer
+                "../data", // répertoire de sortie par défaut
+                5000 // taille de lot par défaut
+              );
 
-          if (!service) {
-            setStatus("Erreur: Service de messagerie non spécifié");
-            return;
+              // Informer la fenêtre parente que l'exportation a été lancée
+              window.opener.postMessage(
+                {
+                  type: "exportStarted",
+                  service: "gmail",
+                  email: userEmail,
+                },
+                window.location.origin
+              );
+            } catch (exportError) {
+              console.error(
+                "Erreur lors de l'exportation des emails:",
+                exportError
+              );
+            }
           }
 
-          await emailAPIService.handleAuthCallback(code);
+          // Fermer la fenêtre popup après l'envoi du message
+          setTimeout(() => window.close(), 1000);
+        } else {
+          // Gestion si ce n'est pas une fenêtre popup (repli)
           setStatus("Authentification réussie! Redirection...");
           setTimeout(() => navigate("/"), 1500);
         }
       } catch (error) {
-        console.error("Authentication error:", error);
+        console.error("Erreur d'authentification:", error);
         setStatus("Erreur d'authentification. Veuillez réessayer.");
       }
     };

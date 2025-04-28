@@ -143,11 +143,58 @@ const Home: React.FC = () => {
     checkAuth();
   }, []);
 
-  // Fetch emails from the selected email service
+  // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
+      // Vérifier d'abord s'il y a des emails classifiés disponibles
+      const classificationStatus =
+        await emailAPIService.checkClassificationStatus();
+
+      if (classificationStatus.status === "completed") {
+        // Des emails classifiés sont disponibles, les récupérer
+        const classifiedEmailsResponse =
+          await emailAPIService.getClassifiedEmails();
+
+        // Convertir les emails classifiés au format attendu par l'interface
+        const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
+          (email: any) => ({
+            "Message-ID":
+              email["Message-ID"] || email.id || String(Math.random()),
+            Subject: email.Subject || "Sans objet",
+            From: email.From || "inconnu@example.com",
+            To: email.To || "",
+            Cc: email.Cc || "",
+            Date: email.Date || new Date().toISOString(),
+            "Content-Type": email["Content-Type"] || "text/plain",
+            Body: email.Body?.plain || email.Body?.html || email.Body || "",
+            IsRead: email.IsRead || false,
+            Attachments: email.Attachments || [],
+            // Utiliser les classifications ACCORD comme catégories
+            Categories: email.accord_main_class
+              ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
+              : ["Non classifié"],
+            Importance: "normal",
+            ThreadId:
+              email.ThreadId ||
+              email["Thread-ID"] ||
+              email["Message-ID"] ||
+              String(Math.random()),
+          })
+        );
+
+        setState((prev) => ({
+          ...prev,
+          emails: convertedEmails,
+          isLoading: false,
+        }));
+
+        console.log("Emails classifiés chargés:", convertedEmails.length);
+        return;
+      }
+
+      // Si pas d'emails classifiés, essayer l'API normale
       if (emailAPIService.isAuthenticated()) {
         const serviceEmails = await emailAPIService.fetchEmails();
 
@@ -165,7 +212,7 @@ const Home: React.FC = () => {
           IsRead: email.isRead,
           Attachments: email.attachments,
           Categories: email.categories,
-          Importance: email.importance,
+          Importance: email.isImportant ? "high" : "normal",
           ThreadId: email.threadId || email.id,
         }));
 

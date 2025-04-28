@@ -139,8 +139,8 @@ class EmailAPIService {
         throw new Error("No email service selected");
       }
 
-      // Use the correct FastAPI route paths from your backend/app/routes/auth.py
-      const response = await axios.get(`${this.baseUrl}/${service}/login`);
+      // Correction de l'URL pour correspondre à la route backend
+      const response = await axios.get(`${this.baseUrl}/auth/${service}`);
       return response.data.auth_url;
     } catch (error) {
       console.error(`Error getting auth URL:`, error);
@@ -157,15 +157,18 @@ class EmailAPIService {
         throw new Error("No email service selected");
       }
 
-      // Use the correct callback endpoint path from your backend/app/routes/auth.py
-      const response = await axios.get(`${this.baseUrl}/${service}/callback`, {
-        params: { code },
+      // Correction de l'URL pour correspondre à la route backend
+      const response = await axios.get(`${this.baseUrl}/auth/callback`, {
+        params: { code, state: service },
       });
 
-      const { access_token, refresh_token } = response.data;
+      // Adapter selon la structure de la réponse du backend
+      const access_token = response.data.access_token || "";
+      const refresh_token = response.data.refresh_token || "";
+
       this.setTokens(access_token, refresh_token);
 
-      return { accessToken: access_token, RefreshToken: refresh_token };
+      return { accessToken: access_token, refreshToken: refresh_token };
     } catch (error) {
       console.error(`Error handling auth callback:`, error);
       throw error;
@@ -334,6 +337,91 @@ class EmailAPIService {
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      throw error;
+    }
+  }
+
+  // Nouvelle méthode pour déclencher l'exportation des emails Gmail
+  async exportGmailEmails(
+    email: string,
+    maxEmails?: number,
+    outputDir?: string,
+    batchSize?: number
+  ): Promise<{ status: string; message: string }> {
+    try {
+      const service = this.getService();
+      if (service !== "gmail") {
+        throw new Error("Cette fonction ne fonctionne qu'avec Gmail");
+      }
+
+      const response = await axios.post(
+        `${this.baseUrl}/export/gmail`,
+        {
+          email,
+          max_emails: maxEmails,
+          output_dir: outputDir,
+          batch_size: batchSize,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      return {
+        status: response.data.status,
+        message: response.data.message,
+      };
+    } catch (error) {
+      console.error("Erreur lors de l'exportation des emails Gmail:", error);
+      throw error;
+    }
+  }
+
+  // Nouvelle méthode pour vérifier le statut de la classification des emails
+  async checkClassificationStatus(outputDir?: string): Promise<{
+    status: string;
+    mode?: string;
+    total_emails?: number;
+    total_batches?: number;
+    message?: string;
+  }> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/classified-emails/status`,
+        {
+          params: { output_dir: outputDir },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la vérification du statut de classification:",
+        error
+      );
+      throw error;
+    }
+  }
+
+  // Nouvelle méthode pour récupérer les emails classifiés
+  async getClassifiedEmails(
+    batchNumber?: number,
+    outputDir?: string
+  ): Promise<{ total_emails: number; emails: any[] }> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/classified-emails`, {
+        params: {
+          batch_number: batchNumber,
+          output_dir: outputDir,
+        },
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des emails classifiés:",
+        error
+      );
       throw error;
     }
   }
