@@ -33,12 +33,24 @@ class StandardizedEmail(BaseModel):
     attachments: List[StandardizedAttachment] = []
 
 
-async def get_providers(user: User) -> list[EmailProvider]:
+async def get_providers(user: User) -> list:
+    """
+    Obtient la liste des fournisseurs d'emails disponibles pour un utilisateur.
+    Utilise une importation conditionnelle pour éviter les références circulaires.
+    """
+    # Importation conditionnelle pour éviter la référence circulaire
+    from app.services.email.email_provider import EmailProvider
+    
     providers = []
     if user.gmail_tokens and not user.gmail_tokens_expired:
-        providers.append(GmailEmailProvider(user))
+        # Utilisation générique d'EmailProvider au lieu de classes spécifiques
+        gmail_provider = EmailProvider(user)
+        gmail_provider.platform = 'gmail'
+        providers.append(gmail_provider)
     if user.outlook_tokens and not user.outlook_tokens_expired:
-        providers.append(OutlookEmailProvider(user))
+        outlook_provider = EmailProvider(user)
+        outlook_provider.platform = 'outlook'
+        providers.append(outlook_provider)
     if not providers:
         raise HTTPException(400, "Please authorize a platform")
     return providers
