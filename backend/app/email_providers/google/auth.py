@@ -8,9 +8,15 @@ from backend.app.services.flow_demarrage import flowDemarrage
 from fastapi import BackgroundTasks, Body
 from typing import Optional
 
+# Configurer le routeur avec des options CORS
 router = APIRouter()
 auth_manager = GmailAuthManager()
 
+# Modification de la route /export/gmail pour gérer explicitement les OPTIONS
+@router.options("/export/gmail")
+async def options_export_gmail():
+    """Endpoint OPTIONS pour gérer les requêtes préflight CORS"""
+    return {}
 
 @router.post("/export/gmail")
 async def export_gmail(
@@ -34,6 +40,7 @@ async def export_gmail(
         "status": "processing",
         "output_directory": output_dir
     }
+
 @router.get("/auth/gmail")
 async def gmail_auth(request: Request, email: str = Query(None)):
     try:
@@ -120,9 +127,6 @@ async def auth_status(request: Request, email: str = Query(None)):
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
 
-
-
-
 @router.get("/auth-success", response_class=HTMLResponse)
 async def auth_success(request: Request, email: str = None):
     html_content = f"""
@@ -187,6 +191,7 @@ async def auth_complete(email: str = None):
     auth_completion_events[key] = True
 
     return {"status": "success", "message": "Authentication process completed"}
+
 @router.get("/")
 async def home():
     return RedirectResponse(url="/")
