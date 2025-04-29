@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware  # Ajout du middleware CORS
 from backend.app.email_providers.google.auth import router as auth_router
-from backend.app.routes.emails import router as emails_router  # Importer le router des emails
+#from backend.app.routes.emails import router as emails_router  # Importer le router des emails
 import sys
 from backend.app.utils.killer_process import kill_processes_on_port
 import secrets
@@ -33,7 +33,7 @@ app.add_middleware(
 
 # Inclure les routers après la configuration des middlewares
 app.include_router(auth_router)
-app.include_router(emails_router)  # Ajouter le router des emails
+#app.include_router(emails_router)  # Ajouter le router des emails
 
 @app.get("/")
 async def root():

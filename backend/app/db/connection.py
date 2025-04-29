@@ -13,8 +13,8 @@ root_dir = current_dir.parent.parent  # root folser
 sys.path.append(str(root_dir))
 
 # import local files
-from app.db.models import User, Email
-from app.core.config import settings
+from backend.app.db.models import User, Email
+from backend.app.core.config import settings
 
 
 try:

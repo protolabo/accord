@@ -1,9 +1,9 @@
 from typing import List, Dict, Optional, Any
 from fastapi import APIRouter, Depends, Query, HTTPException, Body
-from app.services.email.email_provider import EmailProvider, get_email_provider
-from app.services.email.email_service import StandardizedEmail
-from app.core.security import get_current_user
-from app.db.models import User
+from backend.app.services.email.email_provider import EmailProvider, get_email_provider
+from backend.app.services.email.email_service import StandardizedEmail
+from backend.app.core.security import get_current_user
+from backend.app.db.models import User
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 import os
@@ -19,8 +19,8 @@ class EmailResponse(BaseModel):
 
 class EmailRequest(BaseModel):
     to: List[str]
-    cc: List[str] = []
-    bcc: List[str] = []
+    cc: List[str] = list
+    bcc: List[str] = list
     subject: str
     body: str
     body_type: str = "text"  # "text" ou "html"

@@ -6,12 +6,12 @@ from fastapi import HTTPException, Depends
 from httpx import AsyncClient, HTTPStatusError
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from app.db.models import User
-from app.core.config import settings
-from app.email_providers.google.gmail_auth import GmailAuthManager
+from backend.app.db.models import User
+from backend.app.core.config import settings
+from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.services.auth.outlookAuth import OutlookAuth
-from app.services.email.email_service import StandardizedEmail, EmailService
-from app.core.security import get_current_user
+from backend.app.services.email.email_service import StandardizedEmail, EmailService
+from backend.app.core.security import get_current_user
 
 class EmailProvider:
     """
