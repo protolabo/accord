@@ -1,38 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
-import {
-  FaBell,
-  FaUser,
-  FaExpand,
-  FaCompress,
-  FaMoon,
-  FaSun,
-  FaSearch,
-  FaArrowLeft,
-} from "react-icons/fa";
-import { twMerge } from "tailwind-merge";
-import AttentionGauge from "../components/AttentionGauge";
-import ActionItem from "../components/ActionItem";
-import InfoItem from "../components/InfoItem";
-import ThreadSection from "../pages/ThreadSection";
-import ThreadDetail from "../components/ThreadDetail";
-import UserProfileModal from "../components/UserProfileModal";
-import SearchPopup from "../components/search/SearchPopup";
-import EmailLogin from "../components/EmailLogin";
-import emailAPIService, {
-  StandardizedEmail as EmailServiceEmail,
-} from "../services/EmailService";
-import {
-  mockEmails,
-  mockNotifications,
-  mockPriorityLevels,
-  mockEstimatedTimes,
-  mockTopContacts,
-} from "../data/mockData";
-// Remove this import to avoid conflict
-// import type { Email } from "../components/types";
-import ResizeHandle from "../components/ResizeHandle";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import Header from "../components/Header";
+import EmailLogin from "../components/EmailLogin";
+import ThreadDetail from "../components/ThreadDetail";
+import HomeContent from "./HomeContent";
+import emailAPIService from "../services/EmailService";
+import { mockEmails, mockNotifications } from "../data/mockData";
 
 // Define Email interface for the component
 interface Email {
@@ -73,8 +46,6 @@ interface HomeState {
   resizingIndex: number | null;
   startX: number;
   startSizes: { [key: string]: number };
-  showComposePopup: boolean;
-  recipientAvailability?: number;
   showSearchPopup: boolean;
   focusMode: {
     active: boolean;
@@ -110,8 +81,6 @@ const Home: React.FC = () => {
     resizingIndex: null,
     startX: 0,
     startSizes: {},
-    showComposePopup: false,
-    recipientAvailability: undefined,
     showSearchPopup: false,
     focusMode: {
       active: false,
@@ -123,137 +92,135 @@ const Home: React.FC = () => {
     emails: [],
     isLoading: false,
   };
-  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [state, setState] = useState<HomeState>(initialState);
   const navigate = useNavigate();
 
-  // Check authentication status on mount
+  //  ##### A decommenter
   useEffect(() => {
-    const checkAuth = async () => {
-      const isAuth = emailAPIService.isAuthenticated();
-      setState((prev) => ({ ...prev, isAuthenticated: isAuth }));
+    //const checkAuth = async () => {
+    //  const isAuth = emailAPIService.isAuthenticated();
+    //  setState((prev) => ({ ...prev, isAuthenticated: isAuth }));
 
-      if (isAuth) {
-        fetchEmails();
-      }
-    };
+    //  if (isAuth) {
+   //     fetchEmails();
+   //   }
+   // };
 
-    checkAuth();
+    //checkAuth();
+    setState((prev) => ({ ...prev, isAuthenticated: true }));
+  fetchEmails();
   }, []);
 
   // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
+  setState((prev) => ({ ...prev, isLoading: true }));
 
-    try {
-      // Vérifier d'abord s'il y a des emails classifiés disponibles
-      const classificationStatus =
-        await emailAPIService.checkClassificationStatus();
+  try {
+    // Vérifier d'abord s'il y a des emails classifiés disponibles
+    const classificationStatus =
+      await emailAPIService.checkClassificationStatus();
 
-      if (classificationStatus.status === "completed") {
-        // Des emails classifiés sont disponibles, les récupérer
-        const classifiedEmailsResponse =
-          await emailAPIService.getClassifiedEmails();
+    if (classificationStatus.status === "completed") {
+      // Des emails classifiés sont disponibles, les récupérer
+      const classifiedEmailsResponse =
+        await emailAPIService.getClassifiedEmails();
 
-        // Convertir les emails classifiés au format attendu par l'interface
-         const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
-          (email: any) => ({
-            "Message-ID":
-              email["Message-ID"] || email.id || String(Math.random()),
-            Subject: email.Subject || "Sans objet",
-            From: email.From || "inconnu@example.com",
-            To: email.To || "",
-            Cc: email.Cc || "",
-            Date: email.Date || new Date().toISOString(),
-            "Content-Type": email["Content-Type"] || "text/plain",
-            Body: email.Body?.plain || email.Body?.html || email.Body || "",
-            IsRead: email.IsRead || false,
-            Attachments: email.Attachments || [],
-            // Utiliser les classifications ACCORD comme catégories
-            Categories: email.accord_main_class
-              ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
-              : ["Non classifié"],
-            Importance: "normal",
-            ThreadId:
-              email.ThreadId ||
-              email["Thread-ID"] ||
-              email["Message-ID"] ||
-              String(Math.random()),
-          })
-        );
+      // Convertir les emails classifiés au format attendu par l'interface
+      const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
+        (email: any) => ({
+          "Message-ID":
+            email["Message-ID"] || email.id || String(Math.random()),
+          Subject: email.Subject || "Sans objet",
+          From: email.From || "inconnu@example.com",
+          To: email.To || "",
+          Cc: email.Cc || "",
+          Date: email.Date || new Date().toISOString(),
+          "Content-Type": email["Content-Type"] || "text/plain",
+          Body: email.Body?.plain || email.Body?.html || email.Body || "",
+          IsRead: email.IsRead || false,
+          // Conversion des attachements pour correspondre à l'interface
+          Attachments: (email.Attachments || []).map((att: any) => ({
+            filename: att.filename,
+            contentType: att.content_type, // Transformé
+            size: att.size,
+            contentId: att.content_id, // Transformé
+            url: att.url
+          })),
+          Categories: email.accord_main_class
+            ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
+            : ["Non classifié"],
+          Importance: "normal",
+          ThreadId:
+            email.ThreadId ||
+            email["Thread-ID"] ||
+            email["Message-ID"] ||
+            String(Math.random()),
+        })
+      );
 
-        setState((prev) => ({
-          ...prev,
-          emails: convertedEmails,
-          isLoading: false,
-        }));
+      setState((prev) => ({
+        ...prev,
+        emails: convertedEmails,
+        isLoading: false,
+      }));
 
-        console.log("Emails classifiés chargés:", convertedEmails.length);
-        return;
-      }
+      console.log("Emails classifiés chargés:", convertedEmails.length);
+      return;
+    }
 
-      // Si pas d'emails classifiés, essayer l'API normale
-      if (emailAPIService.isAuthenticated()) {
-        const serviceEmails = await emailAPIService.fetchEmails();
+    // Si pas d'emails classifiés, essayer l'API normale
+    if (emailAPIService.isAuthenticated()) {
+      const response = await emailAPIService.fetchEmails(); // Stocké dans 'response'
 
-        // Convert service emails to the format expected by the app
-        const convertedEmails: {
-          "Message-ID": string;
-          Subject: string;
-          From: string;
-          To: string;
-          Cc: string;
-          Date: string;
-          "Content-Type": string;
-          Body: string;
-          IsRead: boolean;
-          Attachments: { filename: string; content_type: string; size: number; content_id?: string; url?: string }[];
-          Categories: string[];
-          Importance: string;
-          ThreadId: string
-        }[] = serviceEmails.map((email) => ({
-          "Message-ID": email.id,
-          Subject: email.subject,
-          From: email.from,
-          To: email.to.join(", "),
-          Cc: email.cc.join(", "),
-          Date: email.date.toString(),
-          "Content-Type":
-            email.bodyType === "html" ? "text/html" : "text/plain",
-          Body: email.body,
-          IsRead: email.isRead,
-          Attachments: email.attachments,
-          Categories: email.categories,
-          Importance: email.isImportant ? "high" : "normal",
-          ThreadId: email.threadId || email.id,
-        }));
+      // Convert service emails to the format expected by the app
+      const convertedEmails: Email[] = response.map((email: any) => ({
+        "Message-ID": email.id,
+        Subject: email.subject,
+        From: email.from,
+        To: email.to.join(", "),
+        Cc: email.cc.join(", "),
+        Date: email.date.toString(),
+        "Content-Type":
+          email.bodyType === "html" ? "text/html" : "text/plain",
+        Body: email.body,
+        IsRead: email.isRead,
+        // Conversion des attachements
+        Attachments: (email.attachments || []).map((att: any) => ({
+          filename: att.filename,
+          contentType: att.content_type,
+          size: att.size,
+          contentId: att.content_id,
+          url: att.url
+        })),
+        Categories: email.categories,
+        Importance: email.isImportant ? "high" : "normal",
+        ThreadId: email.threadId || email.id,
+      }));
 
-        // @ts-ignore
-        setState((prev) => ({
-          ...prev,
-          emails: convertedEmails,
-          isLoading: false,
-        }));
-      } else {
-        // Fall back to mock data if not authenticated
-        setState((prev) => ({
-          ...prev,
-          emails: typedMockEmails,
-          isLoading: false,
-        }));
-      }
-    } catch (error) {
-      console.error("Error fetching emails:", error);
-      // Fall back to mock data on error
+      setState((prev) => ({
+        ...prev,
+        emails: convertedEmails,
+        isLoading: false,
+      }));
+    } else {
+      // Fall back to mock data if not authenticated
       setState((prev) => ({
         ...prev,
         emails: typedMockEmails,
         isLoading: false,
       }));
     }
-  };
+  } catch (error) {
+    console.error("Error fetching emails:", error);
+    // Fall back to mock data on error
+    setState((prev) => ({
+      ...prev,
+      emails: typedMockEmails,
+      isLoading: false,
+    }));
+  }
+};
 
   // Handle successful login
   const handleLoginSuccess = () => {
@@ -296,6 +263,7 @@ const Home: React.FC = () => {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState((prev) => ({ ...prev, searchTerm: e.target.value }));
   };
+
   const handleSearchClick = () => {
     setState((prev) => ({ ...prev, showSearchPopup: true }));
   };
@@ -415,8 +383,7 @@ const Home: React.FC = () => {
 
       if (Math.abs(deltaX) < 5) return;
 
-      const containerWidth = containerRef.current?.offsetWidth || 1000;
-
+      const containerWidth = 1000; // Using a default width
       const deltaRatio = deltaX / containerWidth;
 
       const sectionKeys = Object.keys(state.sectionSizes);
@@ -479,523 +446,50 @@ const Home: React.FC = () => {
     };
   }, [state.isResizing, handleMouseMove, handleMouseUp]);
 
-  // Calculate total width to normalize sizes
-  const totalSize = Object.values(
-    state.sectionSizes || {
-      Actions: 1,
-      Threads: 1,
-      Informations: 1,
-    }
-  ).reduce((a, b) => a + b, 0);
-
-  // Define available time in minutes (e.g., 8 hours = 480 minutes)
-  const availableTime =
-    480 - (new Date().getHours() * 60 + new Date().getMinutes());
-
-  // Example data for total actions
-  const totalActions = {
-    Actions: 500,
-    Threads: 300,
-    Informations: 200,
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-lg"
-      >
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-6">
-              <span className="text-2xl font-bold text-gray-800 dark:text-white">
-                Accord
-              </span>
-              {state.showThreadDetail && (
-                <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleBackToList}
-                  className="mr-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <FaArrowLeft className="text-xl text-gray-600 dark:text-gray-300" />
-                </motion.button>
-              )}
-            </div>
-            {/* Search bar */}
-            <div className="flex-1 max-w-xl mx-auto">
-              <div className="relative">
-                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-all cursor-pointer"
-                  value={state.searchTerm}
-                  onChange={handleSearchChange}
-                  onClick={handleSearchClick}
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-6">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={toggleDarkMode}
-              >
-                {state.darkMode ? (
-                  <FaSun className="text-xl text-yellow-400" />
-                ) : (
-                  <FaMoon className="text-xl text-gray-500" />
-                )}
-              </motion.button>
-
-              <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2">
-                <span className="mr-3 text-sm font-medium dark:text-white">
-                  {state.isAvailable ? "Disponible" : "Occupé"}
-                </span>
-                <motion.div className="relative w-12 h-6 flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={state.isAvailable}
-                    onChange={toggleAvailability}
-                    className="hidden"
-                  />
-                  <motion.div
-                    className={`absolute w-full h-full rounded-full cursor-pointer transition-colors duration-300 ${
-                      state.isAvailable ? "bg-green-500" : "bg-red-500"
-                    }`}
-                  />
-                  <motion.div
-                    layout
-                    className="absolute w-4 h-4 bg-white rounded-full"
-                    animate={{
-                      x: state.isAvailable ? 24 : 4,
-                    }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </motion.div>
-              </div>
-
-              {/* Notifications*/}
-              <div className="relative">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 tooltip"
-                  title="Notifications"
-                  onClick={toggleNotifications}
-                >
-                  <FaBell className="text-xl text-gray-600 dark:text-gray-300" />
-                </motion.button>
-                {state.showNotifications && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
-                    <h3 className="text-lg font-semibold dark:text-white">
-                      Notifications
-                    </h3>
-                    <ul className="mt-2 space-y-2">
-                      {mockNotifications.map((notification) => (
-                        <li
-                          key={notification.id}
-                          className="text-sm text-gray-600 dark:text-gray-300"
-                        >
-                          {notification.text}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* Profile*/}
-              <div className="relative">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 tooltip"
-                  title="Profil"
-                  onClick={toggleProfileOptions}
-                >
-                  <FaUser className="text-xl text-gray-600 dark:text-gray-300" />
-                </motion.button>
-                {state.showProfileOptions && (
-                  <UserProfileModal onClose={toggleProfileOptions} />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.header>
+      <Header
+        showThreadDetail={state.showThreadDetail}
+        handleBackToList={handleBackToList}
+        searchTerm={state.searchTerm}
+        handleSearchChange={handleSearchChange}
+        handleSearchClick={handleSearchClick}
+        darkMode={state.darkMode}
+        toggleDarkMode={toggleDarkMode}
+        isAvailable={state.isAvailable}
+        toggleAvailability={toggleAvailability}
+        showNotifications={state.showNotifications}
+        toggleNotifications={toggleNotifications}
+        notifications={mockNotifications}
+        showProfileOptions={state.showProfileOptions}
+        toggleProfileOptions={toggleProfileOptions}
+      />
 
       {/* Main content */}
       <main className="container mx-auto p-4">
         {!state.isAuthenticated ? (
           <EmailLogin onLogin={handleLoginSuccess} />
         ) : state.showThreadDetail ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6"
-          >
-            <ThreadDetail
-              thread={state.selectedThread}
-              onBack={handleBackToList}
-            />
-          </motion.div>
+          <ThreadDetail
+            thread={state.selectedThread}
+            onBack={handleBackToList}
+          />
         ) : (
-          // Home sections
-          <div
-            ref={containerRef}
-            className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-[85rem] mx-auto"
-            style={{ cursor: state.isResizing ? "col-resize" : "default" }}
-          >
-            {(
-              ["Actions", "Threads", "Informations"] as Array<
-                keyof typeof totalActions
-              >
-            ).map((section, index) => {
-              // Calculate the width percentage
-              const sizePercent =
-                (state.sectionSizes[section] / totalSize) * 100;
-              const isExpanded = state.sectionSizes[section] > 1;
-
-              return (
-                <React.Fragment key={section}>
-                  <motion.div
-                    ref={(el) => {
-                      sectionRefs.current[index] = el;
-                    }}
-                    layout
-                    animate={{ width: `${sizePercent}%` }}
-                    transition={{
-                      type: state.isResizing ? "tween" : "spring",
-                      duration: state.isResizing ? 0 : 0.3,
-                      stiffness: 300,
-                      damping: 30,
-                    }}
-                    className="w-full md:h-[calc(100vh-192px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
-                  overflow-hidden flex flex-col select-none"
-                    style={{ userSelect: state.isResizing ? "none" : "auto" }}
-                  >
-                    <AttentionGauge
-                      level={mockPriorityLevels[section]}
-                      previousLevel={null}
-                      section={section}
-                      estimatedTime={
-                        mockEstimatedTimes[
-                          section as keyof typeof mockEstimatedTimes
-                        ]
-                      }
-                      totalActions={totalActions[section]}
-                      availableTime={availableTime}
-                    />
-
-                    <div className="p-4 border-b dark:border-gray-700">
-                      <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold dark:text-white">
-                          {section}
-                        </h2>
-                        <div className="flex space-x-2">
-                          {isExpanded ? (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() =>
-                                handleSectionResize(section, "reset")
-                              }
-                              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Réinitialiser"
-                            >
-                              <FaCompress className="text-gray-500 dark:text-gray-400" />
-                            </motion.button>
-                          ) : (
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() =>
-                                handleSectionResize(section, "expand")
-                              }
-                              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="Agrandir"
-                            >
-                              <FaExpand className="text-gray-500 dark:text-gray-400" />
-                            </motion.button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 flex-grow overflow-auto">
-                      {state.isLoading ? (
-                        <div className="flex justify-center items-center h-full">
-                          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
-                        </div>
-                      ) : section === "Threads" ? (
-                        <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
-                          <ThreadSection
-                            groupedEmails={groupedEmails}
-                            onThreadSelect={handleThreadSelect}
-                          />
-                        </div>
-                      ) : section === "Actions" ? (
-                        <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
-                          {filteredEmails.map((email, idx) => (
-                            <ActionItem
-                              key={email["Message-ID"]}
-                              email={email}
-                              actionNumber={idx + 1}
-                              totalActions={filteredEmails.length}
-                              totalProgress={`${idx + 1}/${Object.keys(
-                                groupedEmails
-                              ).reduce(
-                                (acc, key) => acc + groupedEmails[key].length,
-                                0
-                              )}`}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
-                          {filteredEmails.map((email, idx) => (
-                            <InfoItem
-                              key={email["Message-ID"]}
-                              email={email}
-                              infoNumber={idx + 1}
-                              totalInfo={filteredEmails.length}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  {index <
-                    ["Actions", "Threads", "Informations"].length - 1 && (
-                    <ResizeHandle
-                      index={index}
-                      onResizeStart={handleResizeStart}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-            <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white text-2xl z-50"
-              onClick={() =>
-                setState((prev) => ({ ...prev, showComposePopup: true }))
-              }
-            >
-              <span className="text-2xl font-bold">+</span>
-            </motion.button>
-
-            {/* Frequent contacts Panel */}
-            <div className="fixed right-6 top-24 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 z-40">
-              <h3 className="text-lg font-semibold mb-4 dark:text-white">
-                Contacts fréquents
-              </h3>
-              <div className="space-y-4">
-                {mockTopContacts.map((contact) => (
-                  <div key={contact.id} className="flex flex-col">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium dark:text-white">
-                        {contact.name}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {contact.availability}%
-                      </span>
-                    </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${contact.availability}%` }}
-                        transition={{ duration: 0.5 }}
-                        className="h-full transition-all duration-300"
-                        style={{
-                          backgroundColor: `hsl(${contact.availability}, 70%, 50%)`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Quick message Popup */}
-            {state.showComposePopup && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className="fixed bottom-24 right-6 w-96 bg-white dark:bg-gray-800 rounded-lg shadow-xl z-50"
-              >
-                <div className="p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold dark:text-white">
-                      Nouveau message
-                    </h3>
-                    <button
-                      onClick={() =>
-                        setState((prev) => ({
-                          ...prev,
-                          showComposePopup: false,
-                        }))
-                      }
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <form
-                    className="space-y-4"
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      if (!emailAPIService.isAuthenticated()) {
-                        alert("Veuillez vous connecter pour envoyer un email");
-                        return;
-                      }
-
-                      // Get form data
-                      const formData = new FormData(e.currentTarget);
-                      const to = (formData.get("to") as string)
-                        .split(",")
-                        .map((e) => e.trim());
-                      const cc = (formData.get("cc") as string)
-                        .split(",")
-                        .map((e) => e.trim());
-                      const subject = formData.get("subject") as string;
-                      const body = formData.get("body") as string;
-
-                      try {
-                        const result = await emailAPIService.sendEmail({
-                          body_type: "",
-                          subject,
-                          from: "", // The API will use the authenticated user's email
-                          to,
-                          cc,
-                          body,
-                          bodyType: "text",
-                          attachments: [],
-                          categories: [],
-                          importance: "normal",
-                          isRead: true
-                        });
-
-                        if (result.success) {
-                          alert("Message envoyé avec succès!");
-                          setState((prev) => ({
-                            ...prev,
-                            showComposePopup: false,
-                          }));
-                          // Refresh emails to include the sent message
-                          fetchEmails();
-                        } else {
-                          alert(
-                            "Échec de l'envoi du message. Veuillez réessayer."
-                          );
-                        }
-                      } catch (error) {
-                        console.error("Error sending email:", error);
-                        alert(
-                          "Une erreur s'est produite lors de l'envoi du message."
-                        );
-                      }
-                    }}
-                  >
-                    <div>
-                      <input
-                        type="email"
-                        name="to"
-                        placeholder="À"
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                        onChange={(e) => {
-                          // Simulate recipient availability (we'll fetch this when we have the backend)
-                          setState((prev) => ({
-                            ...prev,
-                            recipientAvailability: Math.random() * 100,
-                          }));
-                        }}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <input
-                        type="email"
-                        name="cc"
-                        placeholder="Cc"
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                      />
-                    </div>
-
-                    <div>
-                      <input
-                        type="text"
-                        name="subject"
-                        placeholder="Objet"
-                        className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                        required
-                      />
-                    </div>
-
-                    {state.recipientAvailability !== undefined && (
-                      <div className="flex items-center space-x-2">
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Disponibilité du destinataire:
-                        </div>
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full transition-all duration-300"
-                            style={{
-                              width: `${state.recipientAvailability}%`,
-                              backgroundColor: `hsl(${state.recipientAvailability}, 70%, 50%)`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    <textarea
-                      name="body"
-                      placeholder="Message"
-                      rows={4}
-                      className="w-full px-3 py-2 border dark:border-gray-600 rounded-lg resize-none dark:bg-gray-700 dark:text-white"
-                      required
-                    />
-
-                    <div className="flex justify-end">
-                      <motion.button
-                        type="submit"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                      >
-                        Envoyer
-                      </motion.button>
-                    </div>
-                  </form>
-                </div>
-              </motion.div>
-            )}
-          </div>
+          <HomeContent
+            isLoading={state.isLoading}
+            sectionSizes={state.sectionSizes}
+            isResizing={state.isResizing}
+            filteredEmails={filteredEmails}
+            handleSectionResize={handleSectionResize}
+            handleResizeStart={handleResizeStart}
+            handleThreadSelect={handleThreadSelect}
+            groupedEmails={groupedEmails}
+            showSearchPopup={state.showSearchPopup}
+            setShowSearchPopup={(show) => setState(prev => ({ ...prev, showSearchPopup: show }))}
+            fetchEmails={fetchEmails}
+          />
         )}
       </main>
-      <SearchPopup
-        isOpen={state.showSearchPopup}
-        onClose={() =>
-          setState((prev) => ({ ...prev, showSearchPopup: false }))
-        }
-      />
     </div>
   );
 };
