@@ -1,0 +1,19 @@
+{
+  "email": "user@accord.com",
+  "status": "completed",
+  "message": "Exportation, classification et construction du graphe terminées avec succès!",
+  "progress": 100,
+  "updated_at": 1745904213.4333513,
+  "extra": {
+    "email": "user@accord.com",
+    "user_id": "user_at_accord_dot_com",
+    "total_emails": 2,
+    "total_batches": 1,
+    "max_emails": 2,
+    "export_date": "2025-04-29T01:22:56.074000",
+    "batches": [
+      "emails_batch_1.json"
+    ],
+    "duration_seconds": 0.9628627300262451
+  }
+}

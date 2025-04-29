@@ -8,6 +8,7 @@ from backend.app.email_providers.google.settings import Config
 from backend.app.email_providers.google.gmail_service import GmailService
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
+from backend.app.services.export_status import update_export_status
 from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
 from backend.app.utils.absolute_path import get_file_path
 
@@ -86,6 +87,14 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
     Returns:
         dict: Métadonnées de l'export
     """
+    # Mettre à jour le statut - Démarrage du processus
+    update_export_status(
+        email=email,
+        status="processing",
+        message="Démarrage du processus d'exportation des emails",
+        progress=0
+    )
+
     # Créer les répertoires si nécessaires
     Config.ensure_directories()
     os.makedirs(output_dir, exist_ok=True)
@@ -108,6 +117,13 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
     max_auth_attempts = 3
     auth_attempts = 0
     is_authenticated = False
+
+    update_export_status(
+        email=email,
+        status="processing",
+        message="Tentative d'authentification...",
+        progress=10
+    )
 
     while not is_authenticated and auth_attempts < max_auth_attempts:
         auth_attempts += 1
@@ -165,6 +181,12 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
         print(f"Échec de l'authentification après {max_auth_attempts} tentatives.")
         return None
 
+    update_export_status(
+        email=email,
+        status="processing",
+        message="Récupération des emails en cours...",
+        progress=20
+    )
 
     try:
         if not is_authenticated_for_process :
@@ -203,6 +225,13 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
                 "duration_seconds": time.time() - start_time
             }
 
+            update_export_status(
+                email=email,
+                status="processing",
+                message=f"Exportation des emails, {total_emails} emails récupérés",
+                progress=50
+            )
+
 
             print(f"Export terminé en {time.time() - export_start_time:.2f} secondes")
             print(f"Tous les emails ont été exportés vers: {output_dir}")
@@ -210,6 +239,13 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
 
             print("\nLancement de la classification des emails...")
             try:
+                update_export_status(
+                    email=email,
+                    status="processing",
+                    message="Classification des emails en cours...",
+                    progress=70
+                )
+
                 # En production
                 #classify_exported_emails(output_dir)
 
@@ -224,6 +260,13 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
             # construction du graphe
             print("\nLancement de la construction du graphe...")
             try:
+                update_export_status(
+                    email=email,
+                    status="processing",
+                    message="Construction du graphe en cours...",
+                    progress=85
+                )
+
                 # En production
                 #build_graph_main(input_dir=output_dir, output_dir=get_file_path("backend/app/data/mockdata/graph"), central_user=email)
 
@@ -236,6 +279,14 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
                 import traceback
                 traceback.print_exc()
 
+            update_export_status(
+                email=email,
+                status="completed",
+                message="Exportation, classification et construction du graphe terminées avec succès!",
+                progress=100,
+                extra_data=index
+            )
+
             return index
 
         #classify_exported_emails(output_dir)
@@ -246,6 +297,12 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
         print(f"Erreur lors de l'export des emails: {str(e)}")
         import traceback
         traceback.print_exc()
+        update_export_status(
+            email=email,
+            status="error",
+            message=f"Erreur pendant la classification ou la construction du graphe: {str(e)}",
+            progress=0
+        )
         return None
 
 #if __name__ == "__main__":

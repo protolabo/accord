@@ -100,7 +100,7 @@ const Home: React.FC = () => {
 useEffect(() => {
   const checkAuth = async () => {
     try {
-      // Vérifier l'état d'authentification depuis le backend
+      // Vérifier l'état d'authentification
       const response = await fetch('/auth/status', {
         method: 'GET',
         headers: {
@@ -111,15 +111,43 @@ useEffect(() => {
       if (response.ok) {
         const authData = await response.json();
 
+        // Mise à jour de l'état d'authentification
         setState((prev) => ({
           ...prev,
           isAuthenticated: authData.authenticated,
           userEmail: authData.email || ''
         }));
 
-        // Si l'utilisateur est authentifié, récupérer les emails
-        if (authData.authenticated) {
-          fetchEmails();
+        if (authData.authenticated && authData.email) {
+          try {
+            const exportStatusResponse = await fetch(
+              `/export/gmail/status?email=${encodeURIComponent(authData.email)}`
+            );
+
+            if (exportStatusResponse.ok) {
+              const exportStatus = await exportStatusResponse.json();
+
+              if (exportStatus.status === 'processing') {
+                setState(prev => ({
+                  ...prev,
+                  isLoading: true,
+                  exportStatus: exportStatus
+                }));
+
+                // to-do  rediriger vers une page d'état d'exportation
+                // navigate('/export-status', { state: { email: authData.email } });
+                return;
+              }
+
+              // Si l'exportation est terminée, récupérer les emails
+              if (exportStatus.status === 'completed') {
+                fetchEmails();
+              }
+            }
+          } catch (e) {
+            console.error('Erreur lors de la vérification de l\'état d\'exportation:', e);
+            // quitter
+          }
         }
       } else {
         setState((prev) => ({ ...prev, isAuthenticated: false }));
@@ -129,11 +157,13 @@ useEffect(() => {
       setState((prev) => ({ ...prev, isAuthenticated: false }));
     }
   };
+
+  checkAuth();
+}, []);
   //setState((prev) => ({ ...prev, isAuthenticated: true }));
   //fetchEmails();
   // Appeler la fonction de vérification
-  checkAuth();
-}, []);
+
 
 
 
