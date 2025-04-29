@@ -2,49 +2,22 @@
   "name": "accord",
   "version": "1.0.0",
   "main": "main.js",
-  "proxy": "http://localhost:8000",
   "scripts": {
     "start": "electron .",
     "dev": "cross-env NODE_ENV=development concurrently \"cd react-app && cross-env PORT=3000 npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "build": "cd react-app && npm run build && cd .. && electron-builder",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
-    "react-start": "react-scripts start",
-    "react-build": "react-scripts build",
-    "react-test": "react-scripts test",
-    "react-eject": "react-scripts eject"
+    "dist": "electron-builder"
   },
   "devDependencies": {
-    "@types/d3-scale": "^4.0.9",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
     "http-proxy-middleware": "^3.0.3",
-    "react-scripts": "^5.0.1",
     "wait-on": "^7.2.0"
   },
-  "dependencies": {
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "@types/react-router-dom": "^5.3.3",
-    "axios": "^1.8.4",
-    "chart.js": "^4.4.8",
-    "d3-scale": "^4.0.2",
-    "date-fns": "^4.1.0",
-    "framer-motion": "^12.4.7",
-    "react": "^18.2.0",
-    "react-chartjs-2": "^5.3.0",
-    "react-dom": "^18.2.0",
-    "react-force-graph-2d": "^1.27.1",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^6.22.0",
-    "tailwind-merge": "^3.0.1",
-    "typescript": "^5.7.3",
-    "web-vitals": "^4.2.4"
-  },
+  "proxy": "http://localhost:3001",
   "build": {
     "appId": "com.accord.app",
     "productName": "Accord",
@@ -72,16 +45,23 @@
       "category": "public.app-category.productivity"
     }
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.8.4",
+    "chart.js": "^4.4.8",
+    "d3-scale": "^4.0.2",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.4.7",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.2.0",
+    "react-force-graph-2d": "^1.27.1",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^6.22.0",
+    "tailwind-merge": "^3.0.1",
+    "typescript": "^5.7.3",
+    "web-vitals": "^4.2.4"
   }
 }
