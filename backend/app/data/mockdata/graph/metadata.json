@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-04-29T00:53:51.168084",
+  "total_emails_processed": 875,
+  "users_count": 44,
+  "messages_count": 875,
+  "user_relations_count": 145,
+  "message_relations_count": 375,
+  "central_user_email": "alexander.smith@gmail.com",
+  "output_files": {
+    "user_graph": {
+      "users": "user_graph\\users.json",
+      "relations": "user_graph\\relations.json"
+    },
+    "message_graph": {
+      "messages": "message_graph\\messages.json",
+      "relations": "message_graph\\relations.json"
+    }
+  }
+}

@@ -97,20 +97,45 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
   //  ##### A decommenter
-  useEffect(() => {
-    //const checkAuth = async () => {
-    //  const isAuth = emailAPIService.isAuthenticated();
-    //  setState((prev) => ({ ...prev, isAuthenticated: isAuth }));
+useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      // Vérifier l'état d'authentification depuis le backend
+      const response = await fetch('/auth/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    //  if (isAuth) {
-   //     fetchEmails();
-   //   }
-   // };
+      if (response.ok) {
+        const authData = await response.json();
 
-    //checkAuth();
-    setState((prev) => ({ ...prev, isAuthenticated: true }));
-  fetchEmails();
-  }, []);
+        setState((prev) => ({
+          ...prev,
+          isAuthenticated: authData.authenticated,
+          userEmail: authData.email || ''
+        }));
+
+        // Si l'utilisateur est authentifié, récupérer les emails
+        if (authData.authenticated) {
+          fetchEmails();
+        }
+      } else {
+        setState((prev) => ({ ...prev, isAuthenticated: false }));
+      }
+    } catch (error) {
+      console.error('Erreur lors de la vérification de l\'authentification:', error);
+      setState((prev) => ({ ...prev, isAuthenticated: false }));
+    }
+  };
+  //setState((prev) => ({ ...prev, isAuthenticated: true }));
+  //fetchEmails();
+  // Appeler la fonction de vérification
+  checkAuth();
+}, []);
+
+
 
   // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {

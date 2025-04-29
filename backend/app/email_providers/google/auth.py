@@ -7,6 +7,7 @@ from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.services.flow_demarrage import flowDemarrage
 from fastapi import BackgroundTasks, Body
 from typing import Optional
+from backend.app.services.export_status import check_export_status
 
 # Configurer le routeur avec des options CORS
 router = APIRouter()
@@ -40,6 +41,14 @@ async def export_gmail(
         "status": "processing",
         "output_directory": output_dir
     }
+
+
+@router.get("/export/gmail/status")
+async def export_gmail_status(email: str = Query(...)):
+    """Endpoint pour vérifier le statut d'un export Gmail"""
+    status_data = check_export_status(email)
+    return status_data
+
 
 @router.get("/auth/gmail")
 async def gmail_auth(request: Request, email: str = Query(None)):

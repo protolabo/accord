@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { motion } from "framer-motion";
 import { FaMicrosoft, FaGoogle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -13,10 +13,52 @@ const Login: React.FC<LoginProps> = () => {
     navigate("/home");
   };
 
-  const handleGmailLogin = () => {
+  /* const handleGmailLogin = () => {
     // Pour le développement, on va directement à home
     navigate("/home");
-  };
+  };*/
+  const [email, setEmail] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleGmailLogin = async () => {
+  try {
+    setIsProcessing(true);
+    setErrorMessage('');
+
+
+
+    const response = await fetch('/export/gmail', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: "user@accord.com",
+        max_emails: 2, // null : Tous les emails par défaut
+        output_dir: '../data',
+        batch_size: 5000
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Processus d\'export démarré:', data);
+
+      // Une fois le processus démarré, nous redirigeons vers la page d'accueil
+      // Le processus continuera en arrière-plan
+      navigate('/home');
+    } else {
+      const errorData = await response.json();
+      setErrorMessage(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
+      setIsProcessing(false);
+    }
+  } catch (error) {
+    console.error('Erreur lors de l\'authentification:', error);
+    setErrorMessage('Une erreur de connexion est survenue. Veuillez réessayer.');
+    setIsProcessing(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">

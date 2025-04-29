@@ -46,18 +46,18 @@ const EmailServiceSelector: React.FC<EmailServiceSelectorProps> = ({
 
           try {
             // Utiliser le chemin relatif avec le proxy configuré dans package.json
-            const response = await fetch("/export/gmail", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: defaultEmail,
-                max_emails: null, // récupérer tous les emails
-                output_dir: "../data",
-                batch_size: 5000,
-              }),
-            });
+             const response = await fetch('http://localhost:8000/export/gmail', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  email: "user@accord.com",
+                  max_emails: 2,
+                  output_dir: '../data',
+                  batch_size: 5000
+                }),
+    });
 
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status}`);
