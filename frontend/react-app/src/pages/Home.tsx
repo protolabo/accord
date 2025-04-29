@@ -158,7 +158,7 @@ const Home: React.FC = () => {
           await emailAPIService.getClassifiedEmails();
 
         // Convertir les emails classifiés au format attendu par l'interface
-        const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
+         const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
           (email: any) => ({
             "Message-ID":
               email["Message-ID"] || email.id || String(Math.random()),
@@ -199,7 +199,21 @@ const Home: React.FC = () => {
         const serviceEmails = await emailAPIService.fetchEmails();
 
         // Convert service emails to the format expected by the app
-        const convertedEmails: Email[] = serviceEmails.map((email) => ({
+        const convertedEmails: {
+          "Message-ID": string;
+          Subject: string;
+          From: string;
+          To: string;
+          Cc: string;
+          Date: string;
+          "Content-Type": string;
+          Body: string;
+          IsRead: boolean;
+          Attachments: { filename: string; content_type: string; size: number; content_id?: string; url?: string }[];
+          Categories: string[];
+          Importance: string;
+          ThreadId: string
+        }[] = serviceEmails.map((email) => ({
           "Message-ID": email.id,
           Subject: email.subject,
           From: email.from,
@@ -216,6 +230,7 @@ const Home: React.FC = () => {
           ThreadId: email.threadId || email.id,
         }));
 
+        // @ts-ignore
         setState((prev) => ({
           ...prev,
           emails: convertedEmails,
@@ -863,6 +878,7 @@ const Home: React.FC = () => {
 
                       try {
                         const result = await emailAPIService.sendEmail({
+                          body_type: "",
                           subject,
                           from: "", // The API will use the authenticated user's email
                           to,
@@ -872,7 +888,7 @@ const Home: React.FC = () => {
                           attachments: [],
                           categories: [],
                           importance: "normal",
-                          isRead: true,
+                          isRead: true
                         });
 
                         if (result.success) {

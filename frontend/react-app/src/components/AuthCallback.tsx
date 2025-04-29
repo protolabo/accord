@@ -62,7 +62,7 @@ const AuthCallback: React.FC = () => {
               // Tenter de lancer l'exportation directement depuis la fenêtre de callback
               await emailAPIService.exportGmailEmails(
                 userEmail,
-                null, // max_emails - null pour tous récupérer
+                undefined, // max_emails - null pour tous récupérer
                 "../data", // répertoire de sortie par défaut
                 5000 // taille de lot par défaut
               );

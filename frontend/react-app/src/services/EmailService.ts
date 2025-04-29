@@ -238,12 +238,17 @@ class EmailAPIService {
   }
 
   async sendEmail(email: {
-    to: string[];
-    cc?: string[];
-    bcc?: string[];
-    subject: string;
-    body: string;
-    body_type: string;
+      body_type: string;
+      subject: string;
+      from: string;
+      to: string[];
+      cc: string[];
+      body: string;
+      bodyType: string;
+      attachments: any[];
+      categories: any[];
+      importance: string;
+      isRead: boolean
   }): Promise<{ success: boolean; message_id?: string }> {
     const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
