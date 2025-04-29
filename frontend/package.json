@@ -4,7 +4,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "cross-env NODE_ENV=development concurrently \"cd react-app && cross-env PORT=3000 npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "dev": "cross-env NODE_ENV=development BROWSER=none concurrently \"cd react-app && cross-env PORT=3000 npm start\" \"wait-on http://localhost:3000 && electron .\"",
     "build": "cd react-app && npm run build && cd .. && electron-builder",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"

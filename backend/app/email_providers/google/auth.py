@@ -8,6 +8,10 @@ from backend.app.services.flow_demarrage import flowDemarrage
 from fastapi import BackgroundTasks, Body
 from typing import Optional
 from backend.app.services.export_status import check_export_status
+from fastapi import Header, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import jwt, JWTError
+from backend.app.core.config import settings
 
 # Configurer le routeur avec des options CORS
 router = APIRouter()
@@ -105,11 +109,46 @@ async def auth_callback(request: Request, code: str = Query(...), state: str = Q
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
 
+
+security = HTTPBearer(auto_error=False)
+
+
 @router.get("/auth/status")
-async def auth_status(request: Request, email: str = Query(None)):
+async def auth_status(
+        request: Request,
+        email: str = Query(None),
+        authorization: HTTPAuthorizationCredentials = Depends(security)
+):
     """Vérifie le statut d'authentification d'un utilisateur."""
     try:
-        # Si email est fourni, l'utiliser pour vérifier le statut
+        # Vérifier d'abord si un token JWT est fourni
+        if authorization:
+            try:
+                # Décodez le token JWT
+                payload = jwt.decode(
+                    authorization.credentials,
+                    settings.SECRET_KEY,
+                    algorithms=[settings.ALGORITHM]
+                )
+
+                # Extraire l'email du token
+                token_email = payload.get("email")
+
+                if token_email:
+                    # Utiliser l'email du token pour l'authentification
+                    user_id = normalize_email_for_storage(token_email)
+                    is_authenticated = auth_manager.is_authenticated(user_id)
+
+                    return {
+                        "authenticated": is_authenticated,
+                        "email": token_email,
+                        "user_id": user_id
+                    }
+            except JWTError as e:
+                print(f"Erreur JWT: {str(e)}")
+                # Continuer avec d'autres méthodes si le JWT échoue
+
+        # Si pas de JWT valide, utiliser la méthode par email comme avant
         if email:
             user_id = normalize_email_for_storage(email)
         else:
@@ -117,8 +156,8 @@ async def auth_status(request: Request, email: str = Query(None)):
             email = request.session.get("user_email")
             if not email:
                 return JSONResponse(
-                    status_code=400,
-                    content={"authenticated": False, "message": "Aucun email fourni"}
+                    status_code=200,  # Utiliser 200 au lieu de 400 pour éviter les erreurs CORS
+                    content={"authenticated": False, "message": "Aucun email fourni ou trouvé en session"}
                 )
             user_id = normalize_email_for_storage(email)
 
@@ -130,11 +169,12 @@ async def auth_status(request: Request, email: str = Query(None)):
             "email": email,
             "user_id": user_id
         }
-
     except Exception as e:
-        error_message = f"Erreur lors de la vérification du statut d'authentification: {str(e)}"
-        print(error_message)
-        raise HTTPException(status_code=500, detail=error_message)
+        print(f"Erreur lors de la vérification du statut: {str(e)}")
+        return JSONResponse(
+            status_code=200,  # Utiliser 200 au lieu de 500 pour éviter les erreurs CORS
+            content={"authenticated": False, "message": f"Erreur lors de la vérification: {str(e)}"}
+        )
 
 @router.get("/auth-success", response_class=HTMLResponse)
 async def auth_success(request: Request, email: str = None):

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import EmailLogin from "../components/EmailLogin";
 import ThreadDetail from "../components/ThreadDetail";
 import HomeContent from "./HomeContent";
 import emailAPIService from "../services/EmailService";
@@ -97,13 +96,23 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
+useEffect(() => {
   const checkAuth = async () => {
     try {
+      const token = localStorage.getItem('jwt_token');
+
+      // Si aucun token n'existe, l'utilisateur n'est pas authentifié
+      if (!token) {
+        console.log("Aucun token JWT trouvé dans localStorage");
+        setState((prev) => ({ ...prev, isAuthenticated: false }));
+        return;
+      }
+
       const response = await fetch('http://localhost:8000/auth/status', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
       });
 
@@ -111,40 +120,43 @@ const Home: React.FC = () => {
         const authData = await response.json();
         console.log("Données d'authentification:", authData);
 
-        // Mise à jour de l'état
         setState((prev) => ({
           ...prev,
           isAuthenticated: authData.authenticated,
           userEmail: authData.email || ''
         }));
 
-        if (authData.authenticated) {
-          if (authData.email) {
-            try {
-              const exportStatusResponse = await fetch(
-                `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
-              );
+        if (authData.authenticated && authData.email) {
+          // Stocker l'email dans localStorage pour la persistance
+          localStorage.setItem('userEmail', authData.email);
 
-              if (exportStatusResponse.ok) {
-                const exportStatus = await exportStatusResponse.json();
-                console.log("Statut de l'exportation:", exportStatus);
+          try {
+            const exportStatusResponse = await fetch(
+              `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
+            );
 
-                if (exportStatus.status === 'processing') {
-                  // Si toujours en traitement, aller à la page de statut
-                  navigate('/export-status', { state: { email: authData.email } });
-                  return;
-                }
+            if (exportStatusResponse.ok) {
+              const exportStatus = await exportStatusResponse.json();
+              console.log("Statut de l'exportation:", exportStatus);
+
+              if (exportStatus.status === 'processing') {
+                navigate('/export-status', { state: { email: authData.email } });
+                return;
               }
-            } catch (e) {
-              console.error("Erreur lors de la vérification du statut d'exportation:", e);
             }
+          } catch (e) {
+            console.error("Erreur lors de la vérification du statut d'exportation:", e);
           }
 
           fetchEmails();
         }
       } else {
         console.error("Erreur de réponse du serveur:", response.status);
+        if (response.status === 401) {
+          localStorage.removeItem('jwt_token');
+        }
         setState((prev) => ({ ...prev, isAuthenticated: false }));
+        console.log("Utilisateur non authentifié:", await response.text());
       }
     } catch (error) {
       console.error('Erreur lors de la vérification de l\'authentification:', error);
@@ -152,11 +164,9 @@ const Home: React.FC = () => {
     }
   };
 
-    checkAuth();
-  }, []);
-    //setState((prev) => ({ ...prev, isAuthenticated: true }));
-    //fetchEmails();
-    // Appeler la fonction de vérification
+  checkAuth();
+}, [navigate]);
+
 
     // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {
@@ -513,9 +523,7 @@ const Home: React.FC = () => {
 
       {/* Main content */}
       <main className="container mx-auto p-4">
-        {!state.isAuthenticated ? (
-          <EmailLogin onLogin={handleLoginSuccess} />
-        ) : state.showThreadDetail ? (
+        {state.showThreadDetail ? (
           <ThreadDetail
             thread={state.selectedThread}
             onBack={handleBackToList}

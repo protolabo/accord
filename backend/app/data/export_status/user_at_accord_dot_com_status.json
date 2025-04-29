@@ -1,8 +1,19 @@
 {
   "email": "user@accord.com",
-  "status": "processing",
-  "message": "Récupération des emails en cours...",
-  "progress": 20,
-  "updated_at": 1745957011.0666678,
-  "extra": {}
+  "status": "completed",
+  "message": "Exportation, classification et construction du graphe terminées avec succès!",
+  "progress": 100,
+  "updated_at": 1745962633.8210373,
+  "extra": {
+    "email": "user@accord.com",
+    "user_id": "user_at_accord_dot_com",
+    "total_emails": 2,
+    "total_batches": 1,
+    "max_emails": 2,
+    "export_date": "2025-04-29T17:36:29.654091",
+    "batches": [
+      "emails_batch_1.json"
+    ],
+    "duration_seconds": 1.7227771282196045
+  }
 }
