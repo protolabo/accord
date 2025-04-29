@@ -96,12 +96,11 @@ const Home: React.FC = () => {
   const [state, setState] = useState<HomeState>(initialState);
   const navigate = useNavigate();
 
-  //  ##### A decommenter
-useEffect(() => {
+
+  useEffect(() => {
   const checkAuth = async () => {
     try {
-      // Vérifier l'état d'authentification
-      const response = await fetch('/auth/status', {
+      const response = await fetch('http://localhost:8000/auth/status', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -110,15 +109,17 @@ useEffect(() => {
 
       if (response.ok) {
         const authData = await response.json();
+        console.log("Données d'authentification:", authData);
 
-        // Mise à jour de l'état d'authentification
+        // Mise à jour de l'état
         setState((prev) => ({
           ...prev,
           isAuthenticated: authData.authenticated,
           userEmail: authData.email || ''
         }));
 
-        if (authData.authenticated && authData.email) {
+        if (authData.authenticated) {
+          if (authData.email) {
             try {
               const exportStatusResponse = await fetch(
                 `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
@@ -126,24 +127,23 @@ useEffect(() => {
 
               if (exportStatusResponse.ok) {
                 const exportStatus = await exportStatusResponse.json();
+                console.log("Statut de l'exportation:", exportStatus);
 
                 if (exportStatus.status === 'processing') {
-                  // L'exportation est encore en cours, rediriger vers la page de statut
+                  // Si toujours en traitement, aller à la page de statut
                   navigate('/export-status', { state: { email: authData.email } });
                   return;
                 }
-
-                // Si l'exportation est terminée, poursuivre
-                if (exportStatus.status === 'completed') {
-                  fetchEmails();
-                }
               }
             } catch (e) {
-              console.error('Erreur lors de la vérification de l\'état d\'exportation:', e);
-              //fetchEmails();
+              console.error("Erreur lors de la vérification du statut d'exportation:", e);
             }
           }
+
+          fetchEmails();
+        }
       } else {
+        console.error("Erreur de réponse du serveur:", response.status);
         setState((prev) => ({ ...prev, isAuthenticated: false }));
       }
     } catch (error) {
@@ -152,16 +152,13 @@ useEffect(() => {
     }
   };
 
-  checkAuth();
-}, []);
-  //setState((prev) => ({ ...prev, isAuthenticated: true }));
-  //fetchEmails();
-  // Appeler la fonction de vérification
+    checkAuth();
+  }, []);
+    //setState((prev) => ({ ...prev, isAuthenticated: true }));
+    //fetchEmails();
+    // Appeler la fonction de vérification
 
-
-
-
-  // Fetch emails from the selected email service or classified emails
+    // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {
   setState((prev) => ({ ...prev, isLoading: true }));
 

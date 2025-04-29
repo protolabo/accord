@@ -8,7 +8,7 @@ interface LoginProps {}
 
 const Login: React.FC<LoginProps> = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('user@accord.com'); 
+  const [email, setEmail] = useState('user@accord.com');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showExportStatus, setShowExportStatus] = useState(false);
@@ -23,7 +23,6 @@ const Login: React.FC<LoginProps> = () => {
       setIsProcessing(true);
       setErrorMessage('');
 
-      // Appel à l'API pour démarrer le processus d'exportation
       const response = await fetch('http://localhost:8000/export/gmail', {
         method: 'POST',
         headers: {
@@ -31,7 +30,7 @@ const Login: React.FC<LoginProps> = () => {
         },
         body: JSON.stringify({
           email: email,
-          max_emails: 2, // null pour tous les emails
+          max_emails: 2,
           output_dir: '../data',
           batch_size: 5000
         })
@@ -41,8 +40,11 @@ const Login: React.FC<LoginProps> = () => {
         const data = await response.json();
         console.log('Processus d\'export démarré:', data);
 
-        // Au lieu de rediriger vers home, afficher le composant de suivi
-        setShowExportStatus(true);
+        // 1. Stocker l'email dans localStorage
+        localStorage.setItem('userEmail', email);
+
+        // 2. Naviguer explicitement vers la page de statut
+        navigate('/export-status', { state: { email } });
       } else {
         const errorData = await response.json();
         setErrorMessage(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
