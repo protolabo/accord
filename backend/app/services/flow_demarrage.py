@@ -55,12 +55,15 @@ def classify_exported_emails(output_dir = None):
 
             try:
                 classification = process_email({
-                    "subject": email.get("Subject", ""),
-                    "body": email.get("Body", {}).get("plain", "")
+                    "Subject": email.get("Subject", ""),
+                    "Body": {
+                        "plain": email.get("Body", {}).get("plain", "")
+                    }
                 })
 
                 email["accord_main_class"] = classification["main_class"]
                 email["accord_sub_classes"] = classification["sub_classes"]
+
             except Exception as e:
                 # Ne rien faire pour l'instant, juste imprimer l'erreur
                 print(f"  Erreur lors du classement de l'email {i}: {str(e)}")

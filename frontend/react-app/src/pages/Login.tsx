@@ -91,21 +91,7 @@ const Login: React.FC<LoginProps> = () => {
             </p>
           </div>
 
-          {/* Champ email */}
-          <div className="mb-6">
-            <label className="block text-gray-700 dark:text-gray-300 mb-2">
-              Adresse email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
-              focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              placeholder="votre@email.com"
-              disabled={isProcessing}
-            />
-          </div>
+
 
           {/* Message d'erreur */}
           {errorMessage && (
