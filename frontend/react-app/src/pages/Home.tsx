@@ -119,36 +119,30 @@ useEffect(() => {
         }));
 
         if (authData.authenticated && authData.email) {
-          try {
-            const exportStatusResponse = await fetch(
-              `/export/gmail/status?email=${encodeURIComponent(authData.email)}`
-            );
+            try {
+              const exportStatusResponse = await fetch(
+                `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
+              );
 
-            if (exportStatusResponse.ok) {
-              const exportStatus = await exportStatusResponse.json();
+              if (exportStatusResponse.ok) {
+                const exportStatus = await exportStatusResponse.json();
 
-              if (exportStatus.status === 'processing') {
-                setState(prev => ({
-                  ...prev,
-                  isLoading: true,
-                  exportStatus: exportStatus
-                }));
+                if (exportStatus.status === 'processing') {
+                  // L'exportation est encore en cours, rediriger vers la page de statut
+                  navigate('/export-status', { state: { email: authData.email } });
+                  return;
+                }
 
-                // to-do  rediriger vers une page d'état d'exportation
-                // navigate('/export-status', { state: { email: authData.email } });
-                return;
+                // Si l'exportation est terminée, poursuivre
+                if (exportStatus.status === 'completed') {
+                  fetchEmails();
+                }
               }
-
-              // Si l'exportation est terminée, récupérer les emails
-              if (exportStatus.status === 'completed') {
-                fetchEmails();
-              }
+            } catch (e) {
+              console.error('Erreur lors de la vérification de l\'état d\'exportation:', e);
+              //fetchEmails();
             }
-          } catch (e) {
-            console.error('Erreur lors de la vérification de l\'état d\'exportation:', e);
-            // quitter
           }
-        }
       } else {
         setState((prev) => ({ ...prev, isAuthenticated: false }));
       }

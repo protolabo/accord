@@ -2,12 +2,14 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import AuthCallback from "./components/AuthCallback";
+import ExportStatusPage from './pages/ExportStatusPage';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/export-status" element={<ExportStatusPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
     </Routes>
   );
 }
