@@ -7,16 +7,14 @@ Le frontend d'Accord est une application bureau développée avec React et Elect
 ## 🗂️ Structure du projet
 
 ```
-/                          # Racine du projet
-├── backend/               # Code du backend FastAPI
-├── frontend/              # Application Electron + React
-│   ├── assets/            # Images, icônes et ressources statiques
-│   ├── main.js            # Point d'entrée d'Electron
-│   ├── package.json       # Package.json consolidé (Electron + React)
-│   ├── forge.config.js    # Configuration pour electron-forge
-│   ├── react-app/         # Application React
-│   │   ├── public/        # Fichiers statiques pour React
-│   │   ├── src/           # Code source React
+/                          
+├── backend/               
+├── frontend/              
+│   ├── package.json       # ⚠️ run dev s'est ici
+│   ├── forge.config.js    
+│   ├── react-app/        
+│   │   ├── package.json  # ⚠️ ne pas utiliser à part pour npm install 
+
 ```
 
 ## 🚀 Installation
@@ -29,15 +27,23 @@ cd frontend
 
 # 2. Installer toutes les dépendances (Electron + React)
 npm install
+
+# 3. Naviguer vers le dossier frontend/react-app
+cd frontend/react-app 
+
+# 2. Installer toutes les dépendances 
+npm install 
+
 ```
 
 ## 📦 Scripts disponibles
 
 Le package.json consolidé offre les scripts suivants:
 
-### Scripts Electron
+### Scripts Electron dans frontend/package.json
 
 ```bash
+
 # Lancer l'application Electron (sans serveur de développement React)
 npm start
 
@@ -54,25 +60,11 @@ npm run dist
 npm run pack
 ```
 
-### Scripts React
 
-```bash
-# Lancer le serveur de développement React uniquement
-npm run react-start
-
-# Construire l'application React (production)
-npm run react-build
-
-# Exécuter les tests React
-npm run react-test
-
-# Éjecter la configuration React (irréversible)
-npm run react-eject
-```
 
 ## 🔄 Flux de développement
 
-### Développement
+### 📌 Développement 
 
 Pour le développement quotidien, utilisez:
 
