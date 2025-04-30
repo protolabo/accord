@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { motion } from "framer-motion";
 import { FaMicrosoft, FaGoogle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -18,16 +18,32 @@ const Login: React.FC<LoginProps> = () => {
     navigate("/home");
   };
 
+  useEffect(() => {
+    const token = localStorage.getItem('jwt_token');
+    if (token) {
+      // Already authenticated, redirect to home
+      navigate('/home');
+    }
+  }, [navigate]);
+
   const handleGmailLogin = async () => {
     try {
       setIsProcessing(true);
       setErrorMessage('');
 
+      // For now, create a mock token to simulate login
+      const mockToken = "mock-jwt-token-" + Date.now();
+      localStorage.setItem('jwt_token', mockToken);
+      localStorage.setItem('userEmail', email || 'user@example.com');
+
+      // After successful login, redirect to home
+      navigate('/home');
+
+      // Uncomment this for real implementation
+      /*
       const response = await fetch('http://localhost:8000/export/gmail', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email,
           max_emails: 2,
@@ -38,18 +54,14 @@ const Login: React.FC<LoginProps> = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Processus d\'export démarré:', data);
-
-        // 1. Stocker l'email dans localStorage
         localStorage.setItem('userEmail', email);
-
-        // 2. Naviguer explicitement vers la page de statut
         navigate('/export-status', { state: { email } });
       } else {
         const errorData = await response.json();
         setErrorMessage(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
         setIsProcessing(false);
       }
+      */
     } catch (error) {
       console.error('Erreur lors de l\'authentification:', error);
       setErrorMessage('Une erreur de connexion est survenue. Veuillez réessayer.');

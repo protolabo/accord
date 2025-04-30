@@ -17,6 +17,7 @@ import { Email } from "../components/types";
 
 interface ExtendedEmail extends Email {
   accord_sub_classes?: Array<[string, number]>;
+  accord_main_class?: string[];
 }
 
 interface HomeContentProps {
@@ -60,10 +61,22 @@ const HomeContent: React.FC<HomeContentProps> = ({
 
   // Fonction pour filtrer les emails par catégorie principale
   const getEmailsByMainCategory = (category: string) => {
-    return filteredEmails.filter(email =>
-      email.Categories && email.Categories.includes(category)
-    );
-  };
+  return filteredEmails.filter(email => {
+    // Vérifier si la catégorie est dans les catégories de l'email
+    if (email.Categories.includes(category)) {
+      return true;
+    }
+
+    // Pour la catégorie "Threads", vérifier aussi si c'est dans accord_main_class
+    if (category === "Threads" &&
+        Array.isArray(email.accord_main_class) &&
+        email.accord_main_class.includes("Threads")) {
+      return true;
+    }
+
+    return false;
+  });
+};
 
   // Emails pour chaque section
   const actionEmails = getEmailsByMainCategory("Actions");

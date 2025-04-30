@@ -1,6 +1,6 @@
 import re
 
-def intent_classification(email_text, subject):
+def intent_classification(email_text, subject, sender):
     """
     Classifie l'intention d'un email selon trois catégories:
     - Actions: messages nécessitant une action spécifique
@@ -18,11 +18,13 @@ def intent_classification(email_text, subject):
     email_lower = (subject + " " + email_text).lower()
 
     # Vérifier si c'est une action
-    if any(keyword in email_lower for keyword in action_keywords):
-        return ["Action"]
+    # en prod , il faut plutot placer useremail
+    if sender != "alexander.smith@gmail.com" and any(keyword in email_lower for keyword in action_keywords):
+        return ["Actions"]
 
     # Vérifier si c'est une information
-    elif any(keyword in email_lower for keyword in info_keywords):
+    # en prod , il faut plutot placer useremail
+    elif sender != "alexander.smith@gmail.com" and any(keyword in email_lower for keyword in info_keywords ):
         return ["Informations"]
 
     # Par défaut, c'est un thread

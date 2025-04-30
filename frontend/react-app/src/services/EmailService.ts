@@ -392,12 +392,17 @@ class EmailAPIService {
     message?: string;
   }> {
     try {
+      console.log(`services/EmailService.tsx : 395 `);
+      console.log("Checking Classification Status:", outputDir);
       const response = await axios.get(
         `${this.baseUrl}/classified-emails/status`,
         {
           params: { output_dir: outputDir },
         }
       );
+
+      console.log("services/EmailService.tsx : 404 ");
+      console.log(response);
 
       return response.data;
     } catch (error) {
@@ -449,6 +454,7 @@ class EmailAPIService {
   try {
     console.log("Utilisation des données mockées");
     const mockEmails = await MockDataService.fetchMockEmails();
+    console.log("Mock emails reached");
 
     return {
       total_emails: mockEmails.length,

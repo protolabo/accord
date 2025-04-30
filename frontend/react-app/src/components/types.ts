@@ -35,7 +35,9 @@ export interface PriorityLevels {
 export interface ThreadDetailProps {
   thread: Email | null;
   onBack: () => void;
+
 }
+
 
 export interface ThreadCategoryProps {
   category: string;

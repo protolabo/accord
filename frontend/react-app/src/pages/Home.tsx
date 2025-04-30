@@ -6,6 +6,8 @@ import HomeContent from "./HomeContent";
 import emailAPIService from "../services/EmailService";
 import { mockEmails, mockNotifications } from "../data/mockData";
 import { Email } from "../components/types";
+import axios from "axios";
+import DebugService from '../services/DebugService';
 
 
 interface ExtendedEmail extends Email {
@@ -32,12 +34,35 @@ interface HomeState {
   focusMode: {
     active: boolean;
     priority: "high" | "medium" | "low";
-    timeBlock: number; // minutes
+    timeBlock: number;
     endTime: Date | null;
   };
   isAuthenticated: boolean;
   emails: ExtendedEmail[];
   isLoading: boolean;
+}
+
+interface BackendEmailData {
+  "Message-ID"?: string;
+  id?: string;
+  Subject?: string;
+  From?: string;
+  To?: string;
+  Date?: string;
+  Body?: string | { plain?: string; html?: string };
+  Categories?: string[];
+  accord_main_class?: string;
+  accord_sub_classes?: Array<[string, number]>;
+  IsRead?: boolean;
+  Attachments?: Array<{
+    filename?: string;
+    contentType?: string;
+    content_type?: string; // Backend might use snake_case
+    size?: number;
+    contentId?: string;
+    content_id?: string; // Backend might use snake_case
+    url?: string;
+  }>;
 }
 
 const typedMockEmails = mockEmails as unknown as ExtendedEmail[];
@@ -76,188 +101,117 @@ const Home: React.FC = () => {
   const [state, setState] = useState<HomeState>(initialState);
   const navigate = useNavigate();
 
+  // First, add this state to track if we've attempted auth
+  const [authAttempted, setAuthAttempted] = useState(false);
+
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('jwt_token');
+  console.log("Home component mounted");
 
-        // Si aucun token n'existe, l'utilisateur n'est pas authentifié
-        if (!token) {
-          console.log("Aucun token JWT trouvé dans localStorage");
-          setState((prev) => ({ ...prev, isAuthenticated: false }));
-          fetchEmails();
-          return;
-        }
+  const loadData = async () => {
+    setState(prev => ({ ...prev, isLoading: true }));
 
-        const response = await fetch('http://localhost:8000/auth/status', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-        });
+    try {
+      const userEmail = localStorage.getItem('userEmail');
 
-        if (response.ok) {
-          const authData = await response.json();
-          console.log("Données d'authentification:", authData);
+      await fetchEmails();
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
 
-          setState((prev) => ({
-            ...prev,
-            isAuthenticated: authData.authenticated,
-            userEmail: authData.email || ''
-          }));
-
-          if (authData.authenticated && authData.email) {
-            // Stocker l'email dans localStorage pour la persistance
-            localStorage.setItem('userEmail', authData.email);
-
-            try {
-              const exportStatusResponse = await fetch(
-                `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
-              );
-
-              if (exportStatusResponse.ok) {
-                const exportStatus = await exportStatusResponse.json();
-                console.log("Statut de l'exportation:", exportStatus);
-
-                if (exportStatus.status === 'processing') {
-                  navigate('/export-status', { state: { email: authData.email } });
-                  return;
-                }
-              }
-            } catch (e) {
-              console.error("Erreur lors de la vérification du statut d'exportation:", e);
-            }
-
-            fetchEmails();
-          }
-        } else {
-          console.error("Erreur de réponse du serveur:", response.status);
-          if (response.status === 401) {
-            localStorage.removeItem('jwt_token');
-          }
-          setState((prev) => ({ ...prev, isAuthenticated: false }));
-          console.log("Utilisateur non authentifié:", await response.text());
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification de l\'authentification:', error);
-        setState((prev) => ({ ...prev, isAuthenticated: false }));
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
+  loadData();
+}, []);
 
   // Fetch emails from the selected email service or classified emails
   const fetchEmails = async () => {
-    setState((prev) => ({ ...prev, isLoading: true }));
+  setState((prev) => ({ ...prev, isLoading: true }));
+  try {
+    console.log("Récupération des emails...");
 
-    try {
-      // Vérifier d'abord s'il y a des emails classifiés disponibles
-      const classificationStatus =
-        await emailAPIService.checkClassificationStatus();
+    // Récupérer les emails mockés directement
+    const mockEmailsResponse = await emailAPIService.getClassifiedEmails();
+    const emailsData = mockEmailsResponse.emails;
 
-      if (classificationStatus.status === "completed") {
-        // Des emails classifiés sont disponibles, les récupérer
-        const classifiedEmailsResponse =
-          await emailAPIService.getClassifiedEmails();
+    console.log(`${emailsData.length} emails récupérés`);
 
-        // Convertir les emails classifiés au format attendu par l'interface
-        const convertedEmails: ExtendedEmail[] = classifiedEmailsResponse.emails.map(
-          (email: any) => ({
-            "Message-ID":
-              email["Message-ID"] || email.id || String(Math.random()),
-            Subject: email.Subject || "Sans objet",
-            From: email.From || "inconnu@example.com",
-            To: email.To || "",
-            Cc: email.Cc || "",
-            Date: email.Date || new Date().toISOString(),
-            "Content-Type": email["Content-Type"] || "text/plain",
-            Body: email.Body?.plain || email.Body?.html || email.Body || "",
-            IsRead: email.IsRead || false,
-            // Conversion des attachements pour correspondre à l'interface
-            Attachments: (email.Attachments || []).map((att: any) => ({
-              filename: att.filename,
-              contentType: att.content_type, // Transformé
-              size: att.size,
-              contentId: att.content_id, // Transformé
-              url: att.url
-            })),
-            Categories: email.accord_main_class
-              ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
-              : ["Non classifié"],
-            Importance: "normal",
-            ThreadId:
-              email.ThreadId ||
-              email["Thread-ID"] ||
-              email["Message-ID"] ||
-              String(Math.random()),
-            accord_sub_classes: email.accord_sub_classes
-          })
-        );
+    // Convertir les emails au format attendu par l'interface
+    const convertedEmails: ExtendedEmail[] = emailsData.map((email: any) => {
+      // Déterminer les catégories
+      let categories: string[] = [];
 
-        setState((prev) => ({
-          ...prev,
-          emails: convertedEmails,
-          isLoading: false,
-        }));
-
-        console.log("Emails classifiés chargés:", convertedEmails.length);
-        return;
+      // Si accord_main_class est un tableau, l'utiliser directement
+      if (Array.isArray(email.accord_main_class)) {
+        categories = [...email.accord_main_class];
+      }
+      // Si accord_main_class est une chaîne, la convertir en tableau
+      else if (typeof email.accord_main_class === 'string') {
+        categories = [email.accord_main_class];
+      }
+      // Utiliser les catégories existantes si disponibles
+      else if (Array.isArray(email.Categories) && email.Categories.length > 0) {
+        categories = [...email.Categories];
+      }
+      // Catégorie par défaut
+      else {
+        categories = ["Non classifié"];
       }
 
-      // Si pas d'emails classifiés, essayer l'API normale
-      if (emailAPIService.isAuthenticated()) {
-        const response = await emailAPIService.fetchEmails(); // Stocké dans 'response'
-
-        // Convert service emails to the format expected by the app
-        const convertedEmails: ExtendedEmail[] = response.map((email: any) => ({
-          "Message-ID": email.id,
-          Subject: email.subject,
-          From: email.from,
-          To: email.to.join(", "),
-          Cc: email.cc.join(", "),
-          Date: email.date.toString(),
-          "Content-Type":
-            email.bodyType === "html" ? "text/html" : "text/plain",
-          Body: email.body,
-          IsRead: email.isRead,
-          // Conversion des attachements
-          Attachments: (email.attachments || []).map((att: any) => ({
-            filename: att.filename,
-            contentType: att.content_type,
-            size: att.size,
-            contentId: att.content_id,
-            url: att.url
-          })),
-          Categories: email.categories,
-          Importance: email.isImportant ? "high" : "normal",
-          ThreadId: email.threadId || email.id,
-        }));
-
-        setState((prev) => ({
-          ...prev,
-          emails: convertedEmails,
-          isLoading: false,
-        }));
-      } else {
-        // Fall back to mock data if not authenticated
-        setState((prev) => ({
-          ...prev,
-          emails: typedMockEmails,
-          isLoading: false,
-        }));
+      // Pour les Threads, ajouter la sous-catégorie avec le score le plus élevé
+      if (categories.includes("Threads") && Array.isArray(email.accord_sub_classes) && email.accord_sub_classes.length > 0) {
+        // Trouver la sous-catégorie avec le score le plus élevé
+        email.accord_sub_classes.sort((a: [string, number], b: [string, number]) => b[1] - a[1]);
+        const topSubCategory = email.accord_sub_classes[0][0];
+        if (!categories.includes(topSubCategory)) {
+          categories.push(topSubCategory);
+        }
       }
-    } catch (error) {
-      console.error("Error fetching emails:", error);
-      // Fall back to mock data on error
-      setState((prev) => ({
-        ...prev,
-        emails: typedMockEmails,
-        isLoading: false,
-      }));
-    }
-  };
+
+      return {
+        "Message-ID": email["Message-ID"] || email.id || String(Math.random()),
+        Subject: email.Subject || "Sans objet",
+        From: email.From || "inconnu@example.com",
+        To: email.To || "",
+        Cc: email.Cc || "",
+        Date: email.Date || new Date().toISOString(),
+        "Content-Type": email["Content-Type"] || "text/plain",
+        Body: typeof email.Body === 'string' ? email.Body :
+              (email.Body?.plain || email.Body?.html || ""),
+        IsRead: email.IsRead || false,
+        Attachments: (email.Attachments || []).map((att: any) => ({
+          filename: att.filename || "pièce jointe",
+          contentType: att.contentType || att.content_type || "application/octet-stream",
+          size: att.size || 0,
+          contentId: att.contentId || att.content_id || "",
+          url: att.url || ""
+        })),
+        Categories: categories,
+        Importance: "normal",
+        ThreadId: email.ThreadId || email["Thread-ID"] || email["Message-ID"] || String(Math.random()),
+        accord_sub_classes: email.accord_sub_classes
+      };
+    });
+
+    console.log("Emails convertis:", convertedEmails.length);
+
+    // le débogage
+    DebugService.logEmailCategories(convertedEmails);
+
+    setState((prev) => ({
+      ...prev,
+      emails: convertedEmails,
+      isLoading: false,
+    }));
+  } catch (error) {
+    console.error("Erreur lors de la récupération des emails:", error);
+    setState((prev) => ({
+      ...prev,
+      emails: [],
+      isLoading: false
+    }));
+  }
+};
 
   // Handle successful login
   const handleLoginSuccess = () => {
@@ -281,19 +235,46 @@ const Home: React.FC = () => {
       email.From.toLowerCase().includes(state.searchTerm.toLowerCase())
   );
 
-  // Group emails by category
+  // Groupe les emails par catégorie principale et sous-catégorie
   const groupEmailsByCategory = (emails: Email[]) => {
-    const grouped: { [key: string]: Email[] } = {};
-    emails.forEach((email) => {
-      email.Categories.forEach((category) => {
-        if (!grouped[category]) {
-          grouped[category] = [];
-        }
+  const grouped: { [key: string]: Email[] } = {};
+
+  // D'abord, ajouter tous les emails à leurs catégories principales
+  emails.forEach((email) => {
+    email.Categories.forEach((category) => {
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+
+      // Éviter les doublons
+      if (!grouped[category].some(e => e["Message-ID"] === email["Message-ID"])) {
         grouped[category].push(email);
-      });
+      }
     });
-    return grouped;
-  };
+  });
+
+  // Pour les emails de type Threads, les ajouter également à leurs sous-catégories
+  emails.forEach((email) => {
+    if (email.Categories.includes("Threads") &&
+        email.accord_sub_classes &&
+        email.accord_sub_classes.length > 0) {
+
+      // Prendre la sous-catégorie avec le score le plus élevé
+      const topSubCategory = email.accord_sub_classes[0][0];
+
+      if (!grouped[topSubCategory]) {
+        grouped[topSubCategory] = [];
+      }
+
+      // Éviter les doublons
+      if (!grouped[topSubCategory].some(e => e["Message-ID"] === email["Message-ID"])) {
+        grouped[topSubCategory].push(email);
+      }
+    }
+  });
+
+  return grouped;
+};
 
   const groupedEmails = groupEmailsByCategory(state.emails);
 
