@@ -19,7 +19,7 @@ const ActionButton = ({
   color,
   fullWidth = false
 }: {
-  icon: React.ComponentType<{ className?: string }>; 
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick: () => void;
   color: string;
