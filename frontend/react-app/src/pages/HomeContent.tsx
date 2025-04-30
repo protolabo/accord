@@ -13,28 +13,10 @@ import { mockPriorityLevels, mockEstimatedTimes, mockTopContacts } from "../data
 import ComposePopup from "../components/ComposePopup";
 import ContactsAdapter from "../components/ContactsAdapter";
 import SearchPopup from "../components/search/SearchPopup";
+import { Email } from "../components/types";
 
-// Define Email interface for the component
-interface Email {
-  "Message-ID": string;
-  Subject: string;
-  From: string;
-  To: string;
-  Cc: string;
-  Date: string;
-  "Content-Type": string;
-  Body: string;
-  IsRead: boolean;
-  Attachments: {
-    filename: string;
-    contentType: string;
-    size: number;
-    contentId?: string;
-    url?: string;
-  }[];
-  Categories: string[];
-  Importance: "high" | "normal" | "low";
-  ThreadId: string;
+interface ExtendedEmail extends Email {
+  accord_sub_classes?: Array<[string, number]>;
 }
 
 interface HomeContentProps {
@@ -43,7 +25,7 @@ interface HomeContentProps {
     [key: string]: number;
   };
   isResizing: boolean;
-  filteredEmails: Email[];
+  filteredEmails: ExtendedEmail[];
   handleSectionResize: (
     sectionName: string,
     action: "expand" | "collapse" | "reset"
@@ -76,6 +58,20 @@ const HomeContent: React.FC<HomeContentProps> = ({
   const [showComposePopup, setShowComposePopup] = useState(false);
   const [recipientAvailability, setRecipientAvailability] = useState<number | undefined>(undefined);
 
+  // Fonction pour filtrer les emails par catégorie principale
+  const getEmailsByMainCategory = (category: string) => {
+    return filteredEmails.filter(email =>
+      email.Categories && email.Categories.includes(category)
+    );
+  };
+
+  // Emails pour chaque section
+  const actionEmails = getEmailsByMainCategory("Actions");
+  const threadEmails = getEmailsByMainCategory("Threads");
+  const infoEmails = getEmailsByMainCategory("Informations");
+
+
+
   // Calculate total width to normalize sizes
   const totalSize = Object.values(sectionSizes).reduce((a, b) => a + b, 0);
 
@@ -84,10 +80,15 @@ const HomeContent: React.FC<HomeContentProps> = ({
 
   // Example data for total actions
   const totalActions = {
-    Actions: 500,
-    Threads: 300,
-    Informations: 200,
+    Actions: actionEmails.length || 0,
+    Threads: threadEmails.length || 0,
+    Informations: infoEmails.length || 0,
   };
+
+
+  // Liste des sections à afficher
+  const sections = ["Actions", "Threads", "Informations"] as const;
+  type SectionType = typeof sections[number];
 
   return (
     <div
@@ -95,11 +96,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
       className="flex flex-col md:flex-row justify-center items-stretch gap-0 max-w-[85rem] mx-auto"
       style={{ cursor: isResizing ? "col-resize" : "default" }}
     >
-      {(
-        ["Actions", "Threads", "Informations"] as Array<
-          keyof typeof totalActions
-        >
-      ).map((section, index) => {
+      {sections.map((section, index) => {
         // Calculate the width percentage
         const sizePercent = (sectionSizes[section] / totalSize) * 100;
         const isExpanded = sectionSizes[section] > 1;
@@ -119,7 +116,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
                 damping: 30,
               }}
               className="w-full md:h-[calc(100vh-192px)] bg-white dark:bg-gray-800 shadow-lg rounded-xl
-            overflow-hidden flex flex-col select-none"
+                overflow-hidden flex flex-col select-none"
               style={{ userSelect: isResizing ? "none" : "auto" }}
             >
               <AttentionGauge
@@ -127,9 +124,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
                 previousLevel={null}
                 section={section}
                 estimatedTime={
-                  mockEstimatedTimes[
-                    section as keyof typeof mockEstimatedTimes
-                  ]
+                  mockEstimatedTimes[section as keyof typeof mockEstimatedTimes]
                 }
                 totalActions={totalActions[section]}
                 availableTime={availableTime}
@@ -180,37 +175,44 @@ const HomeContent: React.FC<HomeContentProps> = ({
                   </div>
                 ) : section === "Actions" ? (
                   <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
-                    {filteredEmails.map((email, idx) => (
-                      <ActionItem
-                        key={email["Message-ID"]}
-                        email={email}
-                        actionNumber={idx + 1}
-                        totalActions={filteredEmails.length}
-                        totalProgress={`${idx + 1}/${Object.keys(
-                          groupedEmails
-                        ).reduce(
-                          (acc, key) => acc + groupedEmails[key].length,
-                          0
-                        )}`}
-                      />
-                    ))}
+                    {actionEmails.length > 0 ? (
+                      actionEmails.map((email, idx) => (
+                        <ActionItem
+                          key={email["Message-ID"]}
+                          email={email}
+                          actionNumber={idx + 1}
+                          totalActions={actionEmails.length}
+                          totalProgress={`${idx + 1}/${actionEmails.length}`}
+                        />
+                      ))
+                    ) : (
+                      <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
+                        Aucune action à traiter
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
-                    {filteredEmails.map((email, idx) => (
-                      <InfoItem
-                        key={email["Message-ID"]}
-                        email={email}
-                        infoNumber={idx + 1}
-                        totalInfo={filteredEmails.length}
-                      />
-                    ))}
+                    {infoEmails.length > 0 ? (
+                      infoEmails.map((email, idx) => (
+                        <InfoItem
+                          key={email["Message-ID"]}
+                          email={email}
+                          infoNumber={idx + 1}
+                          totalInfo={infoEmails.length}
+                        />
+                      ))
+                    ) : (
+                      <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400">
+                        Aucune information disponible
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </motion.div>
 
-            {index < ["Actions", "Threads", "Informations"].length - 1 && (
+            {index < sections.length - 1 && (
               <ResizeHandle index={index} onResizeStart={handleResizeStart} />
             )}
           </React.Fragment>

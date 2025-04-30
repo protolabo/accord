@@ -1,4 +1,5 @@
 import axios from "axios";
+import MockDataService from './MockDataService';
 
 export type EmailService = "gmail" | "outlook";
 
@@ -407,8 +408,7 @@ class EmailAPIService {
       throw error;
     }
   }
-
-  // Nouvelle méthode pour récupérer les emails classifiés
+  /*
   async getClassifiedEmails(
     batchNumber?: number,
     outputDir?: string
@@ -427,9 +427,38 @@ class EmailAPIService {
         "Erreur lors de la récupération des emails classifiés:",
         error
       );
-      throw error;
+      // En cas d'erreur, utiliser les données mockées comme fallback
+      try {
+        console.log("Utilisation des données mockées comme fallback");
+        const mockEmails = await MockDataService.fetchMockEmails();
+
+        return {
+          total_emails: mockEmails.length,
+          emails: mockEmails
+        };
+      } catch (mockError) {
+        console.error("Erreur lors de la récupération des données mockées:", mockError);
+        throw error;
+      }
     }
+  }*/
+  async getClassifiedEmails(
+  batchNumber?: number,
+  outputDir?: string
+  ): Promise<{ total_emails: number; emails: any[] }> {
+  try {
+    console.log("Utilisation des données mockées");
+    const mockEmails = await MockDataService.fetchMockEmails();
+
+    return {
+      total_emails: mockEmails.length,
+      emails: mockEmails
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données mockées:", error);
+    throw error;
   }
+}
 
   isAuthenticated(): boolean {
     const { accessToken } = this.getTokens();
@@ -437,6 +466,6 @@ class EmailAPIService {
   }
 }
 
-// Create singleton instance
+
 const emailAPIService = new EmailAPIService();
 export default emailAPIService;

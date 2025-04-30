@@ -5,28 +5,11 @@ import ThreadDetail from "../components/ThreadDetail";
 import HomeContent from "./HomeContent";
 import emailAPIService from "../services/EmailService";
 import { mockEmails, mockNotifications } from "../data/mockData";
+import { Email } from "../components/types";
 
-// Define Email interface for the component
-interface Email {
-  "Message-ID": string;
-  Subject: string;
-  From: string;
-  To: string;
-  Cc: string;
-  Date: string;
-  "Content-Type": string;
-  Body: string;
-  IsRead: boolean;
-  Attachments: {
-    filename: string;
-    contentType: string;
-    size: number;
-    contentId?: string;
-    url?: string;
-  }[];
-  Categories: string[];
-  Importance: "high" | "normal" | "low";
-  ThreadId: string;
+
+interface ExtendedEmail extends Email {
+  accord_sub_classes?: Array<[string, number]>;
 }
 
 interface HomeState {
@@ -53,15 +36,13 @@ interface HomeState {
     endTime: Date | null;
   };
   isAuthenticated: boolean;
-  emails: Email[];
+  emails: ExtendedEmail[];
   isLoading: boolean;
 }
 
-// Add type cast to ensure mockEmails matches our Email interface
-const typedMockEmails = mockEmails as unknown as Email[];
+const typedMockEmails = mockEmails as unknown as ExtendedEmail[];
 
 const Home: React.FC = () => {
-  // Initial state
   const initialState: HomeState = {
     searchTerm: "",
     darkMode: false,
@@ -95,188 +76,187 @@ const Home: React.FC = () => {
   const [state, setState] = useState<HomeState>(initialState);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('jwt_token');
 
-useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('jwt_token');
+        // Si aucun token n'existe, l'utilisateur n'est pas authentifié
+        if (!token) {
+          console.log("Aucun token JWT trouvé dans localStorage");
+          setState((prev) => ({ ...prev, isAuthenticated: false }));
+          return;
+        }
 
-      // Si aucun token n'existe, l'utilisateur n'est pas authentifié
-      if (!token) {
-        console.log("Aucun token JWT trouvé dans localStorage");
+        const response = await fetch('http://localhost:8000/auth/status', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+
+        if (response.ok) {
+          const authData = await response.json();
+          console.log("Données d'authentification:", authData);
+
+          setState((prev) => ({
+            ...prev,
+            isAuthenticated: authData.authenticated,
+            userEmail: authData.email || ''
+          }));
+
+          if (authData.authenticated && authData.email) {
+            // Stocker l'email dans localStorage pour la persistance
+            localStorage.setItem('userEmail', authData.email);
+
+            try {
+              const exportStatusResponse = await fetch(
+                `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
+              );
+
+              if (exportStatusResponse.ok) {
+                const exportStatus = await exportStatusResponse.json();
+                console.log("Statut de l'exportation:", exportStatus);
+
+                if (exportStatus.status === 'processing') {
+                  navigate('/export-status', { state: { email: authData.email } });
+                  return;
+                }
+              }
+            } catch (e) {
+              console.error("Erreur lors de la vérification du statut d'exportation:", e);
+            }
+
+            fetchEmails();
+          }
+        } else {
+          console.error("Erreur de réponse du serveur:", response.status);
+          if (response.status === 401) {
+            localStorage.removeItem('jwt_token');
+          }
+          setState((prev) => ({ ...prev, isAuthenticated: false }));
+          console.log("Utilisateur non authentifié:", await response.text());
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification de l\'authentification:', error);
         setState((prev) => ({ ...prev, isAuthenticated: false }));
-        return;
       }
+    };
 
-      const response = await fetch('http://localhost:8000/auth/status', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-      });
+    checkAuth();
+  }, [navigate]);
 
-      if (response.ok) {
-        const authData = await response.json();
-        console.log("Données d'authentification:", authData);
+  // Fetch emails from the selected email service or classified emails
+  const fetchEmails = async () => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Vérifier d'abord s'il y a des emails classifiés disponibles
+      const classificationStatus =
+        await emailAPIService.checkClassificationStatus();
+
+      if (classificationStatus.status === "completed") {
+        // Des emails classifiés sont disponibles, les récupérer
+        const classifiedEmailsResponse =
+          await emailAPIService.getClassifiedEmails();
+
+        // Convertir les emails classifiés au format attendu par l'interface
+        const convertedEmails: ExtendedEmail[] = classifiedEmailsResponse.emails.map(
+          (email: any) => ({
+            "Message-ID":
+              email["Message-ID"] || email.id || String(Math.random()),
+            Subject: email.Subject || "Sans objet",
+            From: email.From || "inconnu@example.com",
+            To: email.To || "",
+            Cc: email.Cc || "",
+            Date: email.Date || new Date().toISOString(),
+            "Content-Type": email["Content-Type"] || "text/plain",
+            Body: email.Body?.plain || email.Body?.html || email.Body || "",
+            IsRead: email.IsRead || false,
+            // Conversion des attachements pour correspondre à l'interface
+            Attachments: (email.Attachments || []).map((att: any) => ({
+              filename: att.filename,
+              contentType: att.content_type, // Transformé
+              size: att.size,
+              contentId: att.content_id, // Transformé
+              url: att.url
+            })),
+            Categories: email.accord_main_class
+              ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
+              : ["Non classifié"],
+            Importance: "normal",
+            ThreadId:
+              email.ThreadId ||
+              email["Thread-ID"] ||
+              email["Message-ID"] ||
+              String(Math.random()),
+            accord_sub_classes: email.accord_sub_classes
+          })
+        );
 
         setState((prev) => ({
           ...prev,
-          isAuthenticated: authData.authenticated,
-          userEmail: authData.email || ''
+          emails: convertedEmails,
+          isLoading: false,
         }));
 
-        if (authData.authenticated && authData.email) {
-          // Stocker l'email dans localStorage pour la persistance
-          localStorage.setItem('userEmail', authData.email);
-
-          try {
-            const exportStatusResponse = await fetch(
-              `http://localhost:8000/export/gmail/status?email=${encodeURIComponent(authData.email)}`
-            );
-
-            if (exportStatusResponse.ok) {
-              const exportStatus = await exportStatusResponse.json();
-              console.log("Statut de l'exportation:", exportStatus);
-
-              if (exportStatus.status === 'processing') {
-                navigate('/export-status', { state: { email: authData.email } });
-                return;
-              }
-            }
-          } catch (e) {
-            console.error("Erreur lors de la vérification du statut d'exportation:", e);
-          }
-
-          fetchEmails();
-        }
-      } else {
-        console.error("Erreur de réponse du serveur:", response.status);
-        if (response.status === 401) {
-          localStorage.removeItem('jwt_token');
-        }
-        setState((prev) => ({ ...prev, isAuthenticated: false }));
-        console.log("Utilisateur non authentifié:", await response.text());
+        console.log("Emails classifiés chargés:", convertedEmails.length);
+        return;
       }
-    } catch (error) {
-      console.error('Erreur lors de la vérification de l\'authentification:', error);
-      setState((prev) => ({ ...prev, isAuthenticated: false }));
-    }
-  };
 
-  checkAuth();
-}, [navigate]);
+      // Si pas d'emails classifiés, essayer l'API normale
+      if (emailAPIService.isAuthenticated()) {
+        const response = await emailAPIService.fetchEmails(); // Stocké dans 'response'
 
-
-    // Fetch emails from the selected email service or classified emails
-  const fetchEmails = async () => {
-  setState((prev) => ({ ...prev, isLoading: true }));
-
-  try {
-    // Vérifier d'abord s'il y a des emails classifiés disponibles
-    const classificationStatus =
-      await emailAPIService.checkClassificationStatus();
-
-    if (classificationStatus.status === "completed") {
-      // Des emails classifiés sont disponibles, les récupérer
-      const classifiedEmailsResponse =
-        await emailAPIService.getClassifiedEmails();
-
-      // Convertir les emails classifiés au format attendu par l'interface
-      const convertedEmails: Email[] = classifiedEmailsResponse.emails.map(
-        (email: any) => ({
-          "Message-ID":
-            email["Message-ID"] || email.id || String(Math.random()),
-          Subject: email.Subject || "Sans objet",
-          From: email.From || "inconnu@example.com",
-          To: email.To || "",
-          Cc: email.Cc || "",
-          Date: email.Date || new Date().toISOString(),
-          "Content-Type": email["Content-Type"] || "text/plain",
-          Body: email.Body?.plain || email.Body?.html || email.Body || "",
-          IsRead: email.IsRead || false,
-          // Conversion des attachements pour correspondre à l'interface
-          Attachments: (email.Attachments || []).map((att: any) => ({
+        // Convert service emails to the format expected by the app
+        const convertedEmails: ExtendedEmail[] = response.map((email: any) => ({
+          "Message-ID": email.id,
+          Subject: email.subject,
+          From: email.from,
+          To: email.to.join(", "),
+          Cc: email.cc.join(", "),
+          Date: email.date.toString(),
+          "Content-Type":
+            email.bodyType === "html" ? "text/html" : "text/plain",
+          Body: email.body,
+          IsRead: email.isRead,
+          // Conversion des attachements
+          Attachments: (email.attachments || []).map((att: any) => ({
             filename: att.filename,
-            contentType: att.content_type, // Transformé
+            contentType: att.content_type,
             size: att.size,
-            contentId: att.content_id, // Transformé
+            contentId: att.content_id,
             url: att.url
           })),
-          Categories: email.accord_main_class
-            ? [email.accord_main_class, ...(email.accord_sub_classes || [])]
-            : ["Non classifié"],
-          Importance: "normal",
-          ThreadId:
-            email.ThreadId ||
-            email["Thread-ID"] ||
-            email["Message-ID"] ||
-            String(Math.random()),
-        })
-      );
+          Categories: email.categories,
+          Importance: email.isImportant ? "high" : "normal",
+          ThreadId: email.threadId || email.id,
+        }));
 
-      setState((prev) => ({
-        ...prev,
-        emails: convertedEmails,
-        isLoading: false,
-      }));
-
-      console.log("Emails classifiés chargés:", convertedEmails.length);
-      return;
-    }
-
-    // Si pas d'emails classifiés, essayer l'API normale
-    if (emailAPIService.isAuthenticated()) {
-      const response = await emailAPIService.fetchEmails(); // Stocké dans 'response'
-
-      // Convert service emails to the format expected by the app
-      const convertedEmails: Email[] = response.map((email: any) => ({
-        "Message-ID": email.id,
-        Subject: email.subject,
-        From: email.from,
-        To: email.to.join(", "),
-        Cc: email.cc.join(", "),
-        Date: email.date.toString(),
-        "Content-Type":
-          email.bodyType === "html" ? "text/html" : "text/plain",
-        Body: email.body,
-        IsRead: email.isRead,
-        // Conversion des attachements
-        Attachments: (email.attachments || []).map((att: any) => ({
-          filename: att.filename,
-          contentType: att.content_type,
-          size: att.size,
-          contentId: att.content_id,
-          url: att.url
-        })),
-        Categories: email.categories,
-        Importance: email.isImportant ? "high" : "normal",
-        ThreadId: email.threadId || email.id,
-      }));
-
-      setState((prev) => ({
-        ...prev,
-        emails: convertedEmails,
-        isLoading: false,
-      }));
-    } else {
-      // Fall back to mock data if not authenticated
+        setState((prev) => ({
+          ...prev,
+          emails: convertedEmails,
+          isLoading: false,
+        }));
+      } else {
+        // Fall back to mock data if not authenticated
+        setState((prev) => ({
+          ...prev,
+          emails: typedMockEmails,
+          isLoading: false,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching emails:", error);
+      // Fall back to mock data on error
       setState((prev) => ({
         ...prev,
         emails: typedMockEmails,
         isLoading: false,
       }));
     }
-  } catch (error) {
-    console.error("Error fetching emails:", error);
-    // Fall back to mock data on error
-    setState((prev) => ({
-      ...prev,
-      emails: typedMockEmails,
-      isLoading: false,
-    }));
-  }
-};
+  };
 
   // Handle successful login
   const handleLoginSuccess = () => {

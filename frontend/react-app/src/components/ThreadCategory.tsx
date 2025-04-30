@@ -152,13 +152,15 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
                           </span>
                         </div>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                          {email.Body}
+                          {typeof email.Body === 'string'
+                              ? email.Body
+                              : (email.Body?.plain || email.Body?.html || "")}
                         </p>
                       </div>
 
                       <div className="ml-4 flex-shrink-0 flex flex-col items-end space-y-2">
                         <motion.button
-                          whileHover={{ scale: 1.1 }}
+                            whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           className="p-2 rounded-full hover:bg-gray-100
                           dark:hover:bg-gray-600 text-gray-400 dark:text-gray-500"

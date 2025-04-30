@@ -6,8 +6,23 @@ export interface Email {
   From: string;
   To: string;
   Subject: string;
-  Body: string;
+  Body: string | {
+    plain?: string;
+    html?: string;
+  };
   Categories: string[];
+  accord_sub_classes?: Array<[string, number]>;
+  Cc?: string;
+  IsRead?: boolean;
+  Attachments?: {
+    filename: string;
+    contentType: string;
+    size: number;
+    contentId?: string;
+    url?: string;
+  }[];
+  Importance?: "high" | "normal" | "low";
+  ThreadId?: string;
 }
 export interface Notification {
   id: string;

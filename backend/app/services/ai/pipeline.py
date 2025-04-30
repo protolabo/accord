@@ -43,19 +43,19 @@ def process_email(raw_email: dict) -> dict:
     }
 
  # Test
-if __name__ == "__main__":
-     # Exemple d'email
-     test_email = {
-         "Subject": "Two-Factor Authentication Code",
-         "Body": {
-             "plain": "Hello Sheila,\n\nTo ensure that only you have attempted to log into your account, kindly confirm the below entry code: 468302. If this wasn't an action initiated by yourself, it could indicate unauthorized access.\n\nSecurity Team\n\n--\nAlexander Smith\nMarketing Director\nMarketing\nGmail\nTel: 745.591.7649x424"
-         }
-     }
-
-     # Traiter l'email
-     result = process_email(test_email)
-
-     # Afficher les résultats
-     print(result)
-     print("Catégorie principale:", result["main_class"])
-     print("Sous-catégories:", result["sub_classes"])
+#if __name__ == "__main__":
+#     # Exemple d'email
+#     test_email = {
+#         "Subject": "Two-Factor Authentication Code",
+#         "Body": {
+#             "plain": "Hello Sheila,\n\nTo ensure that only you have attempted to log into your account, kindly confirm the below entry code: 468302. If this wasn't an action initiated by yourself, it could indicate unauthorized access.\n\nSecurity Team\n\n--\nAlexander Smith\nMarketing Director\nMarketing\nGmail\nTel: 745.591.7649x424"
+#         }
+#     }
+#
+#     # Traiter l'email
+#     result = process_email(test_email)
+#
+#     # Afficher les résultats
+#     print(result)
+#     print("Catégorie principale:", result["main_class"])
+#     print("Sous-catégories:", result["sub_classes"])

@@ -90,8 +90,10 @@ const ThreadDetail: React.FC<ThreadDetailProps> = () => {
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-semibold dark:text-white">{email.Subject}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                        {email.Body}
+                      <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+                        {typeof email.Body === 'string'
+                            ? email.Body
+                            : (email.Body?.plain || email.Body?.html || "")}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                         De : {email.From}

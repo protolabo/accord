@@ -10,28 +10,7 @@ import {
   FaStar,
   FaRegStar,
 } from "react-icons/fa";
-
-interface Email {
-  "Message-ID": string;
-  Subject: string;
-  From: string;
-  To: string;
-  Cc: string;
-  Date: string;
-  "Content-Type": string;
-  Body: string;
-  IsRead: boolean;
-  Attachments: {
-    filename: string;
-    contentType: string;
-    size: number;
-    contentId?: string;
-    url?: string;
-  }[];
-  Categories: string[];
-  Importance: "high" | "normal" | "low";
-  ThreadId: string;
-}
+import { Email } from "../components/types";
 
 interface ThreadCategoryProps {
   category: string;
@@ -176,7 +155,7 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
                           </span>
                           <span className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                             <FaClock className="w-4 h-4 mr-1" />
-                            {new Date(email.Date).toLocaleDateString()}
+                            {new Date(email.Date).toLocaleDateString('fr-FR')}
                           </span>
                           <span
                             className="text-xs px-2 py-1 rounded-full bg-gray-100
@@ -186,7 +165,9 @@ const ThreadCategory: React.FC<ThreadCategoryProps> = ({
                           </span>
                         </div>
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                          {email.Body}
+                          {typeof email.Body === 'string'
+                            ? email.Body
+                            : email.Body?.plain || email.Body?.html || ""}
                         </p>
                       </div>
 
@@ -230,47 +211,59 @@ const ThreadSection: React.FC<ThreadSectionProps> = ({
   groupedEmails,
   onThreadSelect,
 }) => {
+  // État pour suivre les catégories développées
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  // Fonction pour basculer l'état d'expansion d'une catégorie
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (expandedCategories.has(category)) {
+      newExpanded.delete(category);
+    } else {
+      newExpanded.add(category);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  // Filtrer les catégories sans emails
+  const validCategories = Object.entries(groupedEmails).filter(
+    ([_, emails]) => emails.length > 0
+  );
+
+  // Si aucune catégorie valide, afficher un message
+  if (validCategories.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full text-gray-500 dark:text-gray-400 p-8">
+        Aucun thread disponible
+      </div>
+    );
+  }
+
+  // Trier les catégories par nombre d'emails (décroissant)
+  const sortedCategories = validCategories.sort(
+    ([_, emailsA], [__, emailsB]) => emailsB.length - emailsA.length
+  );
+
+  // Développer automatiquement la première catégorie si aucune n'est développée
+  React.useEffect(() => {
+    if (expandedCategories.size === 0 && sortedCategories.length > 0) {
+      setExpandedCategories(new Set([sortedCategories[0][0]]));
+    }
+  }, [sortedCategories, expandedCategories.size]);
+
   return (
     <div className="space-y-6">
-      {Object.entries(groupedEmails).map(([category, emails]) => (
-        <div
+      {sortedCategories.map(([category, emails], index) => (
+        <ThreadCategory
           key={category}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4"
-        >
-          <h3 className="text-lg font-semibold mb-3 dark:text-white">
-            {category}
-          </h3>
-          <div className="space-y-3">
-            {emails.map((email) => (
-              <motion.div
-                key={email["Message-ID"]}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`p-3 rounded-lg cursor-pointer ${
-                  email.IsRead
-                    ? "bg-gray-50 dark:bg-gray-700"
-                    : "bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500"
-                }`}
-                onClick={() => onThreadSelect(email)}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="text-sm font-medium dark:text-white">
-                    {email.From}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(email.Date).toLocaleDateString()}
-                  </div>
-                </div>
-                <div className="text-base font-semibold mt-1 dark:text-white">
-                  {email.Subject}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                  {email.Body.replace(/<[^>]*>?/gm, "")}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+          category={category}
+          emails={emails}
+          expanded={expandedCategories.has(category)}
+          onToggle={() => toggleCategory(category)}
+          index={index}
+          totalCategories={sortedCategories.length}
+          onThreadSelect={onThreadSelect}
+        />
       ))}
     </div>
   );
