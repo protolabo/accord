@@ -19,7 +19,7 @@ const ActionButton = ({
   color,
   fullWidth = false
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string }>; // Spécifier que l'icône accepte className
   label: string;
   onClick: () => void;
   color: string;
@@ -94,6 +94,21 @@ const ActionItem: React.FC<ActionItemProps> = ({
             {email.Subject}
           </h3>
         </div>
+
+        {/* Affichage des sous-catégories */}
+        {email.accord_sub_classes && email.accord_sub_classes.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {email.accord_sub_classes.slice(0, 3).map(([category, score], index) => (
+              <span
+                key={index}
+                className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full"
+                title={`Score: ${Math.round(score * 100)}%`}
+              >
+                {category}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">

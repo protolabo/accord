@@ -19,6 +19,7 @@ interface InfoItemProps {
     Date: string;
     Body: string | { plain?: string; html?: string };
     Categories: string[];
+    accord_sub_classes?: Array<[string, number]>;
   };
   infoNumber: number;
   totalInfo: number;
