@@ -20,7 +20,7 @@ class DebugService {
         email.Categories.forEach((cat: string) => {
           if (categoryCounts[cat] !== undefined) {
             categoryCounts[cat]++;
-          } else if (cat === "Action" || cat === "Threads" || cat === "Informations") {
+          } else if (cat === "Actions" || cat === "Threads" || cat === "Informations") {
             categoryCounts[cat] = 1;
           } else {
             // Pourrait être une sous-catégorie

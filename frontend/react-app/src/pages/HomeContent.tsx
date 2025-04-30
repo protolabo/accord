@@ -102,6 +102,16 @@ const HomeContent: React.FC<HomeContentProps> = ({
   // Liste des sections à afficher
   const sections = ["Actions", "Threads", "Informations"] as const;
   type SectionType = typeof sections[number];
+  
+  const filterMainCategories = (groupedEmails: { [key: string]: Email[] }): { [key: string]: Email[] } => {
+    const mainCategories = ["Actions", "Informations", "Threads"];
+    return Object.entries(groupedEmails)
+      .filter(([category]) => !mainCategories.includes(category))
+      .reduce<{ [key: string]: Email[] }>((acc, [category, emails]) => {
+        acc[category] = emails;
+        return acc;
+      }, {});
+  };
 
   return (
     <div
@@ -182,7 +192,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
                 ) : section === "Threads" ? (
                   <div className="h-full overflow-y-auto pr-2 scrollbar-thin space-y-2 min-w-0">
                     <ThreadSection
-                      groupedEmails={groupedEmails}
+                      groupedEmails={filterMainCategories(groupedEmails)}
                       onThreadSelect={handleThreadSelect}
                     />
                   </div>
