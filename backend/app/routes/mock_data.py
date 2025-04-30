@@ -23,3 +23,31 @@ async def get_mock_emails():
         return mock_emails
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/classified-emails/status")
+async def get_classification_status():
+    """Returns mock classification status"""
+    return {
+        "status": "completed",  # Always "completed" for mock data
+        "mode": "mock",
+        "total_emails": 875,
+        "total_batches": 1
+    }
+
+
+@router.get("/classified-emails")
+async def get_classified_emails():
+    """Returns classified emails from your existing mock data"""
+    try:
+        # Reuse your existing function to get mock emails
+        file_path = get_file_path("backend/app/data/mockdata/emails.json")
+        with open(file_path, "r", encoding="utf-8") as f:
+            mock_emails = json.load(f)
+
+        return {
+            "total_emails": len(mock_emails),
+            "emails": mock_emails
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

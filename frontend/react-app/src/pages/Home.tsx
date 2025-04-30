@@ -85,6 +85,7 @@ const Home: React.FC = () => {
         if (!token) {
           console.log("Aucun token JWT trouvé dans localStorage");
           setState((prev) => ({ ...prev, isAuthenticated: false }));
+          fetchEmails();
           return;
         }
 
