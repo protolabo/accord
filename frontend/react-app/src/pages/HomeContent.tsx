@@ -102,7 +102,7 @@ const HomeContent: React.FC<HomeContentProps> = ({
   // Liste des sections à afficher
   const sections = ["Actions", "Threads", "Informations"] as const;
   type SectionType = typeof sections[number];
-  
+
   const filterMainCategories = (groupedEmails: { [key: string]: Email[] }): { [key: string]: Email[] } => {
     const mainCategories = ["Actions", "Informations", "Threads"];
     return Object.entries(groupedEmails)
