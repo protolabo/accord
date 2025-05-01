@@ -80,6 +80,7 @@ def classify_exported_emails(output_dir = None):
 def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
     """
     Exporte tous les emails de la boîte Gmail vers des fichiers JSON.
+    Cette fonction suppose que l'utilisateur est déjà authentifié.
 
     Args:
         email: Adresse email Gmail
@@ -88,7 +89,7 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
         batch_size: Taille des lots pour l'export
 
     Returns:
-        dict: Métadonnées de l'export
+        dict: Métadonnées de l'export ou None en cas d'erreur
     """
     # Mettre à jour le statut - Démarrage du processus
     update_export_status(
@@ -100,89 +101,32 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
 
     # Créer les répertoires si nécessaires
     Config.ensure_directories()
-    os.makedirs(output_dir, exist_ok=True)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
 
     print(f"Configuration de l'export:")
     print(f"  - Répertoire de sortie: {output_dir}")
     print(f"  - Taille des lots: {batch_size}")
     print(f"  - Nombre max d'emails: {max_emails or 'Tous'}")
 
+    # Initialiser les services nécessaires
     auth_manager = GmailAuthManager()
     gmail_service = GmailService()
-
-    auth_completion_events = {}
-
-    is_authenticated_for_process = False
-
     user_id = normalize_email_for_storage(email)
 
-    # Vérification de l'authentification avec retry limité
-    max_auth_attempts = 3
-    auth_attempts = 0
-    is_authenticated = False
-
-    update_export_status(
-        email=email,
-        status="processing",
-        message="Tentative d'authentification...",
-        progress=10
-    )
-
-    while not is_authenticated and auth_attempts < max_auth_attempts:
-        auth_attempts += 1
-
-        if not auth_manager.is_authenticated(user_id):
-            print(f"Tentative d'authentification {auth_attempts}/{max_auth_attempts}...")
-            auth_url = auth_manager.get_auth_url(user_id)
-            print(f"URL d'authentification: {auth_url}")
-            webbrowser.open(auth_url)
-            print("\nSuivez les étapes dans le navigateur pour vous authentifier avec Google.")
-            print("Une fois l'authentification terminée, cliquez sur 'Terminer l'authentification'.")
-
-            # Créer une clé unique pour cet email
-            key = email or "last_auth"
-
-            # Initialiser l'événement
-            auth_completion_events[key] = False
-
-            # Attendre que l'utilisateur termine l'authentification dans le navigateur
-            max_wait_time = 120
-            start_time = time.time()
-
-            print("En attente de confirmation d'authentification...")
-            while not auth_completion_events.get(key, False):
-                time.sleep(1)
-
-                # Vérifier si l'authentification est réussie directement
-                if auth_manager.is_authenticated(user_id):
-                    break
-
-                if time.time() - start_time > max_wait_time:
-                    print("Délai d'attente dépassé pour l'authentification.")
-                    break  # Sortir de la boucle d'attente, mais continuer les tentatives
-
-
-            time.sleep(2)
-
-            # Nettoyer l'événement une fois utilisé
-            if key in auth_completion_events:
-                del auth_completion_events[key]
-
-            # Vérifier si l'authentification a réussi
-            is_authenticated = auth_manager.is_authenticated(user_id)
-            if is_authenticated:
-                print("Authentification réussie...✅")
-                print(f"L'utilisateur {email} est maintenant authentifié.")
-            else:
-                print("L'authentification a échoué. Veuillez réessayer.")
-        else:
-            is_authenticated = True
-            is_authenticated_for_process = True
-            print(f"L'utilisateur {email} est déjà authentifié.")
-
-    if not is_authenticated:
-        print(f"Échec de l'authentification après {max_auth_attempts} tentatives.")
+    # Vérifier simplement si l'utilisateur est authentifié
+    if not auth_manager.is_authenticated(user_id):
+        error_message = f"L'utilisateur {email} n'est pas authentifié. L'exportation ne peut pas continuer."
+        print(error_message)
+        update_export_status(
+            email=email,
+            status="error",
+            message=error_message,
+            progress=0
+        )
         return None
+
+    print(f"L'utilisateur {email} est authentifié. Poursuite de l'exportation.")
 
     update_export_status(
         email=email,
@@ -192,109 +136,113 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
     )
 
     try:
-        if not is_authenticated_for_process :
-            print(f"Récupération des emails de {email}...")
-            start_time = time.time()
+        print(f"Récupération des emails de {email}...")
+        start_time = time.time()
 
-            emails = gmail_service.fetch_all_emails(user_id, max_results=max_emails, batch_size=batch_size)
+        # Récupération des emails
+        emails = gmail_service.fetch_all_emails(user_id, max_results=max_emails, batch_size=batch_size)
 
-            # Export des emails par lots
-            total_emails = len(emails)
-            print(f"Total: {total_emails} emails récupérés en {time.time() - start_time:.2f} secondes")
+        # Export des emails par lots
+        total_emails = len(emails)
+        print(f"Total: {total_emails} emails récupérés en {time.time() - start_time:.2f} secondes")
 
-            export_start_time = time.time()
-            print(f"Export des emails vers JSON...")
+        export_start_time = time.time()
+        print(f"Export des emails vers JSON...")
 
-            for i in range(0, total_emails, batch_size):
-                batch_num = (i // batch_size) + 1
-                end_idx = min(i + batch_size, total_emails)
-                batch_emails = emails[i:end_idx]
+        # Créer les fichiers batch
+        for i in range(0, total_emails, batch_size):
+            batch_num = (i // batch_size) + 1
+            end_idx = min(i + batch_size, total_emails)
+            batch_emails = emails[i:end_idx]
 
-                batch_file = os.path.join(output_dir, f"emails_batch_{batch_num}.json")
-                print(f"Écriture du lot {batch_num} ({len(batch_emails)} emails) vers {batch_file}")
+            batch_file = os.path.join(output_dir, f"emails_batch_{batch_num}.json")
+            print(f"Écriture du lot {batch_num} ({len(batch_emails)} emails) vers {batch_file}")
 
-                with open(batch_file, 'w', encoding='utf-8') as f:
-                    json.dump(batch_emails, f, ensure_ascii=False, indent=2)
+            with open(batch_file, 'w', encoding='utf-8') as f:
+                json.dump(batch_emails, f, ensure_ascii=False, indent=2)
 
-            # Création d'un fichier index
-            index = {
-                "email": email,
-                "user_id": user_id,
-                "total_emails": total_emails,
-                "total_batches": (total_emails + batch_size - 1) // batch_size,
-                "max_emails": max_emails,
-                "export_date": datetime.now().isoformat(),
-                "batches": [f"emails_batch_{i + 1}.json" for i in range((total_emails + batch_size - 1) // batch_size)],
-                "duration_seconds": time.time() - start_time
-            }
+        # Création d'un fichier index
+        index = {
+            "email": email,
+            "user_id": user_id,
+            "total_emails": total_emails,
+            "total_batches": (total_emails + batch_size - 1) // batch_size,
+            "max_emails": max_emails,
+            "export_date": datetime.now().isoformat(),
+            "batches": [f"emails_batch_{i + 1}.json" for i in range((total_emails + batch_size - 1) // batch_size)],
+            "duration_seconds": time.time() - start_time
+        }
 
+        update_export_status(
+            email=email,
+            status="processing",
+            message=f"Exportation des emails, {total_emails} emails récupérés",
+            progress=50
+        )
+
+        print(f"Export terminé en {time.time() - export_start_time:.2f} secondes")
+        print(f"Tous les emails ont été exportés vers: {output_dir}")
+
+        # Classification des emails
+        print("\nLancement de la classification des emails...")
+        try:
             update_export_status(
                 email=email,
                 status="processing",
-                message=f"Exportation des emails, {total_emails} emails récupérés",
-                progress=50
+                message="Classification des emails en cours...",
+                progress=70
             )
 
-
-            print(f"Export terminé en {time.time() - export_start_time:.2f} secondes")
-            print(f"Tous les emails ont été exportés vers: {output_dir}")
-
-
-            print("\nLancement de la classification des emails...")
-            try:
-                update_export_status(
-                    email=email,
-                    status="processing",
-                    message="Classification des emails en cours...",
-                    progress=70
-                )
-
-                # En production
-                #classify_exported_emails(output_dir)
-
-                # En test
+            # En production
+            if output_dir != get_file_path("backend/app/data/mockdata"):
+                classify_exported_emails(output_dir)
+            else:
+                # En test, utiliser les données de test
                 classify_exported_emails()
-                print("Classification des emails terminée avec succès ✅")
-            except Exception as e:
-                print(f"\nErreur lors de la classification des emails: {str(e)}")
-                import traceback
-                traceback.print_exc()
 
-            # construction du graphe
-            print("\nLancement de la construction du graphe...")
-            try:
-                update_export_status(
-                    email=email,
-                    status="processing",
-                    message="Construction du graphe en cours...",
-                    progress=85
-                )
+            print("Classification des emails terminée avec succès ✅")
+        except Exception as e:
+            print(f"\nErreur lors de la classification des emails: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise  # Propager l'erreur pour la gestion globale
 
-                # En production
-                #build_graph_main(input_dir=output_dir, output_dir=get_file_path("backend/app/data/mockdata/graph"), central_user=email)
-
-                # En le test
-                build_graph_main()
-                print("construction du graphe terminée avec succès ✅")
-
-            except Exception as e:
-                print(f"\nError: {str(e)}")
-                import traceback
-                traceback.print_exc()
-
+        # Construction du graphe
+        print("\nLancement de la construction du graphe...")
+        try:
             update_export_status(
                 email=email,
-                status="completed",
-                message="Exportation, classification et construction du graphe terminées avec succès!",
-                progress=100,
-                extra_data=index
+                status="processing",
+                message="Construction du graphe en cours...",
+                progress=85
             )
 
-            return index
+            # En production
+            if output_dir != get_file_path("backend/app/data/mockdata"):
+                build_graph_main(input_dir=output_dir,
+                                 output_dir=get_file_path("backend/app/data/mockdata/graph"),
+                                 central_user=email)
+            else:
+                # En test
+                build_graph_main()
 
-        #classify_exported_emails(output_dir)
-        #build_graph_main(input_dir=output_dir, output_dir=f"{output_dir}/graph", central_user=email)
+            print("Construction du graphe terminée avec succès ✅")
+        except Exception as e:
+            print(f"\nErreur lors de la construction du graphe: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise  # Propager l'erreur pour la gestion globale
 
+        # Mise à jour du statut final
+        update_export_status(
+            email=email,
+            status="completed",
+            message="Exportation, classification et construction du graphe terminées avec succès!",
+            progress=100,
+            extra_data=index
+        )
+
+        return index
 
     except Exception as e:
         print(f"Erreur lors de l'export des emails: {str(e)}")
@@ -303,10 +251,8 @@ def flowDemarrage(email, max_emails=None, output_dir=None, batch_size=5000):
         update_export_status(
             email=email,
             status="error",
-            message=f"Erreur pendant la classification ou la construction du graphe: {str(e)}",
+            message=f"Erreur pendant le processus: {str(e)}",
             progress=0
         )
         return None
 
-#if __name__ == "__main__":
-#    flowDemarrage("x.@gmail.com", 1, get_file_path("backend/app/data/mockdata"), 5000)

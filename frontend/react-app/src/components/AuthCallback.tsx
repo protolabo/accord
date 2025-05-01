@@ -11,7 +11,7 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleCallback = async () => {
       const searchParams = new URLSearchParams(location.search);
-      const token = searchParams.get("token"); // Changement ici: récupérer le token au lieu du code
+      const token = searchParams.get("token");
       const email = searchParams.get("email");
       const service = searchParams.get("service") || "gmail";
 
@@ -21,17 +21,49 @@ const AuthCallback: React.FC = () => {
       }
 
       try {
-        // Définir le service explicitement
         emailAPIService.setService(service as "gmail" | "outlook");
-
-        // Stocker directement le token JWT au lieu d'échanger le code
         localStorage.setItem("jwt_token", token);
         if (email) localStorage.setItem("userEmail", email);
 
-        // Marquer comme authentifié
-        setStatus("Authentification réussie!");
+        setStatus("Authentification réussie! Démarrage de l'exportation des emails...");
 
-        // Si dans une fenêtre popup, envoyer un message à la fenêtre parente
+        //  Déclencher l'exportation des emails
+        if (service === "gmail" && email) {
+          try {
+            const exportResponse = await fetch('http://localhost:8000/export/gmail', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                email: email,
+                max_emails: 1,
+                output_dir: '../data',
+                batch_size: 5000
+              }),
+            });
+
+            if (exportResponse.ok) {
+              setStatus("Exportation des emails en cours. Redirection vers le tableau de bord...");
+              // Rediriger vers la page d'état d'exportation
+              setTimeout(() => navigate("/export-status"), 1500);
+            } else {
+              const errorData = await exportResponse.json();
+              setStatus(`Erreur lors du démarrage de l'exportation: ${errorData.detail || 'Erreur inconnue'}`);
+              setTimeout(() => navigate("/home"), 2000);
+            }
+          } catch (exportError) {
+            console.error("Erreur lors de l'exportation:", exportError);
+            setStatus("Authentification réussie, mais l'exportation a échoué. Redirection...");
+            setTimeout(() => navigate("/home"), 2000);
+          }
+        } else {
+          setStatus("Authentification réussie! Redirection...");
+          setTimeout(() => navigate("/home"), 1500);
+        }
+
+        // Gestion des fenêtres popup
         if (window.opener && !window.opener.closed) {
           window.opener.postMessage(
             {
@@ -41,13 +73,7 @@ const AuthCallback: React.FC = () => {
             },
             window.location.origin
           );
-
-          // Fermer la popup après envoi du message
           setTimeout(() => window.close(), 1000);
-        } else {
-          // Gestion de repli si ce n'est pas une fenêtre popup
-          setStatus("Authentification réussie! Redirection...");
-          setTimeout(() => navigate("/"), 1500);
         }
       } catch (error) {
         console.error("Erreur d'authentification:", error);

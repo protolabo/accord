@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 from backend.app.email_providers.google.settings import Config
 
 
-# Class for Gmail authentication
+
 class GmailAuthManager:
 
     def __init__(self, credentials_path=None, tokens_dir=None):
@@ -21,7 +21,6 @@ class GmailAuthManager:
         self.tokens_dir = tokens_dir or Config.TOKEN_DIR
         self.scopes = Config.GOOGLE_SCOPES
 
-        # Ensure directories exist
         os.makedirs(self.tokens_dir, exist_ok=True)
         os.makedirs(os.path.dirname(self.credentials_path), exist_ok=True)
 
@@ -69,7 +68,7 @@ class GmailAuthManager:
                 access_type='offline',
                 include_granted_scopes='true',
                 prompt='consent',
-                state=user_id  # Using user_id as state
+                state=user_id
             )
 
             # Create flow configuration
@@ -81,12 +80,10 @@ class GmailAuthManager:
                 'state': state
             }
 
-            # Save flow configuration with correct filename format
-            # IMPORTANT: Use {user_id}_flow.json to match what handle_callback looks for
+
             flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
             print(f"Saving flow configuration to: {flow_path}")
 
-            # Make sure parent directory exists
             os.makedirs(os.path.dirname(flow_path), exist_ok=True)
 
             with open(flow_path, 'w') as token_file:

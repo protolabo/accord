@@ -2,6 +2,7 @@ import os
 import time
 import psutil
 import json
+from pathlib import Path
 from backend.app.services.mail_graph.graph_coordinator import GraphCoordinator
 from backend.app.utils.absolute_path import get_file_path
 
@@ -28,15 +29,23 @@ class OptimizedMockDataService:
             mock_data_dir: Path to directory containing test data files
             output_dir: Path to directory for output files
         """
-        self.mock_data_dir = mock_data_dir
-        self.output_dir = output_dir
+        # Conversion des paramètres en objets Path s'ils sont des strings
+        if isinstance(mock_data_dir, str):
+            self.mock_data_dir = Path(mock_data_dir)
+        else:
+            self.mock_data_dir = mock_data_dir
+
+        if isinstance(output_dir, str):
+            self.output_dir = Path(output_dir)
+        else:
+            self.output_dir = output_dir
 
         # Create output directory if it doesn't exist
         self.output_dir.mkdir(exist_ok=True, parents=True)
 
         # Validate test data directory
         if not self.mock_data_dir.exists():
-            raise ValueError(f"Test data directory '{mock_data_dir}' does not exist")
+            raise ValueError(f"Test data directory '{self.mock_data_dir}' does not exist")
 
     def get_all_email_batches(self, max_emails=None):
         """
@@ -83,30 +92,38 @@ class OptimizedMockDataService:
         return all_emails
 
 
-def main(input_dir = None ,output_dir = get_file_path("backend/app/data/mockdata/graph"),central_user = "alexander.smith@gmail.com",max_emails = None):
+def main(input_dir=None, output_dir=get_file_path("backend/app/data/mockdata/graph"),
+         central_user="alexander.smith@gmail.com", max_emails=None):
     """Main function to build email graphs."""
 
     # Record start time
     start_time = time.time()
     log_memory_usage("start")
 
-
     # Initialize services to manipulate JSON test data
-    if input_dir is None :
+    if input_dir is None:
         input_dir = get_file_path("backend/app/data/mockdata/emails.json")
         emails = json.load(open(input_dir, 'r', encoding='utf-8'))
+    else:
+        # Assurer que input_dir est un objet Path si c'est un répertoire
+        if isinstance(input_dir, str) and os.path.isdir(input_dir):
+            input_dir = Path(input_dir)
 
-    else :
-        mock_service = OptimizedMockDataService(input_dir, output_dir)
-        emails = mock_service.get_all_email_batches(max_emails=max_emails)
-
+        # Si input_dir est un fichier, on le lit directement
+        if isinstance(input_dir, str) and os.path.isfile(input_dir):
+            with open(input_dir, 'r', encoding='utf-8') as f:
+                emails = json.load(f)
+        else:
+            # Sinon, on utilise le service pour charger les emails
+            mock_service = OptimizedMockDataService(input_dir, output_dir)
+            emails = mock_service.get_all_email_batches(max_emails=max_emails)
 
     log_memory_usage("after loading emails")
     print(f"Loaded {len(emails)} emails in {time.time() - start_time:.2f} seconds")
 
     # Initialize graph coordinator
     graph_coordinator = GraphCoordinator(
-        central_user_email= central_user,
+        central_user_email=central_user,
         output_dir=output_dir
     )
 
@@ -133,13 +150,11 @@ def main(input_dir = None ,output_dir = get_file_path("backend/app/data/mockdata
 
     # Print summary
     print("\nGraph building complete!")
-    print(
-        f"Total runtime: {stats['runtime_seconds']:.2f} seconds ({stats['runtime_seconds'] / 60:.2f} minutes)")
+    print(f"Total runtime: {stats['runtime_seconds']:.2f} seconds ({stats['runtime_seconds'] / 60:.2f} minutes)")
     print(f"Build time: {build_time:.2f} seconds ({build_time / 60:.2f} minutes)")
     print(f"Processing rate: {stats['processing_rate']:.2f} emails/second")
     print(f"Peak memory usage: {stats['peak_memory_gb']:.2f} GB")
     print(f"Results saved to: {output_dir}")
-
 
 #if __name__ == "__main__":
 #    main()

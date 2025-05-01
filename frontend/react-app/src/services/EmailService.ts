@@ -335,7 +335,7 @@ class EmailAPIService {
     }
   }
 
-  // Nouvelle méthode pour déclencher l'exportation des emails Gmail
+  // méthode pour déclencher l'exportation des emails Gmail
   async exportGmailEmails(
     email: string,
     maxEmails?: number,
@@ -371,7 +371,7 @@ class EmailAPIService {
     }
   }
 
-  // Nouvelle méthode pour vérifier le statut de la classification des emails
+  // méthode pour vérifier le statut de la classification des emails
   async checkClassificationStatus(outputDir?: string): Promise<{
     status: string;
     mode?: string;
@@ -458,7 +458,9 @@ class EmailAPIService {
     const { accessToken } = this.getTokens();
     return !!accessToken;
   }
+
 }
+
 
 
 const emailAPIService = new EmailAPIService();
