@@ -1,13 +1,15 @@
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.middleware.cors import CORSMiddleware  # Ajout du middleware CORS
-from backend.app.email_providers.google.auth import router as auth_router
-#from backend.app.routes.emails import router as emails_router  # Importer le router des emails
+from fastapi.middleware.cors import CORSMiddleware
+
+
 import sys
 from backend.app.utils.killer_process import kill_processes_on_port
 import secrets
 from backend.app.utils.delete_token_file import delete_token_file
+from backend.app.routes.auth_routes import router as auth_router
+from backend.app.routes.exportmail import router as export_router
 from backend.app.routes import mock_data
 from backend.app.routes.deconnexion import router as logout_router
 
@@ -36,12 +38,13 @@ app.add_middleware(
 
 # Inclure les routers après la configuration des middlewares
 app.include_router(auth_router)
+app.include_router(export_router)
 
 app.include_router(logout_router)
 app.include_router(mock_data.router)
 
 
-#app.include_router(emails_router)  # Ajouter le router des emails
+
 
 @app.get("/")
 async def root():

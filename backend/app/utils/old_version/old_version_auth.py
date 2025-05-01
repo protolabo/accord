@@ -1,12 +1,10 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi import APIRouter
 from datetime import datetime, timedelta
 
 from app.core.config import settings
 from app.core.security import create_jwt_token
-from app.db.models import User, EmailAccount, TokenInfo
-from backend.app.services.auth.outlookAuth import OutlookAuth
+from app.db.models import User
+from backend.app.routes.toUse.auth.outlookAuth import OutlookAuth
 from app.email_providers.google.gmail_auth import GmailAuthManager
 
 router = APIRouter()

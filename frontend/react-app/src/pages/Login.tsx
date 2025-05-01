@@ -14,14 +14,12 @@ const Login: React.FC<LoginProps> = () => {
   const [showExportStatus, setShowExportStatus] = useState(false);
 
   const handleOutlookLogin = () => {
-    // Pour le développement, on va directement à home
     navigate("/home");
   };
 
   useEffect(() => {
     const token = localStorage.getItem('jwt_token');
     if (token) {
-      // Already authenticated, redirect to home
       navigate('/home');
     }
   }, [navigate]);
@@ -48,7 +46,7 @@ const Login: React.FC<LoginProps> = () => {
       // Base64 encode a minimal mock JWT (header.payload.signature)
       const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
       const payload = btoa(JSON.stringify(mockPayload));
-      const signature = 'dev-signature'; // Not a real signature
+      const signature = 'dev-signature';
 
       const mockToken = `${header}.${payload}.${signature}`;
 
