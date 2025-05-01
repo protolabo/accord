@@ -6,6 +6,7 @@ from backend.app.services.flow_demarrage import flowDemarrage
 from fastapi import BackgroundTasks, Body
 from typing import Optional
 from backend.app.services.export_status import check_export_status
+from backend.app.utils.absolute_path import get_file_path
 
 
 router = APIRouter(prefix="/export")
@@ -22,7 +23,7 @@ async def export_gmail(
         background_tasks: BackgroundTasks,
         email: str = Body(...),
         max_emails: Optional[int] = Body(None),
-        output_dir: Optional[str] = Body("../data"),
+        output_dir: Optional[str] = Body(get_file_path("backend/app/data")),
         batch_size: Optional[int] = Body(5000)
 ):
     """Endpoint pour déclencher l'export des emails Gmail"""

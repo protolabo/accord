@@ -32,7 +32,7 @@ def revoke_google_token(refresh_token):
 async def logout(request: LogoutRequest = Body(...)):
     try:
         # Code existant pour supprimer le fichier de token
-        token_path = "backend/app/email_providers/google/tokens/x_dot__at_gmail_dot_com.json"
+        token_path = get_file_path("backend/app/email_providers/google/tokens/x_dot__at_gmail_dot_com.json")
 
         # Avant de supprimer, essayer de révoquer le token
         if os.path.exists(token_path):

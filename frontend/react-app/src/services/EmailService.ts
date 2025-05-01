@@ -401,40 +401,58 @@ class EmailAPIService {
       throw error;
     }
   }
-  /*
+
   async getClassifiedEmails(
-    batchNumber?: number,
-    outputDir?: string
-  ): Promise<{ total_emails: number; emails: any[] }> {
-    try {
-      const response = await axios.get(`${this.baseUrl}/classified-emails`, {
-        params: {
-          batch_number: batchNumber,
-          output_dir: outputDir,
-        },
-      });
+  batchNumber?: number,
+  outputDir?: string
+): Promise<{ total_emails: number; emails: any[] }> {
+  try {
+    // Obtenir le token JWT et l'email de l'utilisateur depuis le localStorage
+    const token = localStorage.getItem('jwt_token');
+    const userEmail = localStorage.getItem('userEmail');
 
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des emails classifiés:",
-        error
-      );
-      // En cas d'erreur, utiliser les données mockées comme fallback
-      try {
-        console.log("Utilisation des données mockées comme fallback");
-        const mockEmails = await MockDataService.fetchMockEmails();
-
-        return {
-          total_emails: mockEmails.length,
-          emails: mockEmails
-        };
-      } catch (mockError) {
-        console.error("Erreur lors de la récupération des données mockées:", mockError);
-        throw error;
-      }
+    if (!token || !userEmail) {
+      throw new Error('Non authentifié. Veuillez vous connecter à nouveau.');
     }
-  }*/
+
+    // Appeler l'API backend avec les bons paramètres et l'authentification
+    const response = await axios.get(`${this.baseUrl}/emails/classified`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        email: userEmail,  // Ajouter le paramètre email requis
+        batch_number: batchNumber,
+        output_dir: outputDir
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des emails classifiés:", error);
+
+    // En cas d'erreur, utiliser les données mockées comme fallback
+    try {
+      console.log("Utilisation des données mockées comme fallback");
+      const mockEmails = await MockDataService.fetchMockEmails();
+
+      return {
+        total_emails: mockEmails.length,
+        emails: mockEmails
+      };
+    } catch (mockError) {
+      console.error("Erreur lors de la récupération des données mockées:", mockError);
+      throw error;
+    }
+  }
+}
+
+
+
+
+
+  /*
+
   async getClassifiedEmails(
   batchNumber?: number,
   outputDir?: string
@@ -453,6 +471,10 @@ class EmailAPIService {
     throw error;
   }
 }
+
+
+
+   */
 
   isAuthenticated(): boolean {
     const { accessToken } = this.getTokens();

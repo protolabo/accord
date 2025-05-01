@@ -12,6 +12,8 @@ from backend.app.routes.auth_routes import router as auth_router
 from backend.app.routes.exportmail import router as export_router
 from backend.app.routes import mock_data
 from backend.app.routes.deconnexion import router as logout_router
+from backend.app.routes import emails
+
 
 app = FastAPI()
 
@@ -42,6 +44,7 @@ app.include_router(export_router)
 
 app.include_router(logout_router)
 app.include_router(mock_data.router)
+app.include_router(emails.router)
 
 
 

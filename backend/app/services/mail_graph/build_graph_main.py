@@ -92,7 +92,7 @@ class OptimizedMockDataService:
         return all_emails
 
 
-def main(input_dir=None, output_dir=get_file_path("backend/app/data/mockdata/graph"),
+def main(input_dir=None, output_dir=None,
          central_user="alexander.smith@gmail.com", max_emails=None):
     """Main function to build email graphs."""
 
@@ -103,6 +103,7 @@ def main(input_dir=None, output_dir=get_file_path("backend/app/data/mockdata/gra
     # Initialize services to manipulate JSON test data
     if input_dir is None:
         input_dir = get_file_path("backend/app/data/mockdata/emails.json")
+        output_dir = get_file_path("backend/app/data/mockdata/graph")
         emails = json.load(open(input_dir, 'r', encoding='utf-8'))
     else:
         # Assurer que input_dir est un objet Path si c'est un répertoire
