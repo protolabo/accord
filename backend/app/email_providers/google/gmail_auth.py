@@ -8,16 +8,14 @@ from googleapiclient.discovery import build
 from backend.app.email_providers.google.settings import Config
 
 
-
-
-# classe pour l'authentification Gmail
+# Class for Gmail authentication
 class GmailAuthManager:
 
     def __init__(self, credentials_path=None, tokens_dir=None):
         """
         Args:
-            credentials_path (str): Chemin vers le fichier de credentials Google
-            tokens_dir (str): Répertoire pour stocker les tokens
+            credentials_path (str): Path to Google credentials file
+            tokens_dir (str): Directory for storing tokens
         """
         self.credentials_path = credentials_path or Config.GOOGLE_CREDENTIALS_PATH
         self.tokens_dir = tokens_dir or Config.TOKEN_DIR
@@ -30,10 +28,10 @@ class GmailAuthManager:
     def is_authenticated(self, user_id):
         """
         Args:
-            user_id (str): L'identifiant de l'utilisateur
+            user_id (str): User identifier
 
         Returns:
-            bool: True si l'utilisateur est authentifié, False sinon
+            bool: True if user is authenticated, False otherwise
         """
         credentials = self.get_credentials(user_id)
         return credentials is not None and (credentials.valid or
@@ -41,9 +39,18 @@ class GmailAuthManager:
 
     def get_auth_url(self, user_id):
         """
-        Génère l'URL d'authentification Google pour un utilisateur.
+        Generates the Google authentication URL for a user.
         """
         try:
+            # Clean up any existing flow files first
+            flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
+            if os.path.exists(flow_path):
+                try:
+                    os.remove(flow_path)
+                    print(f"Removed existing flow file: {flow_path}")
+                except Exception as e:
+                    print(f"Warning: Could not remove existing flow file: {e}")
+
             # Ensure directories exist with proper error handling
             print(f"Token directory path: {self.tokens_dir}")
             os.makedirs(self.tokens_dir, exist_ok=True)
@@ -74,8 +81,9 @@ class GmailAuthManager:
                 'state': state
             }
 
-            # Save flow configuration with absolute path handling
-            flow_path = os.path.join(self.tokens_dir, f"gmail_flow.json")
+            # Save flow configuration with correct filename format
+            # IMPORTANT: Use {user_id}_flow.json to match what handle_callback looks for
+            flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
             print(f"Saving flow configuration to: {flow_path}")
 
             # Make sure parent directory exists
@@ -104,13 +112,13 @@ class GmailAuthManager:
         Handle the OAuth callback from Google
         """
         user_id = state
-        flow_path = os.path.join(self.tokens_dir, f"gmail_flow.json")
+        flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
 
         print(f"Looking for flow configuration at: {flow_path}")
         print(f"File exists: {os.path.exists(flow_path)}")
 
         try:
-            # IMPORTANT: Don't delete the flow file yet!
+            # If flow file exists, use it
             if os.path.exists(flow_path):
                 with open(flow_path, 'r') as file:
                     flow_config = json.load(file)
@@ -130,9 +138,13 @@ class GmailAuthManager:
                     # Save the credentials
                     self._save_credentials(user_id, credentials)
 
-                    # NOW it's safe to clean up the file - but only if tokens were saved
-                    if os.path.exists(flow_path):
-                        os.rename(flow_path, f"{flow_path}.backup")  # Rename instead of delete
+                    # Safely clean up the file
+                    try:
+                        # Just directly remove the file
+                        os.remove(flow_path)
+                        print(f"Successfully removed flow file: {flow_path}")
+                    except Exception as clean_error:
+                        print(f"Warning: Could not clean up flow file: {clean_error}")
 
                     # Get user information
                     service = build('gmail', 'v1', credentials=credentials)
@@ -145,10 +157,24 @@ class GmailAuthManager:
                     }
                 except Exception as e:
                     print(f"Error exchanging code for token: {str(e)}")
+
+                    # Handle invalid_grant specifically
+                    if "invalid_grant" in str(e):
+                        print("IMPORTANT: Authorization code has already been used.")
+                        print("The OAuth2 authorization code can only be used once.")
+
+                        # Try to clean up the flow file
+                        try:
+                            if os.path.exists(flow_path):
+                                os.remove(flow_path)
+                                print(f"Removed invalid flow file: {flow_path}")
+                        except Exception as clean_error:
+                            print(f"Warning: Could not clean up flow file: {clean_error}")
+
                     raise
             else:
                 # Fallback for when flow file is not found
-                print(f"Flow file not found. Creating a new flow for direct token exchange.")
+                print(f"Flow file not found at {flow_path}. Attempting direct token exchange.")
 
                 flow = InstalledAppFlow.from_client_secrets_file(
                     self.credentials_path,
@@ -164,6 +190,7 @@ class GmailAuthManager:
                     # Save credentials
                     self._save_credentials(user_id, credentials)
 
+                    # Get user information
                     service = build('gmail', 'v1', credentials=credentials)
                     profile = service.users().getProfile(userId='me').execute()
 
@@ -173,7 +200,7 @@ class GmailAuthManager:
                         'message': 'Authentication successful (direct method)'
                     }
                 except Exception as e:
-                    print(f"Direct token exchange failed. Error: {str(e)}")
+                    print(f"Direct token exchange failed: {str(e)}")
                     if "invalid_grant" in str(e):
                         print("IMPORTANT: This error often means the code was already used once.")
                         print("The OAuth2 authorization code can only be used once.")
@@ -189,30 +216,30 @@ class GmailAuthManager:
     def get_credentials(self, user_id):
         """
         Args:
-            user_id (str): Identifiant de l'utilisateur
+            user_id (str): User identifier
 
         Returns:
-            google.oauth2.credentials.Credentials: Objet credentials ou None si non authentifié
+            google.oauth2.credentials.Credentials: Credentials object or None if not authenticated
         """
         token_path = os.path.join(self.tokens_dir, f"{user_id}.json")
         if not os.path.exists(token_path):
             return None
 
         try:
-            # Charger les credentials
+            # Load credentials
             with open(token_path, 'r') as token_file:
                 creds_data = json.load(token_file)
 
-            # Vérifier si les données nécessaires sont présentes
+            # Verify required data is present
             if not creds_data.get('refresh_token'):
                 return None
 
-            # Convertir la date d'expiration
+            # Convert expiration date
             expiry = None
             if creds_data.get('expiry'):
                 expiry = datetime.fromisoformat(creds_data['expiry'])
 
-            # Créer l'objet Credentials
+            # Create Credentials object
             credentials = Credentials(
                 token=creds_data['token'],
                 refresh_token=creds_data['refresh_token'],
@@ -223,7 +250,7 @@ class GmailAuthManager:
                 expiry=expiry
             )
 
-            # Rafraîchir si nécessaire
+            # Refresh if necessary
             if credentials.expired and credentials.refresh_token:
                 credentials.refresh(Request())
                 self._save_credentials(user_id, credentials)
@@ -231,14 +258,14 @@ class GmailAuthManager:
             return credentials
 
         except Exception as e:
-            print(f"Erreur lors de la récupération des credentials: {str(e)}")
+            print(f"Error retrieving credentials: {str(e)}")
             return None
 
     def _save_credentials(self, user_id, credentials):
         """
         Args:
-            user_id (str): Identifiant de l'utilisateur
-            credentials (Credentials): Objet credentials à sauvegarder
+            user_id (str): User identifier
+            credentials (Credentials): Credentials object to save
         """
         token_path = os.path.join(self.tokens_dir, f"{user_id}.json")
 
