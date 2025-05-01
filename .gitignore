@@ -49,3 +49,4 @@ backend/test/test.py
 backend/app/services/ai/semantic_emails_1000_classified.json
 backend/app/services/ai/semantic_emails_1000_classified2.json
 data/mock_emails_predicted.json
+backend/app/services/ai/testclassifier.py
