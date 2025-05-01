@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import emailAPIService from "../services/EmailService";
+import {authService} from "../services/authService";
 
 const AuthCallback: React.FC = () => {
   const [status, setStatus] = useState("Traitement de l'authentification...");
@@ -9,93 +10,58 @@ const AuthCallback: React.FC = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const searchParams = new URLSearchParams(location.search);
-      const code = searchParams.get("code");
-      const email = searchParams.get("email");
+  const searchParams = new URLSearchParams(location.search);
+  const code = searchParams.get("code");
+  const email = searchParams.get("email");
+  const service = searchParams.get("service") || "gmail"; // Récupérer depuis l'URL ou utiliser "gmail" par défaut
 
-      if (!code) {
-        setStatus("Erreur: Code d'autorisation manquant");
-        return;
+  if (!code) {
+    setStatus("Erreur: Code d'autorisation manquant");
+    return;
+  }
+
+  try {
+    // Définir le service explicitement avant de continuer
+    emailAPIService.setService(service as "gmail" | "outlook");
+
+    // Capturer le résultat dans une variable authResponse
+    const authResponse = await emailAPIService.handleAuthCallback(code);
+    setStatus("Authentification réussie!");
+
+    // Essayer d'obtenir le profil utilisateur
+    let userEmail = email;
+    try {
+      if (!userEmail) {
+        const profile = await emailAPIService.getUserProfile();
+        userEmail = profile.email;
       }
+    } catch (e) {
+      console.error("Impossible de récupérer le profil utilisateur:", e);
+    }
 
-      try {
-        const service = emailAPIService.getService();
+    // Si dans une fenêtre popup, envoyer un message à la fenêtre parente
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(
+        {
+          type: "authSuccess",
+          service,
+          email: userEmail || email,
+        },
+        window.location.origin
+      );
 
-        if (!service) {
-          setStatus("Erreur: Service de messagerie non spécifié");
-          return;
-        }
-
-        // Traiter le code d'authentification
-        await emailAPIService.handleAuthCallback(code);
-        setStatus("Authentification réussie!");
-
-        // Si cette page est dans une fenêtre popup, envoyer un message à la fenêtre parente
-        if (window.opener && !window.opener.closed) {
-          // Obtenir l'email de l'utilisateur si possible
-          let userEmail = email;
-          try {
-            if (!userEmail) {
-              const profile = await emailAPIService.getUserProfile();
-              userEmail = profile.email;
-            }
-          } catch (e) {
-            console.error(
-              "Impossible de récupérer le profil de l'utilisateur:",
-              e
-            );
-          }
-
-          // Envoyer un message à la fenêtre parente indiquant que l'authentification est réussie
-          window.opener.postMessage(
-            {
-              type: "authSuccess",
-              service,
-              email: userEmail,
-            },
-            window.location.origin
-          );
-
-          // Si le service est Gmail, lancer l'exportation automatiquement
-          if (service === "gmail" && userEmail) {
-            try {
-              // Tenter de lancer l'exportation directement depuis la fenêtre de callback
-              await emailAPIService.exportGmailEmails(
-                userEmail,
-                undefined, // max_emails - null pour tous récupérer
-                "../data", // répertoire de sortie par défaut
-                5000 // taille de lot par défaut
-              );
-
-              // Informer la fenêtre parente que l'exportation a été lancée
-              window.opener.postMessage(
-                {
-                  type: "exportStarted",
-                  service: "gmail",
-                  email: userEmail,
-                },
-                window.location.origin
-              );
-            } catch (exportError) {
-              console.error(
-                "Erreur lors de l'exportation des emails:",
-                exportError
-              );
-            }
-          }
-
-          // Fermer la fenêtre popup après l'envoi du message
-          setTimeout(() => window.close(), 1000);
-        } else {
-          // Gestion si ce n'est pas une fenêtre popup (repli)
-          setStatus("Authentification réussie! Redirection...");
-          setTimeout(() => navigate("/"), 1500);
-        }
-      } catch (error) {
-        console.error("Erreur d'authentification:", error);
-        setStatus("Erreur d'authentification. Veuillez réessayer.");
-      }
-    };
+      // Fermer la popup après envoi du message
+      setTimeout(() => window.close(), 1000);
+    } else {
+      // Gestion de repli si ce n'est pas une fenêtre popup
+      setStatus("Authentification réussie! Redirection...");
+      setTimeout(() => navigate("/"), 1500);
+    }
+  } catch (error) {
+    console.error("Erreur d'authentification:", error);
+    setStatus("Erreur d'authentification. Veuillez réessayer.");
+  }
+};
 
     handleCallback();
   }, [location, navigate]);

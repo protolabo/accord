@@ -27,47 +27,57 @@ const Login: React.FC<LoginProps> = () => {
   }, [navigate]);
 
   const handleGmailLogin = async () => {
-    try {
-      setIsProcessing(true);
-      setErrorMessage('');
+  try {
+    setIsProcessing(true);
+    setErrorMessage('');
 
-      // For now, create a mock token to simulate login
-      const mockToken = "mock-jwt-token-" + Date.now();
+    // Check if we're in development mode
+    const isDevelopment = false;
+
+    if (isDevelopment) {
+      // Development mode - Create a more structured mock token
+      // This includes an expiration time and basic user data
+      const now = Math.floor(Date.now() / 1000);
+      const mockPayload = {
+        email: email || 'user@example.com',
+        user_id: 'dev-user-123',
+        exp: now + 3600, // Expires in 1 hour
+        iat: now,
+      };
+
+      // Base64 encode a minimal mock JWT (header.payload.signature)
+      const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+      const payload = btoa(JSON.stringify(mockPayload));
+      const signature = 'dev-signature'; // Not a real signature
+
+      const mockToken = `${header}.${payload}.${signature}`;
+
       localStorage.setItem('jwt_token', mockToken);
       localStorage.setItem('userEmail', email || 'user@example.com');
 
-      // After successful login, redirect to home
+      // Redirect to home
       navigate('/home');
+    } else {
+      // Production mode - Use real OAuth login
+      // This initiates the OAuth flow, redirecting to Google
+      const response = await fetch('http://localhost:8000/auth/gmail');
 
-      // Uncomment this for real implementation
-      /*
-      const response = await fetch('http://localhost:8000/export/gmail', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email,
-          max_emails: 2,
-          output_dir: '../data',
-          batch_size: 5000
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('userEmail', email);
-        navigate('/export-status', { state: { email } });
-      } else {
-        const errorData = await response.json();
-        setErrorMessage(`Erreur: ${errorData.detail || 'Une erreur est survenue'}`);
-        setIsProcessing(false);
+      if (!response.ok) {
+        throw new Error('Failed to start authentication');
       }
-      */
-    } catch (error) {
-      console.error('Erreur lors de l\'authentification:', error);
-      setErrorMessage('Une erreur de connexion est survenue. Veuillez réessayer.');
-      setIsProcessing(false);
+
+      const data = await response.json();
+      // Redirect to Google's OAuth page
+      window.location.href = data.auth_url;
+
+      // The rest of the flow will be handled by the callback route
     }
-  };
+  } catch (error) {
+    console.error('Erreur lors de l\'authentification:', error);
+    setErrorMessage('Une erreur de connexion est survenue. Veuillez réessayer.');
+    setIsProcessing(false);
+  }
+};
 
   // Fonction appelée lorsque l'exportation est terminée avec succès
   const handleExportComplete = () => {

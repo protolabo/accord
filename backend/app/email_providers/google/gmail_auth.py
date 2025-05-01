@@ -6,6 +6,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from backend.app.email_providers.google.settings import Config
+from backend.app.utils.absolute_path import get_file_path
 
 
 
@@ -19,7 +20,7 @@ class GmailAuthManager:
             tokens_dir (str): Répertoire pour stocker les tokens
         """
         self.credentials_path = credentials_path or Config.GOOGLE_CREDENTIALS_PATH
-        self.tokens_dir = tokens_dir or Config.TOKEN_DIR
+        self.tokens_dir = get_file_path("backend/app/email_providers/google/tokens") or Config.TOKEN_DIR
         self.scopes = Config.GOOGLE_SCOPES
 
         # Créer les répertoires nécessaires
@@ -49,6 +50,8 @@ class GmailAuthManager:
             str: L'URL d'authentification
         """
         try:
+            os.makedirs(self.tokens_dir, exist_ok=True)
+
             flow = InstalledAppFlow.from_client_secrets_file(
                 self.credentials_path, self.scopes)
 

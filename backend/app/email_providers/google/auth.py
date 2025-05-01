@@ -70,13 +70,16 @@ async def gmail_auth(request: Request, email: str = Query(None)):
         # Obtenir l'URL d'authentification
         auth_url = auth_manager.get_auth_url(user_id)
 
-        # Rediriger vers Google
-        return RedirectResponse(auth_url)
+        # Rediriger vers Google, important si on veut tester que le backend
+        #return RedirectResponse(auth_url)
+
+        return {"auth_url": auth_url}
 
     except Exception as e:
         error_message = f"Erreur lors de l'authentification Gmail: {str(e)}"
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
+
 
 @router.get("/auth/callback")
 async def auth_callback(request: Request, code: str = Query(...), state: str = Query(...)):
@@ -94,15 +97,19 @@ async def auth_callback(request: Request, code: str = Query(...), state: str = Q
         result = auth_manager.handle_callback(code, state)
 
         # Stocker l'email dans la session
+        email = None
         if result and "email" in result:
             request.session["user_email"] = result["email"]
+            email = result["email"]
 
-        # Rediriger vers la page de succès
-        frontend_success_url = "/auth-success"
-        if result and "email" in result:
-            frontend_success_url += f"?email={result['email']}"
+        frontend_url = "http://localhost:3000/auth/callback"
+        redirect_url = f"{frontend_url}?code={code}&email={email or ''}&service=gmail"
 
-        return RedirectResponse(url=frontend_success_url)
+        # Créer l'événement d'authentification terminée
+        key = email or "last_auth"
+        auth_completion_events[key] = True
+
+        return RedirectResponse(url=redirect_url)
 
     except Exception as e:
         error_message = f"Erreur lors du callback d'authentification: {str(e)}"
@@ -176,70 +183,17 @@ async def auth_status(
             content={"authenticated": False, "message": f"Erreur lors de la vérification: {str(e)}"}
         )
 
-@router.get("/auth-success", response_class=HTMLResponse)
-async def auth_success(request: Request, email: str = None):
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Authentification réussie - Accord</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            /* Styles CSS inchangés */
-        </style>
-        <script>
-            // Fonction pour notifier le backend et fermer la fenêtre
-            function completeAuth() {{
-                // Envoyer une requête pour notifier que l'authentification est terminée
-                fetch('/auth/complete?email={email or ""}', {{
-                    method: 'POST'
-                }})
-                .then(response => {{
-                    // Fermer la fenêtre après notification
-                    window.close();
-                    // Au cas où window.close() ne fonctionne pas (politiques de sécurité)
-                    document.body.innerHTML = `
-                        <div class="success-container">
-                            <h1>Authentification terminée</h1>
-                            <p>Vous pouvez maintenant fermer cette fenêtre et revenir à l'application.</p>
-                        </div>
-                    `;
-                }})
-                .catch(error => {{
-                    console.error('Erreur:', error);
-                }});
 
-                return false; // Empêcher le comportement par défaut du lien
-            }}
-        </script>
-    </head>
-    <body>
-        <div class="success-container">
-            <div class="success-icon">✓</div>
-            <h1>Authentification réussie!</h1>
-            <p>Votre compte <strong>{email or 'Gmail'}</strong> a été connecté avec succès à Accord.</p>
-            <p>Vous pouvez maintenant accéder à vos emails et utiliser toutes les fonctionnalités de l'application.</p>
-            <a href="#" onclick="return completeAuth();" class="button">Terminer l'authentification</a>
-        </div>
-    </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
 
 # Dictionnaire pour stocker les événements d'authentification
 auth_completion_events = {}
 
 @router.post("/auth/complete")
 async def auth_complete(email: str = None):
-    """Endpoint appelé par le navigateur pour signaler que l'authentification est terminée"""
-    # Créez une clé unique basée sur l'email ou utilisez une valeur par défaut
+    """Endpoint appelé pour signaler que l'authentification est terminée"""
     key = email or "last_auth"
-
-    # Définir l'événement comme complété
     auth_completion_events[key] = True
-
-    return {"status": "success", "message": "Authentication process completed"}
+    return {"status": "success", "message": "Authentification terminée avec succès"}
 
 @router.get("/")
 async def home():

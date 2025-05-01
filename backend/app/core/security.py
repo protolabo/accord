@@ -1,13 +1,14 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from app.db.models import User
-from app.core.config import settings
+#from backend.app.db.models import User
+#from backend.app.core.config import settings
 from datetime import datetime, timedelta
 
 jwt_scheme = OAuth2PasswordBearer(tokenUrl="/auth/{provider}/callback")
 
 # Get current user
+""""
 async def get_current_user(token: str = Depends(jwt_scheme)) -> User:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
@@ -44,14 +45,39 @@ async def get_current_user(token: str = Depends(jwt_scheme)) -> User:
         )
 
 current_user = get_current_user
+"""
 
-# Create JWT Token
-def create_jwt_token(data: dict) -> str:
+from datetime import datetime, timedelta
+from typing import Optional
+import secrets
+from jose import jwt
+from passlib.context import CryptContext
+
+# This is a generated secure key - only for testing!
+SECRET_KEY = "b496e1c3d8b5e83af48901cd39f5f0c67a0f3f8f0b3ba5a0db4dbc820abd53b9"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """
+    Creates a JWT token with the given data and expiration time.
+    """
     to_encode = data.copy()
-    expire = datetime.now() + timedelta(hours=8)
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    return jwt.encode(
-        to_encode,
-        settings.JWT_SECRET, 
-        algorithm=settings.JWT_ALGORITHM
-    )
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def verify_password(plain_password, hashed_password):
+    """
+    Verifies if the plain password matches the hashed password.
+    """
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    """
+    Creates a hash for the given password.
+    """
+    return pwd_context.hash(password)

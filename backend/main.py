@@ -9,6 +9,7 @@ from backend.app.utils.killer_process import kill_processes_on_port
 import secrets
 from backend.app.utils.delete_token_file import delete_token_file
 from backend.app.routes import mock_data
+from backend.app.routes.deconnexion import router as logout_router
 
 app = FastAPI()
 
@@ -35,7 +36,11 @@ app.add_middleware(
 
 # Inclure les routers après la configuration des middlewares
 app.include_router(auth_router)
+
+app.include_router(logout_router)
 app.include_router(mock_data.router)
+
+
 #app.include_router(emails_router)  # Ajouter le router des emails
 
 @app.get("/")
@@ -47,7 +52,7 @@ if __name__ == "__main__":
         print("Port 8000 is now available...")
         print("Starting FastAPI server with CORS enabled...")
 
-        delete_token_file()
+        #delete_token_file()
 
         uvicorn.run(app, host="0.0.0.0", port=8000)
 
