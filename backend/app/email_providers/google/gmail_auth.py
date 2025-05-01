@@ -6,7 +6,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from backend.app.email_providers.google.settings import Config
-from backend.app.utils.absolute_path import get_file_path
+
 
 
 
@@ -20,10 +20,10 @@ class GmailAuthManager:
             tokens_dir (str): Répertoire pour stocker les tokens
         """
         self.credentials_path = credentials_path or Config.GOOGLE_CREDENTIALS_PATH
-        self.tokens_dir = get_file_path("backend/app/email_providers/google/tokens") or Config.TOKEN_DIR
+        self.tokens_dir = tokens_dir or Config.TOKEN_DIR
         self.scopes = Config.GOOGLE_SCOPES
 
-        # Créer les répertoires nécessaires
+        # Ensure directories exist
         os.makedirs(self.tokens_dir, exist_ok=True)
         os.makedirs(os.path.dirname(self.credentials_path), exist_ok=True)
 
@@ -42,30 +42,30 @@ class GmailAuthManager:
     def get_auth_url(self, user_id):
         """
         Génère l'URL d'authentification Google pour un utilisateur.
-
-        Args:
-            user_id (str): L'identifiant de l'utilisateur
-
-        Returns:
-            str: L'URL d'authentification
         """
         try:
+            # Ensure directories exist with proper error handling
+            print(f"Token directory path: {self.tokens_dir}")
             os.makedirs(self.tokens_dir, exist_ok=True)
 
+            # Print current working directory for debugging
+            print(f"Current working directory: {os.getcwd()}")
+
+            # Create flow using InstalledAppFlow
             flow = InstalledAppFlow.from_client_secrets_file(
                 self.credentials_path, self.scopes)
 
-
             flow.redirect_uri = "http://localhost:8000/auth/callback"
 
+            # Generate auth URL
             auth_url, state = flow.authorization_url(
                 access_type='offline',
                 include_granted_scopes='true',
                 prompt='consent',
-                state=user_id
+                state=user_id  # Using user_id as state
             )
 
-            # Sauvegarder la configuration
+            # Create flow configuration
             flow_config = {
                 'client_id': flow.client_config['client_id'],
                 'client_secret': flow.client_config['client_secret'],
@@ -74,65 +74,116 @@ class GmailAuthManager:
                 'state': state
             }
 
-            flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
+            # Save flow configuration with absolute path handling
+            flow_path = os.path.join(self.tokens_dir, f"gmail_flow.json")
+            print(f"Saving flow configuration to: {flow_path}")
+
+            # Make sure parent directory exists
+            os.makedirs(os.path.dirname(flow_path), exist_ok=True)
+
             with open(flow_path, 'w') as token_file:
                 json.dump(flow_config, token_file)
+
+            # Verify the file was created
+            if os.path.exists(flow_path):
+                print(f"✅ Flow configuration file created successfully at {flow_path}")
+            else:
+                print(f"❌ Failed to create flow configuration file at {flow_path}")
 
             return auth_url
 
         except Exception as e:
-            print(f"Erreur lors de la génération de l'URL d'authentification: {str(e)}")
+            print(f"Error generating authentication URL: {str(e)}")
+            # Print the full exception traceback for debugging
+            import traceback
+            traceback.print_exc()
             raise
 
     def handle_callback(self, code, state):
         """
-        Args:
-            code (str): Le code d'autorisation retourné par Google
-            state (str): L'état passé lors de la génération de l'URL
-
-        Returns:
-            dict: Les informations de l'utilisateur authentifié
+        Handle the OAuth callback from Google
         """
         user_id = state
-        flow_path = os.path.join(self.tokens_dir, f"{user_id}_flow.json")
+        flow_path = os.path.join(self.tokens_dir, f"gmail_flow.json")
+
+        print(f"Looking for flow configuration at: {flow_path}")
+        print(f"File exists: {os.path.exists(flow_path)}")
 
         try:
-            # Charger la configuration
-            with open(flow_path, 'r') as file:
-                flow_config = json.load(file)
-
-            # Créer un nouveau flow avec la configuration sauvegardée
-            flow = InstalledAppFlow.from_client_secrets_file(
-                self.credentials_path,
-                scopes=flow_config['scopes']
-            )
-            flow.redirect_uri = flow_config['redirect_uri']
-
-            # Échanger le code contre des credentials
-            flow.fetch_token(code=code)
-            credentials = flow.credentials
-
-            # Sauvegarder les credentials
-            self._save_credentials(user_id, credentials)
-
-            # Nettoyer le fichier temporaire
+            # IMPORTANT: Don't delete the flow file yet!
             if os.path.exists(flow_path):
-                os.remove(flow_path)
+                with open(flow_path, 'r') as file:
+                    flow_config = json.load(file)
 
-            # Obtenir les informations de l'utilisateur
-            service = build('gmail', 'v1', credentials=credentials)
-            profile = service.users().getProfile(userId='me').execute()
+                # Create a new flow with the saved configuration
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    self.credentials_path,
+                    scopes=flow_config['scopes']
+                )
+                flow.redirect_uri = flow_config['redirect_uri']
 
-            return {
-                'user_id': user_id,
-                'email': profile.get('emailAddress', ''),
-                'message': 'Authentification réussie'
-            }
+                # Exchange the code for credentials
+                try:
+                    flow.fetch_token(code=code)
+                    credentials = flow.credentials
+
+                    # Save the credentials
+                    self._save_credentials(user_id, credentials)
+
+                    # NOW it's safe to clean up the file - but only if tokens were saved
+                    if os.path.exists(flow_path):
+                        os.rename(flow_path, f"{flow_path}.backup")  # Rename instead of delete
+
+                    # Get user information
+                    service = build('gmail', 'v1', credentials=credentials)
+                    profile = service.users().getProfile(userId='me').execute()
+
+                    return {
+                        'user_id': user_id,
+                        'email': profile.get('emailAddress', ''),
+                        'message': 'Authentication successful'
+                    }
+                except Exception as e:
+                    print(f"Error exchanging code for token: {str(e)}")
+                    raise
+            else:
+                # Fallback for when flow file is not found
+                print(f"Flow file not found. Creating a new flow for direct token exchange.")
+
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    self.credentials_path,
+                    scopes=self.scopes
+                )
+                flow.redirect_uri = "http://localhost:8000/auth/callback"
+
+                try:
+                    # Try direct token exchange
+                    flow.fetch_token(code=code)
+                    credentials = flow.credentials
+
+                    # Save credentials
+                    self._save_credentials(user_id, credentials)
+
+                    service = build('gmail', 'v1', credentials=credentials)
+                    profile = service.users().getProfile(userId='me').execute()
+
+                    return {
+                        'user_id': user_id,
+                        'email': profile.get('emailAddress', ''),
+                        'message': 'Authentication successful (direct method)'
+                    }
+                except Exception as e:
+                    print(f"Direct token exchange failed. Error: {str(e)}")
+                    if "invalid_grant" in str(e):
+                        print("IMPORTANT: This error often means the code was already used once.")
+                        print("The OAuth2 authorization code can only be used once.")
+                        print("The user may need to restart the authentication process.")
+                    raise
 
         except Exception as e:
-            print(f"Erreur lors du traitement du callback: {str(e)}")
-            if os.path.exists(flow_path):
-                os.remove(flow_path)
+            print(f"Error in callback handler: {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise
 
     def get_credentials(self, user_id):

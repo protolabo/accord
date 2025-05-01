@@ -149,32 +149,36 @@ class EmailAPIService {
     }
   }
 
-  async handleAuthCallback(
-    code: string
-  ): Promise<{ accessToken: string; refreshToken?: string }> {
-    try {
-      const service = this.getService();
-      if (!service) {
-        throw new Error("No email service selected");
-      }
+  async handleAuthCallback(code: string): Promise<{ accessToken: string; refreshToken?: string }> {
+  try {
+    console.log(`Handling auth callback with code: ${code.substring(0, 10)}...`);
+    const service = this.getService();
 
-      // Correction de l'URL pour correspondre à la route backend
-      const response = await axios.get(`${this.baseUrl}/auth/callback`, {
-        params: { code, state: service },
-      });
-
-      // Adapter selon la structure de la réponse du backend
-      const access_token = response.data.access_token || "";
-      const refresh_token = response.data.refresh_token || "";
-
-      this.setTokens(access_token, refresh_token);
-
-      return { accessToken: access_token, refreshToken: refresh_token };
-    } catch (error) {
-      console.error(`Error handling auth callback:`, error);
-      throw error;
+    if (!service) {
+      throw new Error("No email service selected");
     }
+
+    // Log the request we're about to make
+    console.log(`Making request to ${this.baseUrl}/auth/callback with code and state=${service}`);
+
+    const response = await axios.get(`${this.baseUrl}/auth/callback`, {
+      params: { code, state: service },
+    });
+
+    console.log("Auth callback response received", response.status);
+
+    // Handle token
+    const access_token = response.data.access_token || "";
+    const refresh_token = response.data.refresh_token || "";
+
+    this.setTokens(access_token, refresh_token);
+
+    return { accessToken: access_token, refreshToken: refresh_token };
+  } catch (error) {
+    console.error(`Error handling auth callback:`, error);
+    throw error;
   }
+}
 
   async fetchEmails(
     options: EmailFetchOptions = {}

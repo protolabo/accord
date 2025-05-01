@@ -2,6 +2,7 @@ from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.responses import HTMLResponse
 import uuid
+import os
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.services.flow_demarrage import flowDemarrage
@@ -17,11 +18,47 @@ from backend.app.core.config import settings
 router = APIRouter()
 auth_manager = GmailAuthManager()
 
+# Dictionnaire pour stocker les événements d'authentification
+auth_completion_events = {}
+
+
+# MISSING ENDPOINT ADDED HERE - This is the key fix
+@router.get("/auth/gmail")
+async def gmail_auth(request: Request, email: str = Query(None)):
+    try:
+        # Generate a user ID
+        if email:
+            user_id = normalize_email_for_storage(email)
+        else:
+            # Use "gmail" as the user_id for simplicity
+            user_id = "gmail"
+
+        print(f"Starting Gmail authentication for user_id: {user_id}")
+
+        # Store the ID in the session
+        request.session["user_id"] = user_id
+
+        # Get authentication URL
+        auth_url = auth_manager.get_auth_url(user_id)
+
+        # Print debug info
+        print(f"Generated auth URL: {auth_url[:50]}...")
+
+        return {"auth_url": auth_url}
+    except Exception as e:
+        error_message = f"Error during Gmail authentication: {str(e)}"
+        print(error_message)
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=error_message)
+
+
 # Modification de la route /export/gmail pour gérer explicitement les OPTIONS
 @router.options("/export/gmail")
 async def options_export_gmail():
     """Endpoint OPTIONS pour gérer les requêtes préflight CORS"""
     return {}
+
 
 @router.post("/export/gmail")
 async def export_gmail(
@@ -54,49 +91,28 @@ async def export_gmail_status(email: str = Query(...)):
     return status_data
 
 
-@router.get("/auth/gmail")
-async def gmail_auth(request: Request, email: str = Query(None)):
-    try:
-        # Générer un ID utilisateur
-        if email:
-            user_id = normalize_email_for_storage(email)
-        else:
-            temp_id = str(uuid.uuid4())
-            user_id = f"temp_{temp_id}"
-
-        # Stocker l'ID dans la session
-        request.session["user_id"] = user_id
-
-        # Obtenir l'URL d'authentification
-        auth_url = auth_manager.get_auth_url(user_id)
-
-        # Rediriger vers Google, important si on veut tester que le backend
-        #return RedirectResponse(auth_url)
-
-        return {"auth_url": auth_url}
-
-    except Exception as e:
-        error_message = f"Erreur lors de l'authentification Gmail: {str(e)}"
-        print(error_message)
-        raise HTTPException(status_code=500, detail=error_message)
-
-
+# FIXED: Removed duplicate and combined implementations
 @router.get("/auth/callback")
 async def auth_callback(request: Request, code: str = Query(...), state: str = Query(...)):
-    """Gère le callback de Google OAuth."""
+    """Handle Google OAuth callback."""
     try:
-        # Récupérer l'ID utilisateur
+        print(f"OAuth callback received with state: {state}")
+        print(f"Session user_id: {request.session.get('user_id')}")
+
+        # Retrieve user ID
         user_id = state
 
-        # Vérifier la correspondance avec la session
-        session_user_id = request.session.get("user_id")
-        if session_user_id and session_user_id != user_id:
-            print(f"Avertissement: ID de session ({session_user_id}) différent de l'ID d'état ({user_id})")
+        # Debug the token directory and expected file path
+        tokens_dir = auth_manager.tokens_dir
+        flow_path = os.path.join(tokens_dir, f"{user_id}_flow.json")
+        print(f"Looking for flow file at: {flow_path}")
+        print(f"Directory exists: {os.path.exists(tokens_dir)}")
+        print(f"File exists: {os.path.exists(flow_path)}")
 
-        # Traiter le code d'autorisation
+        # Process authorization code
         result = auth_manager.handle_callback(code, state)
 
-        # Stocker l'email dans la session
+        # Store email in session
         email = None
         if result and "email" in result:
             request.session["user_email"] = result["email"]
@@ -105,16 +121,23 @@ async def auth_callback(request: Request, code: str = Query(...), state: str = Q
         frontend_url = "http://localhost:3000/auth/callback"
         redirect_url = f"{frontend_url}?code={code}&email={email or ''}&service=gmail"
 
-        # Créer l'événement d'authentification terminée
+        # Set authentication completion flag
         key = email or "last_auth"
         auth_completion_events[key] = True
 
         return RedirectResponse(url=redirect_url)
 
     except Exception as e:
-        error_message = f"Erreur lors du callback d'authentification: {str(e)}"
+        error_message = f"Error during authentication callback: {str(e)}"
         print(error_message)
-        raise HTTPException(status_code=500, detail=error_message)
+        import traceback
+        traceback.print_exc()
+
+        # Return a more helpful error response
+        return JSONResponse(
+            status_code=500,
+            content={"error": error_message}
+        )
 
 
 security = HTTPBearer(auto_error=False)
@@ -184,16 +207,13 @@ async def auth_status(
         )
 
 
-
-# Dictionnaire pour stocker les événements d'authentification
-auth_completion_events = {}
-
 @router.post("/auth/complete")
 async def auth_complete(email: str = None):
     """Endpoint appelé pour signaler que l'authentification est terminée"""
     key = email or "last_auth"
     auth_completion_events[key] = True
     return {"status": "success", "message": "Authentification terminée avec succès"}
+
 
 @router.get("/")
 async def home():
