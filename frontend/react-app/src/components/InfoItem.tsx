@@ -32,8 +32,6 @@ const InfoItem: React.FC<InfoItemProps> = ({ email, infoNumber, totalInfo }) => 
   // Format de date amélioré
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-
-    // Obtenir la date relative (aujourd'hui, hier, etc.)
     const now = new Date();
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -41,19 +39,16 @@ const InfoItem: React.FC<InfoItemProps> = ({ email, infoNumber, totalInfo }) => 
     const isToday = date.toDateString() === now.toDateString();
     const isYesterday = date.toDateString() === yesterday.toDateString();
 
-    // Format de l'heure
     const timeFormat = new Intl.DateTimeFormat('fr-FR', {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
 
-    // Format de la date
     const dateFormat = new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
       month: 'short'
     }).format(date);
 
-    // Si c'est aujourd'hui ou hier, afficher en conséquence
     if (isToday) {
       return `Aujourd'hui, ${timeFormat}`;
     } else if (isYesterday) {
@@ -75,20 +70,22 @@ const InfoItem: React.FC<InfoItemProps> = ({ email, infoNumber, totalInfo }) => 
 
   // Extraction du nom d'utilisateur à partir de l'adresse email
   const extractName = (emailAddress: string) => {
-    // Vérifier si c'est une adresse email avec un format standard
     if (emailAddress.includes('@')) {
-      // Prendre la partie avant le @
       const namePart = emailAddress.split('@')[0];
-
-      // Remplacer les points/underscores par des espaces et mettre en majuscule la première lettre de chaque mot
       return namePart
         .split(/[._]/)
         .map(part => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ');
     }
-
     return emailAddress;
   };
+
+  // Prendre les 3 premières sous-catégories avec les scores les plus élevés
+  const topSubCategories = email.accord_sub_classes
+    ? [...email.accord_sub_classes]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+    : [];
 
   return (
     <motion.div
@@ -99,16 +96,30 @@ const InfoItem: React.FC<InfoItemProps> = ({ email, infoNumber, totalInfo }) => 
     >
       {/* Section principale qui est toujours visible */}
       <div className="p-4 relative">
-        {/* Badge numéro/total */}
         <div className="absolute left-0 top-0 bg-blue-500 text-white px-3 py-1 rounded-br-lg text-sm font-semibold">
-          #{infoNumber}/{totalInfo}
+          {infoNumber}/{totalInfo}
         </div>
 
-        <div className="ml-20 mr-16"> {/* Marges pour éviter le chevauchement avec le badge et les boutons */}
+        <div className="ml-20 mr-16">
           {/* Sujet de l'email */}
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2 line-clamp-2">
             {email.Subject}
           </h3>
+
+          {/* Affichage des sous-catégories */}
+          {topSubCategories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {topSubCategories.map(([category, score], index) => (
+                <span
+                  key={index}
+                  className="px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full"
+                  title={`Score: ${Math.round(score * 100)}%`}
+                >
+                  {category}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Informations sur l'expéditeur et la date */}
           <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
