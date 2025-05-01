@@ -127,31 +127,39 @@ async def auth_callback(request: Request, code: str = Query(...), state: str = Q
         print(f"OAuth callback received with state: {state}")
         print(f"Session user_id: {request.session.get('user_id')}")
 
-        # Retrieve user ID
+        # Récupérer l'ID utilisateur
         user_id = state
 
-        # Debug the token directory and expected file path
+        # Afficher les informations de débogage
         tokens_dir = auth_manager.tokens_dir
         flow_path = os.path.join(tokens_dir, f"{user_id}_flow.json")
         print(f"Looking for flow file at: {flow_path}")
         print(f"Directory exists: {os.path.exists(tokens_dir)}")
         print(f"File exists: {os.path.exists(flow_path)}")
 
-        # Process authorization code
+        # Échanger le code d'autorisation contre des tokens Google
         result = auth_manager.handle_callback(code, state)
 
-        # Store email in session
+        # Extraire l'email et autres informations
         email = None
         if result and "email" in result:
             request.session["user_email"] = result["email"]
             email = result["email"]
 
-        frontend_url = "http://localhost:3000/auth/callback"
-        redirect_url = f"{frontend_url}?code={code}&email={email or ''}&service=gmail"
+        # ===== CHANGEMENT ICI: Générer un JWT token =====
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"email": email, "user_id": user_id, "provider": "gmail"},
+            expires_delta=access_token_expires
+        )
 
-        # Set authentication completion flag
+        # Définir le flag de complétion d'authentification
         key = email or "last_auth"
         auth_completion_events[key] = True
+
+        # Rediriger vers le frontend avec le token au lieu du code
+        frontend_url = "http://localhost:3000/auth/callback"
+        redirect_url = f"{frontend_url}?token={access_token}&email={email or ''}&service=gmail"
 
         return RedirectResponse(url=redirect_url)
 
@@ -161,7 +169,7 @@ async def auth_callback(request: Request, code: str = Query(...), state: str = Q
         import traceback
         traceback.print_exc()
 
-        # Return a more helpful error response
+        # Retourner une réponse d'erreur plus utile
         return JSONResponse(
             status_code=500,
             content={"error": error_message}
