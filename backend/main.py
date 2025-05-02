@@ -1,12 +1,19 @@
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
-from fastapi.middleware.cors import CORSMiddleware  # Ajout du middleware CORS
-from backend.app.email_providers.google.auth import router as auth_router
-from backend.app.routes.emails import router as emails_router  # Importer le router des emails
+from fastapi.middleware.cors import CORSMiddleware
+
+
 import sys
 from backend.app.utils.killer_process import kill_processes_on_port
 import secrets
+from backend.app.utils.delete_token_file import delete_token_file
+from backend.app.routes.auth_routes import router as auth_router
+from backend.app.routes.exportmail import router as export_router
+from backend.app.routes import mock_data
+from backend.app.routes.deconnexion import router as logout_router
+from backend.app.routes import emails
+
 
 app = FastAPI()
 
@@ -33,7 +40,14 @@ app.add_middleware(
 
 # Inclure les routers après la configuration des middlewares
 app.include_router(auth_router)
-app.include_router(emails_router)  # Ajouter le router des emails
+app.include_router(export_router)
+
+app.include_router(logout_router)
+app.include_router(mock_data.router)
+app.include_router(emails.router)
+
+
+
 
 @app.get("/")
 async def root():
@@ -43,21 +57,10 @@ if __name__ == "__main__":
     if kill_processes_on_port(8000):
         print("Port 8000 is now available...")
         print("Starting FastAPI server with CORS enabled...")
+
+        #delete_token_file()
+
         uvicorn.run(app, host="0.0.0.0", port=8000)
-
-        ### README PROCESS ###
-
-        ## etape 1 : generation du mockdata , en production cette phase sera supprime
-            #mockdataGenerator.main()
-
-        ## etape 2: authentification & export mails
-        """
-                Args: email, max_email=None,output_dir,batchsize
-        """
-
-            # pour tester : auth_export_gmail("johndoe@gmail.com",10,"./data",5000)
-            # pour relier au bouton se connecter :  "/export/gmail" {...}
-            # les messages sont sauvegardé dans app/data
 
     else:
         print("Failed to free port 8000")

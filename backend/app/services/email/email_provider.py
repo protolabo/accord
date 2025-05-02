@@ -1,17 +1,14 @@
-from typing import List, Dict, Optional, Any, Union
-from datetime import datetime, timedelta
-import json
-import base64
+from typing import List, Dict, Any
+from datetime import datetime
 from fastapi import HTTPException, Depends
 from httpx import AsyncClient, HTTPStatusError
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from app.db.models import User
-from app.core.config import settings
-from app.email_providers.google.gmail_auth import GmailAuthManager
-from backend.app.services.auth.outlookAuth import OutlookAuth
-from app.services.email.email_service import StandardizedEmail, EmailService
-from app.core.security import get_current_user
+from backend.app.db.models import User
+from backend.app.core.config import settings
+from backend.app.email_providers.google.gmail_auth import GmailAuthManager
+from backend.app.services.email.email_service import StandardizedEmail, EmailService
+#from backend.app.core.security import get_current_user
 
 class EmailProvider:
     """
@@ -619,9 +616,12 @@ class EmailProvider:
                 detail=f"Error fetching Outlook folders: {e.response.text}"
             )
 
+"""
 # Fonction pour obtenir le fournisseur d'email comme une dépendance FastAPI
 async def get_email_provider(user: User = Depends(get_current_user)) -> EmailProvider:
-    """
+
     Dependency pour obtenir un fournisseur d'email pour l'utilisateur authentifié.
-    """
+
     return EmailProvider(user)
+    
+"""

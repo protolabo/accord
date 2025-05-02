@@ -1,295 +1,206 @@
-from typing import List, Dict, Optional, Any
-from fastapi import APIRouter, Depends, Query, HTTPException, Body
-from app.services.email.email_provider import EmailProvider, get_email_provider
-from app.services.email.email_service import StandardizedEmail
-from app.core.security import get_current_user
-from app.db.models import User
-from pydantic import BaseModel, EmailStr
-from datetime import datetime
-import os
 import json
+import os
+from pathlib import Path
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import jwt, JWTError
 from backend.app.utils.absolute_path import get_file_path
+from backend.app.email_providers.google.email_utils import normalize_email_for_storage
+from backend.app.core.security import SECRET_KEY, ALGORITHM
 
-router = APIRouter()
 
-class EmailResponse(BaseModel):
-    emails: List[Dict[str, Any]]
-    total: int
-    count: int
 
-class EmailRequest(BaseModel):
-    to: List[str]
-    cc: List[str] = []
-    bcc: List[str] = []
-    subject: str
-    body: str
-    body_type: str = "text"  # "text" ou "html"
+security = HTTPBearer()
+router = APIRouter(prefix="/emails")
 
-# Fonction pour obtenir le fournisseur d'email comme une dépendance FastAPI
-async def get_provider(user: User = Depends(get_current_user)) -> EmailProvider:
+
+@router.get("/status")
+async def get_emails_status(
+        email: str = Query(...),
+        authorization: HTTPAuthorizationCredentials = Depends(security)
+):
     """
-    Dependency pour obtenir un fournisseur d'email pour l'utilisateur authentifié.
+    Récupère le statut de l'exportation des emails pour un utilisateur spécifique
     """
-    return EmailProvider(user)
-
-@router.get("/emails")
-async def get_emails(
-    platform: Optional[str] = Query(None, description="Plateforme à utiliser (gmail, outlook ou aucune pour les deux)"),
-    limit: int = Query(50, description="Nombre maximum d'emails à récupérer"),
-    skip: int = Query(0, description="Nombre d'emails à sauter (pagination)"),
-    folder: Optional[str] = Query(None, description="ID du dossier ou label"),
-    query: Optional[str] = Query(None, description="Termes de recherche"),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> EmailResponse:
-    """
-    Récupère les emails de l'utilisateur avec pagination et filtrage optionnel.
-    Si aucune plateforme n'est spécifiée, récupère des deux sources (Gmail et Outlook).
-    """
-    if platform and platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail', 'outlook' ou non spécifiée")
-    
     try:
-        # Récupérer les emails
-        emails = await email_provider.get_emails(
-            platform=platform,
-            limit=limit,
-            skip=skip,
-            folder=folder,
-            query=query
-        )
-        
-        # Convertir les emails en dictionnaires pour la réponse JSON
-        email_dicts = [email.dict() for email in emails]
-        
-        return EmailResponse(
-            emails=email_dicts,
-            total=len(email_dicts),  # Dans l'idéal, il faudrait avoir un count total sans pagination
-            count=len(email_dicts)
-        )
+        try:
+            payload = jwt.decode(authorization.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+            token_email = payload.get("email")
+
+            # Vérifier que l'email du token correspond à l'email demandé
+            if token_email != email:
+                raise HTTPException(status_code=403, detail="Accès non autorisé")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token invalide")
+
+        # Récupérer le chemin du répertoire pour cet utilisateur
+        user_id = normalize_email_for_storage(email)
+        export_dir = get_file_path(f"backend/app/data")
+
+        # Vérifier si le répertoire existe
+        if not os.path.exists(export_dir):
+            return {
+                "status": "not_started",
+                "message": "Aucune exportation d'emails n'a été démarrée pour cet utilisateur",
+                "total_emails": 0,
+                "total_batches": 0
+            }
+
+        # Vérifier s'il existe un fichier d'index
+        index_file = os.path.join(export_dir, "index.json")
+        if os.path.exists(index_file):
+            with open(index_file, "r", encoding="utf-8") as f:
+                index_data = json.load(f)
+
+            return {
+                "status": "completed",
+                "message": "Exportation terminée",
+                "total_emails": index_data.get("total_emails", 0),
+                "total_batches": index_data.get("total_batches", 0),
+                "export_date": index_data.get("export_date", ""),
+                "mode": "real"
+            }
+
+        # Vérifier combien de fichiers batch existent
+        batch_files = [f for f in os.listdir(export_dir)
+                       if f.startswith("emails_batch_") and f.endswith(".json")]
+
+        if batch_files:
+            return {
+                "status": "completed",
+                "message": "Exportation terminée (sans fichier d'index)",
+                "total_emails": None,
+                "total_batches": len(batch_files),
+                "mode": "real"
+            }
+
+        # Si aucun fichier batch n'est trouvé mais que le répertoire existe
+        return {
+            "status": "processing",
+            "message": "Exportation en cours",
+            "total_emails": 0,
+            "total_batches": 0,
+            "mode": "real"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/emails/{email_id}")
-async def get_email(
-    email_id: str,
-    platform: str = Query(..., description="Plateforme de l'email (gmail ou outlook)"),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> Dict[str, Any]:
-    """
-    Récupère un email spécifique par son ID.
-    """
-    if platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail' ou 'outlook'")
-    
-    try:
-        email = await email_provider.get_email_by_id(email_id, platform)
-        return email.dict()
-    except Exception as e:
-        raise HTTPException(status_code=404, detail=f"Email non trouvé: {str(e)}")
 
-@router.post("/emails")
-async def send_email(
-    platform: str = Query(..., description="Plateforme à utiliser pour l'envoi (gmail ou outlook)"),
-    email_data: EmailRequest = Body(...),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> Dict[str, Any]:
-    """
-    Envoie un nouvel email.
-    """
-    if platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail' ou 'outlook'")
-    
-    try:
-        result = await email_provider.send_email(platform, email_data.dict())
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de l'envoi de l'email: {str(e)}")
-
-@router.patch("/emails/{email_id}/read")
-async def mark_as_read(
-    email_id: str,
-    platform: str = Query(..., description="Plateforme de l'email (gmail ou outlook)"),
-    read: bool = Query(True, description="True pour marquer comme lu, False pour non lu"),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> Dict[str, Any]:
-    """
-    Marque un email comme lu ou non lu.
-    """
-    if platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail' ou 'outlook'")
-    
-    try:
-        result = await email_provider.mark_as_read(email_id, platform, read)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors du marquage de l'email: {str(e)}")
-
-@router.get("/folders")
-async def get_folders(
-    platform: Optional[str] = Query(None, description="Plateforme à utiliser (gmail, outlook ou aucune pour les deux)"),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> Dict[str, Any]:
-    """
-    Récupère les dossiers/labels disponibles pour l'utilisateur.
-    """
-    if platform and platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail', 'outlook' ou non spécifiée")
-    
-    try:
-        folders = await email_provider.get_folders(platform)
-        return {"folders": folders}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des dossiers: {str(e)}")
-
-@router.get("/profile")
-async def get_email_profile(
-    platform: str = Query(..., description="Plateforme à utiliser (gmail ou outlook)"),
-    email_provider: EmailProvider = Depends(get_provider)
-) -> Dict[str, Any]:
-    """
-    Récupère le profil de l'utilisateur pour la plateforme d'email spécifiée.
-    """
-    if platform not in ["gmail", "outlook"]:
-        raise HTTPException(status_code=400, detail="La plateforme doit être 'gmail' ou 'outlook'")
-    
-    try:
-        # À implémenter: récupérer le profil utilisateur
-        return {
-            "email": email_provider.user.email,
-            "platform": platform,
-            "authenticated": True
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération du profil: {str(e)}")
-
-@router.get("/classified-emails")
-async def get_classified_emails(
-    batch_number: Optional[int] = Query(None),
-    output_dir: Optional[str] = Query(None)
+@router.get("")
+async def get_user_emails(
+        email: str = Query(...),
+        batch_number: Optional[int] = Query(None),
+        authorization: HTTPAuthorizationCredentials = Depends(security)
 ):
     """
-    Récupère les emails classifiés depuis les fichiers JSON.
-    
-    Args:
-        batch_number: Numéro du lot à récupérer (si None, retourne tous les emails)
-        output_dir: Répertoire contenant les fichiers batch (si None, utilise le répertoire par défaut)
+    Récupère les emails exportés pour un utilisateur spécifique
     """
     try:
-        # Utiliser le répertoire par défaut si aucun n'est spécifié
-        if not output_dir:
-            output_dir = get_file_path("backend/app/data/mockdata")
-        
+        # Vérification du token JWT
+        try:
+            payload = jwt.decode(authorization.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+            token_email = payload.get("email")
+
+            # Vérifier que l'email du token correspond à l'email demandé
+            if token_email != email:
+                raise HTTPException(status_code=403, detail="Accès non autorisé")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token invalide")
+
+        # Récupérer le chemin du répertoire pour cet utilisateur
+        user_id = normalize_email_for_storage(email)
+        export_dir = get_file_path(f"backend/app/data")
+
         # Vérifier si le répertoire existe
-        if not os.path.exists(output_dir):
-            raise HTTPException(status_code=404, detail=f"Répertoire {output_dir} non trouvé")
-            
-        # Déterminer les fichiers à lire
+        if not os.path.exists(export_dir):
+            raise HTTPException(
+                status_code=404,
+                detail="Aucune donnée d'email exportée trouvée. Veuillez d'abord exporter vos emails."
+            )
+
+        # Si un numéro de lot spécifique est demandé
         if batch_number is not None:
-            # Lire un lot spécifique
-            batch_file = f"emails_batch_{batch_number}.json"
-            
-            # Pour le mode test (avec emails.json)
-            if not os.path.exists(os.path.join(output_dir, batch_file)) and os.path.exists(os.path.join(output_dir, "emails.json")):
-                batch_file = "emails.json"
-                
-            file_path = os.path.join(output_dir, batch_file)
-            if not os.path.exists(file_path):
-                raise HTTPException(status_code=404, detail=f"Fichier {batch_file} non trouvé")
-                
-            with open(file_path, 'r', encoding='utf-8') as f:
-                emails = json.load(f)
-            
-            return {
-                "total_emails": len(emails),
-                "batch": batch_number,
-                "emails": emails
-            }
-        else:
-            # Lire tous les lots
-            all_emails = []
-            
-            # Vérifier si nous sommes en mode test (avec un seul fichier emails.json)
-            if os.path.exists(os.path.join(output_dir, "emails.json")):
-                with open(os.path.join(output_dir, "emails.json"), 'r', encoding='utf-8') as f:
-                    all_emails = json.load(f)
-                    
-                return {
-                    "total_emails": len(all_emails),
-                    "mode": "test",
-                    "emails": all_emails
-                }
-            
-            # Sinon, lire tous les fichiers batch
-            batch_files = [f for f in os.listdir(output_dir) if f.startswith("emails_batch_") and f.endswith(".json")]
-            batch_files.sort()  # Trier pour traiter les lots dans l'ordre
-            
-            for batch_file in batch_files:
-                file_path = os.path.join(output_dir, batch_file)
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    batch_emails = json.load(f)
-                    all_emails.extend(batch_emails)
-            
-            return {
-                "total_emails": len(all_emails),
-                "total_batches": len(batch_files),
-                "mode": "production",
-                "emails": all_emails
-            }
-            
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des emails classifiés: {str(e)}")
+            batch_file = os.path.join(export_dir, f"emails_batch_{batch_number}.json")
+            if not os.path.exists(batch_file):
+                raise HTTPException(status_code=404, detail=f"Lot d'emails {batch_number} non trouvé")
 
-@router.get("/classified-emails/status")
-async def get_classification_status(
-    output_dir: Optional[str] = Query(None)
+            with open(batch_file, "r", encoding="utf-8") as f:
+                emails = json.load(f)
+
+            return emails
+
+        # Sinon, charger tous les fichiers batch
+        emails = []
+        batch_files = [f for f in os.listdir(export_dir)
+                       if f.startswith("emails_batch_") and f.endswith(".json")]
+
+        if not batch_files:
+            raise HTTPException(
+                status_code=404,
+                detail="Aucun fichier d'emails trouvé dans le répertoire d'exportation."
+            )
+
+        # Trier les fichiers batch par numéro
+        batch_files.sort(key=lambda x: int(x.split("_")[-1].split(".")[0]))
+
+        # Charger chaque fichier batch
+        for batch_file in batch_files:
+            batch_path = os.path.join(export_dir, batch_file)
+            with open(batch_path, "r", encoding="utf-8") as f:
+                batch_emails = json.load(f)
+                emails.extend(batch_emails)
+
+        return emails
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/classified")
+async def get_classified_emails(
+        email: str = Query(...),
+        batch_number: Optional[int] = Query(None),
+        output_dir: Optional[str] = Query(None),
+        authorization: HTTPAuthorizationCredentials = Depends(security)
 ):
     """
-    Vérifie si le processus de classification est terminé en vérifiant l'existence des fichiers.
+    Récupère les emails classifiés pour un utilisateur spécifique
     """
     try:
-        # Utiliser le répertoire par défaut si aucun n'est spécifié
-        if not output_dir:
-            output_dir = get_file_path("backend/app/data/mockdata")
-            
-        # Vérifier si le répertoire existe
-        if not os.path.exists(output_dir):
-            return {"status": "not_started", "message": "Le répertoire des emails n'existe pas"}
-            
-        # Vérifier s'il y a des fichiers d'emails
-        # Mode test
-        if os.path.exists(os.path.join(output_dir, "emails.json")):
-            with open(os.path.join(output_dir, "emails.json"), 'r', encoding='utf-8') as f:
-                emails = json.load(f)
-                
-            # Vérifier si au moins un email a été classifié
-            if emails and "accord_main_class" in emails[0]:
-                return {
-                    "status": "completed", 
-                    "mode": "test",
-                    "total_emails": len(emails)
-                }
-            else:
-                return {"status": "in_progress", "message": "Classification en cours"}
-                
-        # Mode production
-        batch_files = [f for f in os.listdir(output_dir) if f.startswith("emails_batch_") and f.endswith(".json")]
-        if not batch_files:
-            return {"status": "not_started", "message": "Aucun fichier d'emails trouvé"}
-            
-        # Vérifier le premier lot pour voir s'il contient des classifications
-        with open(os.path.join(output_dir, batch_files[0]), 'r', encoding='utf-8') as f:
-            batch_emails = json.load(f)
-            
-        if batch_emails and "accord_main_class" in batch_emails[0]:
-            return {
-                "status": "completed", 
-                "mode": "production",
-                "total_batches": len(batch_files),
-                "total_emails": sum(1 for f in batch_files for e in json.load(open(os.path.join(output_dir, f), 'r', encoding='utf-8')))
-            }
-        else:
-            return {"status": "in_progress", "message": "Classification en cours"}
-            
-    except Exception as e:
-        return {"status": "error", "message": f"Erreur lors de la vérification du statut: {str(e)}"}
+        # Vérification du token JWT
+        try:
+            payload = jwt.decode(authorization.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+            token_email = payload.get("email")
 
+            # Vérifier que l'email du token correspond à l'email demandé
+            if token_email != email:
+                raise HTTPException(status_code=403, detail="Accès non autorisé")
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token invalide")
+
+        # Récupérer les emails (on réutilise la fonction précédente)
+        if batch_number is not None:
+            emails = await get_user_emails(email=email, batch_number=batch_number, authorization=authorization)
+        else:
+            emails = await get_user_emails(email=email, authorization=authorization)
+
+        # Vérifier si les emails ont été classifiés
+        has_classification = any(
+            "accord_main_class" in email for email in emails[:10]
+        ) if emails else False
+
+        if not has_classification:
+            raise HTTPException(
+                status_code=404,
+                detail="Les emails n'ont pas encore été classifiés. Veuillez attendre que le processus de classification soit terminé."
+            )
+
+        return {
+            "total_emails": len(emails),
+            "emails": emails
+        }
+    except HTTPException:
+        # Rethrow HTTP exceptions
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

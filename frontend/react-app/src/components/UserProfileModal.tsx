@@ -1,11 +1,24 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { authService } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 interface UserProfileModalProps {
   onClose: () => void;
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ onClose }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      console.log("tentative logout");
+      await authService.logout();
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
       <motion.div
@@ -38,12 +51,15 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ onClose }) => {
               Placeholder for user preferences.
             </p>
           </div>
-          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div
+            className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            onClick={handleLogout}
+          >
             <h3 className="font-semibold mb-1 dark:text-white text-red-600">
               Déconnexion
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Placeholder for logout option.
+              Se déconnecter de l'application
             </p>
           </div>
         </div>

@@ -1,0 +1,5 @@
+{
+  "Informations": "Messages qui ne nécessitent aucune action, comme des notifications ou des mises à jour de politiques de confidentialité. Exemples: newsletters, alertes de sécurité, mises à jour de politiques.",
+  "Threads": "Messages auxquels on peut répondre, typiquement des conversations, des discussions, des demandes d'informations ou des échanges professionnels. Exemples: emails de collègues, demandes de clients, communications de projet.",
+  "Action": "Messages qui nécessitent une action spécifique, comme une confirmation de rendez-vous, une validation, un paiement ou une inscription. Exemples: invitations à des réunions, confirmations de rendez-vous, demandes d'approbation, factures à payer."
+}
