@@ -1,0 +1,168 @@
+flowchart TD
+    %% Client Layer
+    subgraph "Client Layer"
+        direction TB
+        ElectronMain["Electron Main"]:::ui
+        Preload["Preload & IPC"]:::ui
+        ReactApp["React Renderer (SPA)"]:::ui
+    end
+
+    %% API Layer
+    subgraph "API Layer"
+        direction TB
+        FastAPIApp["FastAPI App"]:::api
+        subgraph "Routes"
+            direction TB
+            AuthRoutes["Auth Routes"]:::api
+            EmailRoutes["Email Routes"]:::api
+            ExportRoutes["Export Routes"]:::api
+            DeconnRoutes["Deconnexion Routes"]:::api
+            MockDataRoutes["Mock Data Routes"]:::api
+        end
+        subgraph "Core & Security"
+            direction TB
+            CoreConfig["Config"]:::api
+            CoreDeps["Dependencies"]:::api
+            CoreSec["Security"]:::api
+        end
+        subgraph "Services"
+            direction TB
+            subgraph "Email Services"
+                EmailService["email_service.py"]:::api
+                EmailSync["email_sync.py"]:::api
+                OutlookClient["outlookClient.py"]:::api
+                EmailProvider["email_provider interface"]:::api
+            end
+            subgraph "AI Services"
+                AIPipeline["pipeline.py"]:::api
+                IntentDetector["intentDetector.py"]:::api
+                SubClassifier["subClassifier.py"]:::api
+                EmailPreprocess["emailPreprocess.py"]:::api
+            end
+            subgraph "Mail Graph Builder"
+                GraphBuilder["graph_builder.py"]:::api
+                BuildGraphMain["build_graph_main.py"]:::api
+                MessageNode["message_node.py"]:::api
+                UserNode["user_node.py"]:::api
+                MessageRelation["message_relation.py"]:::api
+                UserRelation["user_relation.py"]:::api
+            end
+            ExportStatusService["export_status.py"]:::api
+        end
+        subgraph "Data & Persistence"
+            DBConnection["connection.py"]:::db
+            DBModels["models.py"]:::db
+            MockData["mockdata"]:::db
+        end
+        BackgroundTask["email_processor.py"]:::api
+        subgraph "Utilities"
+            DeleteTokenFile["delete_token_file.py"]:::api
+            Keyphraser["keyphraser.py"]:::api
+            KillerProcess["killer_process.py"]:::api
+            DataGenerator["dataGenerator"]:::api
+        end
+        FastAPIApp --> AuthRoutes
+        FastAPIApp --> EmailRoutes
+        FastAPIApp --> ExportRoutes
+        FastAPIApp --> DeconnRoutes
+        FastAPIApp --> MockDataRoutes
+        AuthRoutes --> CoreConfig
+        AuthRoutes --> CoreDeps
+        AuthRoutes --> CoreSec
+        EmailRoutes --> EmailService
+        EmailRoutes --> EmailSync
+        EmailRoutes --> OutlookClient
+        EmailRoutes --> EmailProvider
+        EmailRoutes --> AIPipeline
+        AIPipeline --> IntentDetector
+        AIPipeline --> SubClassifier
+        AIPipeline --> EmailPreprocess
+        EmailRoutes --> GraphBuilder
+        GraphBuilder --> BuildGraphMain
+        BuildGraphMain --> MessageNode
+        BuildGraphMain --> UserNode
+        BuildGraphMain --> MessageRelation
+        BuildGraphMain --> UserRelation
+        ExportRoutes --> ExportStatusService
+        EmailRoutes --> DBConnection
+        EmailRoutes --> DBModels
+        MockDataRoutes --> MockData
+        AuthRoutes --> DeleteTokenFile
+        AuthRoutes --> Keyphraser
+        AuthRoutes --> KillerProcess
+        AuthRoutes --> DataGenerator
+        ExportRoutes -.->|schedule| BackgroundTask
+        BackgroundTask --> DBModels
+
+    end
+
+    %% Data Layer
+    MongoDB["MongoDB"]:::db
+
+    %% External Systems
+    GmailAPI["Gmail API (OAuth2)"]:::ext
+    OutlookAPI["Outlook API (OAuth2)"]:::ext
+    BERT["BERT Model (HuggingFace)"]:::ext
+
+    %% Client to API interactions
+    ReactApp -->|HTTP| AuthRoutes
+    ReactApp -->|HTTP| EmailRoutes
+    ReactApp -->|HTTP| ExportRoutes
+    ReactApp -->|IPC| Preload
+    Preload -->|IPC| ElectronMain
+
+    %% API to Data/External flows
+    AuthRoutes -->|OAuth2| GmailAPI
+    AuthRoutes -->|OAuth2| OutlookAPI
+    EmailService -->|REST| GmailAPI
+    EmailService -->|REST| OutlookAPI
+    EmailSync -->|REST| GmailAPI
+    EmailSync -->|REST| OutlookAPI
+    AIPipeline -->|loads model| BERT
+    EmailRoutes -->|read/write| MongoDB
+    GraphBuilder -->|stores graph| MongoDB
+    ExportStatusService -->|updates| MongoDB
+
+    %% Click Events
+    click ElectronMain "https://github.com/protolabo/accord/blob/main/frontend/main.js"
+    click Preload "https://github.com/protolabo/accord/blob/main/frontend/preload.js"
+    click ReactApp "https://github.com/protolabo/accord/tree/main/frontend/react-app/"
+    click AuthRoutes "https://github.com/protolabo/accord/blob/main/backend/app/routes/auth_routes.py"
+    click EmailRoutes "https://github.com/protolabo/accord/blob/main/backend/app/routes/emails.py"
+    click ExportRoutes "https://github.com/protolabo/accord/blob/main/backend/app/routes/exportmail.py"
+    click DeconnRoutes "https://github.com/protolabo/accord/blob/main/backend/app/routes/deconnexion.py"
+    click MockDataRoutes "https://github.com/protolabo/accord/blob/main/backend/app/routes/mock_data.py"
+    click CoreConfig "https://github.com/protolabo/accord/blob/main/backend/app/core/config.py"
+    click CoreDeps "https://github.com/protolabo/accord/blob/main/backend/app/core/dependencies.py"
+    click CoreSec "https://github.com/protolabo/accord/blob/main/backend/app/core/security.py"
+    click EmailService "https://github.com/protolabo/accord/blob/main/backend/app/services/email/email_service.py"
+    click EmailSync "https://github.com/protolabo/accord/blob/main/backend/app/services/email/email_sync.py"
+    click OutlookClient "https://github.com/protolabo/accord/blob/main/backend/app/services/email/outlookClient.py"
+    click EmailProvider "https://github.com/protolabo/accord/blob/main/backend/app/services/email/email_provider.py"
+    click AIPipeline "https://github.com/protolabo/accord/blob/main/backend/app/services/ai/pipeline.py"
+    click IntentDetector "https://github.com/protolabo/accord/blob/main/backend/app/services/ai/intentDetector.py"
+    click SubClassifier "https://github.com/protolabo/accord/blob/main/backend/app/services/ai/subClassifier.py"
+    click EmailPreprocess "https://github.com/protolabo/accord/blob/main/backend/app/services/ai/emailPreprocess.py"
+    click GraphBuilder "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/graph_builder.py"
+    click BuildGraphMain "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/build_graph_main.py"
+    click MessageNode "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/nodes/message_node.py"
+    click UserNode "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/nodes/user_node.py"
+    click MessageRelation "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/relations/message_relation.py"
+    click UserRelation "https://github.com/protolabo/accord/blob/main/backend/app/services/mail_graph/relations/user_relation.py"
+    click ExportStatusService "https://github.com/protolabo/accord/blob/main/backend/app/services/export_status.py"
+    click MockData "https://github.com/protolabo/accord/tree/main/backend/app/data/mockdata/"
+    click DBConnection "https://github.com/protolabo/accord/blob/main/backend/app/db/connection.py"
+    click DBModels "https://github.com/protolabo/accord/blob/main/backend/app/db/models.py"
+    click BackgroundTask "https://github.com/protolabo/accord/blob/main/backend/app/tasks/email_processor.py"
+    click DeleteTokenFile "https://github.com/protolabo/accord/blob/main/backend/app/utils/delete_token_file.py"
+    click Keyphraser "https://github.com/protolabo/accord/blob/main/backend/app/utils/keyphraser.py"
+    click KillerProcess "https://github.com/protolabo/accord/blob/main/backend/app/utils/killer_process.py"
+    click DataGenerator "https://github.com/protolabo/accord/tree/main/backend/app/utils/dataGenerator/"
+    click GmailAPI "https://github.com/protolabo/accord/blob/main/backend/app/email_providers/google/gmail_service.py"
+    click OutlookAPI "https://github.com/protolabo/accord/blob/main/backend/app/routes/toUse/auth/outlookAuth.py"
+
+    %% Styles
+    classDef ui fill:#ADD8E6,stroke:#000
+    classDef api fill:#90EE90,stroke:#000
+    classDef db fill:#FFA500,stroke:#000
+    classDef ext fill:#DDA0DD,stroke:#000
