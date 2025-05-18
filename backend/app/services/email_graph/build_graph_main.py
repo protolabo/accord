@@ -4,6 +4,7 @@ import psutil
 import json
 from pathlib import Path
 from backend.app.utils.absolute_path import get_file_path
+from .processor import EmailGraphProcessor
 
 
 def memory_usage_gb():
@@ -122,9 +123,25 @@ def main(input_dir=None, output_dir=None,
     print(f"Loaded {len(emails)} emails in {time.time() - start_time:.2f} seconds")
 
     # Initialize graph coordinator
-    graph_coordinator =  None #processor
+    graph_coordinator = EmailGraphProcessor()
 
     build_start_time = time.time()
+
+    email_data = {
+        "mails": emails,
+        "central_user": central_user,
+        "max_emails": max_emails
+    }
+
+    # Traiter les emails et construire le graphe
+    result_json = graph_coordinator.process_graph(email_data)
+    result = json.loads(result_json)
+
+    output_path = Path(output_dir) / "email_graph_results.json"
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=2)
+
+    print(f"Graphe sauvegardé dans {output_path}")
 
 
     build_time = time.time() - build_start_time
