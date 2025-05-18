@@ -1,7 +1,6 @@
 import os
 import json
 import time
-import webbrowser
 from datetime import datetime
 
 from backend.app.email_providers.google.settings import Config
@@ -9,7 +8,7 @@ from backend.app.email_providers.google.gmail_service import GmailService
 from backend.app.email_providers.google.gmail_auth import GmailAuthManager
 from backend.app.email_providers.google.email_utils import normalize_email_for_storage
 from backend.app.services.export_status import update_export_status
-from backend.app.services.mail_graph.build_graph_main import main as build_graph_main
+from backend.app.services.email_graph.build_graph_main import main as build_graph_main
 from backend.app.utils.absolute_path import get_file_path
 
 

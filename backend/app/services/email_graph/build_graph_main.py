@@ -3,7 +3,6 @@ import time
 import psutil
 import json
 from pathlib import Path
-from backend.app.services.mail_graph.graph_coordinator import GraphCoordinator
 from backend.app.utils.absolute_path import get_file_path
 
 
@@ -123,15 +122,10 @@ def main(input_dir=None, output_dir=None,
     print(f"Loaded {len(emails)} emails in {time.time() - start_time:.2f} seconds")
 
     # Initialize graph coordinator
-    graph_coordinator = GraphCoordinator(
-        central_user_email=central_user,
-        output_dir=output_dir
-    )
+    graph_coordinator =  None #processor
 
     build_start_time = time.time()
 
-    #### ---------  Build graphs using the coordinator --------- ####
-    result = graph_coordinator.build_graphs(emails)
 
     build_time = time.time() - build_start_time
     log_memory_usage("after building graphs")
@@ -145,9 +139,7 @@ def main(input_dir=None, output_dir=None,
         "peak_memory_gb": memory_usage_gb(),
     }
 
-    # Merge with result metadata
-    if isinstance(result, dict):
-        stats.update(result)
+
 
     # Print summary
     print("\nGraph building complete!")
