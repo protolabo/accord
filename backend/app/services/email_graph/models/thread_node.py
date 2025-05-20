@@ -1,4 +1,3 @@
-# oria_ui/shared/python/email_graph/models/thread_node.py
 """
 Gestionnaire de nœuds de thread pour le graphe d'emails.
 """

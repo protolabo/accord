@@ -1,4 +1,3 @@
-# oria_ui/shared/python/email_graph/models/message_node.py
 """
 Gestionnaire de nœuds de message pour le graphe d'emails.
 """

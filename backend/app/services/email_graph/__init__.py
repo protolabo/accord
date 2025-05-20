@@ -1,4 +1,3 @@
-# oria_ui/shared/python/email_graph/__init__.py
 """
 Module d'analyse de graphe d'emails pour Oria.
 

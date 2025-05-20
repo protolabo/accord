@@ -263,19 +263,23 @@ class UserNodeManager:
         if source_id == target_id:
             return None
 
-        # Créer la relation
-        edge_key = None
-        if self.graph.has_edge(source_id, target_id, key=edge_key):
-            # Si la relation existe déjà, mettre à jour le poids
-            edge_data = self.graph.get_edge_data(source_id, target_id, key=edge_key)
-            # Augmenter le poids existant (cumul de l'importance)
-            edge_data["weight"] += weight
-            return edge_data
-        else:
-            # Créer une nouvelle relation
-            edge_data = {
-                "type": relation_type,
-                "weight": weight
-            }
-            self.graph.add_edge(source_id, target_id, **edge_data)
-            return edge_data
+        # Vérifier si une relation du même type existe déjà
+        edges_data = self.graph.get_edge_data(source_id, target_id)
+
+        if edges_data:  # Si des arêtes existent entre ces nœuds
+            # Rechercher une arête avec le même type de relation
+            for key, data in edges_data.items():
+                if data.get("type") == relation_type:
+                    # Mettre à jour le poids de cette arête spécifique
+                    self.graph[source_id][target_id][key]["weight"] += weight
+                    return self.graph[source_id][target_id][key]
+
+        # Si aucune relation de ce type n'existe, en créer une nouvelle
+        edge_data = {
+            "type": relation_type,
+            "weight": weight
+        }
+        self.graph.add_edge(source_id, target_id, **edge_data)
+
+        # Retourner les données de la nouvelle relation
+        return edge_data
