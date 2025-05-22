@@ -27,7 +27,7 @@ for main_class, data in categories.items():
     subcategory_names[main_class] = list(data["subcategories"].keys())
 
 # Method for classification: Hierarchical Classification 
-def hierarchical_classify(email_text, main_threshold=0.10, sub_threshold=0.2, top_k=2):
+def hierarchical_classify(email_text, main_threshold=0.20, sub_threshold=0.2, top_k=2):
     # Encode email content
     email_embed = model.encode([email_text])
 
@@ -85,10 +85,12 @@ def email_classification(email_text, diff_threshold=0.05):
     main_names = [name for name, _ in mains]
     subs = classification_result.get("subs", [])
 
-    # Return only main class if a Spam class is detected and return other if no sub class classified
-    if "Spam" in main_names:
-        return {"main_class": main_names, "sub_classes": []}
-    elif not subs:
+    # Return only main class if a Spam class is detected and high score, return other if no sub class classified
+    for name, score in mains:
+        if name == "Spam" and score >= 0.4:
+            return {"main_class": ["Spam"], "sub_classes": []}
+
+    if not subs:
         return {"main_class": ["Other class"], "sub_classes": []}
 
     # Choose subs only within a threshold of the highest sub class
