@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta
-from fastapi import HTTPException, Depends
 from fastapi.responses import JSONResponse
-from fastapi.security import OAuth2PasswordBearer
 from typing import Optional, Callable, Awaitable
 
 from app.core.config import settings
 from app.core.security import create_jwt_token
 from app.db.models import User, EmailAccount, TokenInfo
-from backend.app.services.auth.outlookAuth import OutlookAuth
+from backend.app.routes.toUse.auth.outlookAuth import OutlookAuth
 from app.email_providers.google.gmail_auth import GmailAuthManager
 
 # ---------------------------------------------------

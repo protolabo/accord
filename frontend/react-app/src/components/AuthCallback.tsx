@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import emailAPIService from "../services/EmailService";
+import { authService } from "../services/authService";
 
 const AuthCallback: React.FC = () => {
   const [status, setStatus] = useState("Traitement de l'authentification...");
@@ -10,86 +11,69 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleCallback = async () => {
       const searchParams = new URLSearchParams(location.search);
-      const code = searchParams.get("code");
+      const token = searchParams.get("token");
       const email = searchParams.get("email");
+      const service = searchParams.get("service") || "gmail";
 
-      if (!code) {
-        setStatus("Erreur: Code d'autorisation manquant");
+      if (!token) {
+        setStatus("Erreur: Token d'authentification manquant");
         return;
       }
 
       try {
-        const service = emailAPIService.getService();
+        emailAPIService.setService(service as "gmail" | "outlook");
+        localStorage.setItem("jwt_token", token);
+        if (email) localStorage.setItem("userEmail", email);
 
-        if (!service) {
-          setStatus("Erreur: Service de messagerie non spécifié");
-          return;
+        setStatus("Authentification réussie! Démarrage de l'exportation des emails...");
+
+        //  Déclencher l'exportation des emails
+        if (service === "gmail" && email) {
+          try {
+            const exportResponse = await fetch('http://localhost:8000/export/gmail', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                email: email,
+                max_emails: 1,
+                output_dir: '../data',
+                batch_size: 5000
+              }),
+            });
+
+            if (exportResponse.ok) {
+              setStatus("Exportation des emails en cours. Redirection vers le tableau de bord...");
+              // Rediriger vers la page d'état d'exportation
+              setTimeout(() => navigate("/export-status"), 1500);
+            } else {
+              const errorData = await exportResponse.json();
+              setStatus(`Erreur lors du démarrage de l'exportation: ${errorData.detail || 'Erreur inconnue'}`);
+              setTimeout(() => navigate("/home"), 2000);
+            }
+          } catch (exportError) {
+            console.error("Erreur lors de l'exportation:", exportError);
+            setStatus("Authentification réussie, mais l'exportation a échoué. Redirection...");
+            setTimeout(() => navigate("/home"), 2000);
+          }
+        } else {
+          setStatus("Authentification réussie! Redirection...");
+          setTimeout(() => navigate("/home"), 1500);
         }
 
-        // Traiter le code d'authentification
-        await emailAPIService.handleAuthCallback(code);
-        setStatus("Authentification réussie!");
-
-        // Si cette page est dans une fenêtre popup, envoyer un message à la fenêtre parente
+        // Gestion des fenêtres popup
         if (window.opener && !window.opener.closed) {
-          // Obtenir l'email de l'utilisateur si possible
-          let userEmail = email;
-          try {
-            if (!userEmail) {
-              const profile = await emailAPIService.getUserProfile();
-              userEmail = profile.email;
-            }
-          } catch (e) {
-            console.error(
-              "Impossible de récupérer le profil de l'utilisateur:",
-              e
-            );
-          }
-
-          // Envoyer un message à la fenêtre parente indiquant que l'authentification est réussie
           window.opener.postMessage(
             {
               type: "authSuccess",
               service,
-              email: userEmail,
+              email: email
             },
             window.location.origin
           );
-
-          // Si le service est Gmail, lancer l'exportation automatiquement
-          if (service === "gmail" && userEmail) {
-            try {
-              // Tenter de lancer l'exportation directement depuis la fenêtre de callback
-              await emailAPIService.exportGmailEmails(
-                userEmail,
-                null, // max_emails - null pour tous récupérer
-                "../data", // répertoire de sortie par défaut
-                5000 // taille de lot par défaut
-              );
-
-              // Informer la fenêtre parente que l'exportation a été lancée
-              window.opener.postMessage(
-                {
-                  type: "exportStarted",
-                  service: "gmail",
-                  email: userEmail,
-                },
-                window.location.origin
-              );
-            } catch (exportError) {
-              console.error(
-                "Erreur lors de l'exportation des emails:",
-                exportError
-              );
-            }
-          }
-
-          // Fermer la fenêtre popup après l'envoi du message
           setTimeout(() => window.close(), 1000);
-        } else {
-          // Gestion si ce n'est pas une fenêtre popup (repli)
-          setStatus("Authentification réussie! Redirection...");
-          setTimeout(() => navigate("/"), 1500);
         }
       } catch (error) {
         console.error("Erreur d'authentification:", error);

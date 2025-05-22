@@ -1,0 +1,1903 @@
+{
+  "carrie.perez@gmail.com": {
+    "id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+    "type": "user",
+    "email": "carrie.perez@gmail.com",
+    "name": "Carrie Perez",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 127.0,
+    "relations": [
+      {
+        "id": "c66338c5-b274-49e5-9520-7d854a35e837",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 48,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "4a4c8c30-128c-409a-a645-a70b3313672c",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      },
+      {
+        "id": "b750fced-1c9d-43da-a2da-20120fe09e0f",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "936fbc31-1995-4717-aa69-b81fd39c51a1",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 1.1,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "d64fe16b-38f2-41d3-91b3-41ff111db219",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "3b841df4-727c-4a4a-b064-aa5eda66fcde",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "34a4c4d5-2240-4bc2-a530-df178be3f574",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "joel.duke@smith-hood.com"
+      },
+      {
+        "id": "fdb18367-b6ea-4b66-9300-8c27634d40b0",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "cynthia.terry@gmail.com"
+      },
+      {
+        "id": "be3f3d28-fc66-4c44-a6e6-a856e72b9b94",
+        "type": "relation",
+        "source_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "target_id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "carrie.perez@gmail.com",
+        "to_user": "david.guerra@gmail.com"
+      }
+    ]
+  },
+  "alexander.smith@gmail.com": {
+    "id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+    "type": "user",
+    "email": "alexander.smith@gmail.com",
+    "name": "Alexander Smith",
+    "domain": "gmail.com",
+    "is_central_user": true,
+    "connection_strength": 478,
+    "relations": [
+      {
+        "id": "871270b9-9c8c-4dd6-9858-36708e829fe4",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "relation_type": "EMAILED",
+        "weight": 111,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "erin.lopez@smith-hood.com"
+      },
+      {
+        "id": "a4f68003-9ec2-4f57-9611-dd83ceec7041",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 133,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "55d29f37-462d-4a2e-8164-b0c1b42bc9e4",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "17c2bf16-7986-4d4b-babb-304874fa40fd",
+        "relation_type": "EMAILED",
+        "weight": 1,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "joshua.hess@smith-hood.com"
+      },
+      {
+        "id": "e6a3b74e-b203-4d72-80d1-75142f0f274f",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "relation_type": "EMAILED",
+        "weight": 124,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "carrie.perez@gmail.com"
+      },
+      {
+        "id": "5dd8c7d6-c5db-4f75-b3ef-cc4f88e963f9",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 151,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "f8e004ee-cf44-4d34-898f-4acc0b89bd56",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "216d0187-d9dd-4a26-88c6-e3efe0c0080e",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 181,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "6d7998a5-68b8-4a02-86f6-9ecd9eebdda7",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 114,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      },
+      {
+        "id": "a9c84aea-da69-4dbe-a1e6-0e61859eaad0",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+        "relation_type": "EMAILED",
+        "weight": 10.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "cynthia.terry@gmail.com"
+      },
+      {
+        "id": "5b4dcfaf-1e0e-4df7-ac05-324681eacb1a",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "relation_type": "EMAILED",
+        "weight": 81.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "sarah.morrow@brooksvegaandrussell.com"
+      },
+      {
+        "id": "95e49de7-6221-4e31-acd8-504d16da7851",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+        "relation_type": "EMAILED",
+        "weight": 10,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "david.guerra@gmail.com"
+      },
+      {
+        "id": "5167a296-ea83-40df-b49d-3cfef37fdc40",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "relation_type": "EMAILED",
+        "weight": 125,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "jessica.padilla@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "1712b208-7bea-4ec9-a41d-1bac401e840c",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "34a4c4d5-2240-4bc2-a530-df178be3f574",
+        "relation_type": "EMAILED",
+        "weight": 2.7,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "joel.duke@smith-hood.com"
+      },
+      {
+        "id": "a3da73e4-0879-4298-a9c0-3b46ae7e0425",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "fc5f2693-670a-4a84-ba3f-ca778a12ac72",
+        "relation_type": "EMAILED",
+        "weight": 5.6,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "rachel.allen@greenplc.com"
+      },
+      {
+        "id": "932d94c5-b8fe-461c-ad29-42c7b9ca2c4a",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 90,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "rachel.nelson@gmail.com"
+      },
+      {
+        "id": "3eaaa0f9-2d1c-4113-aa29-158d22a75466",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "961d2ec0-d289-4e52-9ce2-cfd5683e4197",
+        "relation_type": "EMAILED",
+        "weight": 1.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "kevin.frank@brooksvegaandrussell.com"
+      },
+      {
+        "id": "7c08eb3d-6633-41cf-9b69-50cff8f59945",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "59eaf6cd-8ab1-44a5-9d5a-e31dece053c9",
+        "relation_type": "EMAILED",
+        "weight": 2,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "andrea.montgomery@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "a2c683ba-91e6-427e-8549-7e499c86a996",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "1a90a170-c3c7-412e-953f-b11becc4304a",
+        "relation_type": "EMAILED",
+        "weight": 1.8,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "margaret.wilson@greenplc.com"
+      },
+      {
+        "id": "3ac28bc0-deb4-4e69-ae79-96d692afb7e7",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "relation_type": "EMAILED",
+        "weight": 133.60000000000002,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "michael.moore@smith-hood.com"
+      },
+      {
+        "id": "5b95342a-d548-41c5-a59d-35eb75b8b8d8",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "f2540d01-d701-4a1e-8cb9-2d7fb5690b1a",
+        "relation_type": "EMAILED",
+        "weight": 1.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "robert.barnett@greenplc.com"
+      },
+      {
+        "id": "4a5e7f4f-6224-4b16-8605-a9a43b1ff209",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 4.6,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "05b02474-4bd5-4c16-9fe3-54c96d4d7fb2",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "5e36cc5d-4c95-40db-af41-827b28356b98",
+        "relation_type": "EMAILED",
+        "weight": 4.8,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "natasha.cook@brooksvegaandrussell.com"
+      },
+      {
+        "id": "4ccf9b4e-8183-4e50-b912-ea8b06d0879b",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "ba500d9f-98af-4f57-8779-08e75be3809c",
+        "relation_type": "EMAILED",
+        "weight": 2.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "patricia.thompson@smith-hood.com"
+      },
+      {
+        "id": "494efb9d-e4d9-4f3e-b122-a187b932587b",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "0f3e15d9-f15e-4b1d-befc-8e6aca839e83",
+        "relation_type": "EMAILED",
+        "weight": 1.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "chelsea.rogers@smith-hood.com"
+      },
+      {
+        "id": "55b84d88-f2a0-4bd4-a5f4-eda5e21effd9",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "5dcbc128-1107-4698-950c-43b302457f7b",
+        "relation_type": "EMAILED",
+        "weight": 2.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "crystal.lewis@brooksvegaandrussell.com"
+      },
+      {
+        "id": "9ba60c8e-440f-4c8d-9256-14ca5d8735c4",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "7f7040f7-86e8-40e7-a4a6-bd1baf8223fc",
+        "relation_type": "EMAILED",
+        "weight": 4.6000000000000005,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "michael.jones@brooksvegaandrussell.com"
+      },
+      {
+        "id": "38bf4b68-d501-4284-b5db-cf6daed8eabc",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 7,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "c00a7dec-279f-460d-aed0-798a3d1bf9eb",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "e0ec5c75-f6c7-445b-82ef-0d1ec26f6b8d",
+        "relation_type": "EMAILED",
+        "weight": 3.6,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "laura.conway@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "cce6a119-a253-4fd7-afbb-851449ab163b",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "243ca392-bdc6-4570-9e43-5ddc8267a2e5",
+        "relation_type": "EMAILED",
+        "weight": 2,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "matthew.santos@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "c37a6536-2c65-4195-8666-38bf0f15fd10",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "122442ec-018c-4c82-8c4f-9f7629ac092b",
+        "relation_type": "EMAILED",
+        "weight": 2.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "stephen.wilson@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "ed29fac6-0b73-4823-afdd-820c8f79a22a",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "63ebf685-6017-43da-8e2c-0dd0e5cf0ed3",
+        "relation_type": "EMAILED",
+        "weight": 3.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "brian.nichols@smith-hood.com"
+      },
+      {
+        "id": "90191efb-ccd1-4cd6-a7a5-e459b5f0a4c1",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "57ee0eba-6c13-45ff-8526-b13c842b6beb",
+        "relation_type": "EMAILED",
+        "weight": 1,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "allison.russell@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "1cc38dc7-b350-4f97-9f7a-b022f6100d48",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "d298b8ec-806f-4b7c-b137-1ac535bed478",
+        "relation_type": "EMAILED",
+        "weight": 1,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "katelyn.flores@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "f6cec1b2-0a61-4b19-a244-c12a1e06bfe1",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "a4e39e28-ebd1-46a8-b503-d3168a7f141f",
+        "relation_type": "EMAILED",
+        "weight": 0.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "emily.shelton@brooksvegaandrussell.com"
+      },
+      {
+        "id": "b337c5fa-5ebb-48fb-91e1-b4804c016fd7",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "4e7af7ab-36d0-4080-8875-774ded507056",
+        "relation_type": "EMAILED",
+        "weight": 2,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "gina.thomas@smith-hood.com"
+      },
+      {
+        "id": "896229f1-bd1b-4f46-bae1-a3fb05231653",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "4b5004fd-bcc5-48d0-a39f-95dacbb67904",
+        "relation_type": "EMAILED",
+        "weight": 3,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "nancy.richard@smith-hood.com"
+      },
+      {
+        "id": "78e87fee-4061-4d2b-a64c-f0bb53f0f69d",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "1af36927-9e3b-4bb7-90b5-3099f04cc18f",
+        "relation_type": "EMAILED",
+        "weight": 0.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "melissa.phillips@greenplc.com"
+      },
+      {
+        "id": "705bc408-dca9-4a5f-a2bd-80a33b8875c0",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "066f3dcf-c4db-45a1-8a82-877cbecc430f",
+        "relation_type": "EMAILED",
+        "weight": 0.9,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "michael.mendoza@greenplc.com"
+      },
+      {
+        "id": "3b6b758d-73ac-46c1-a39f-d6fc0492dbdd",
+        "type": "relation",
+        "source_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "target_id": "ad299ff0-ba54-4b52-a395-4e6a2981db35",
+        "relation_type": "EMAILED",
+        "weight": 1,
+        "from_user": "alexander.smith@gmail.com",
+        "to_user": "michael.oconnor@quinnfieldsandrodriguez.com"
+      }
+    ]
+  },
+  "erin.lopez@smith-hood.com": {
+    "id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+    "type": "user",
+    "email": "erin.lopez@smith-hood.com",
+    "name": "Erin Lopez",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 112.0,
+    "relations": [
+      {
+        "id": "d8a6bb0b-be5a-405d-ab58-94ba972cda24",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 42,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "2f30b15e-15f8-49c4-9a9f-8502b4bdb18e",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "4e7af7ab-36d0-4080-8875-774ded507056",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "gina.thomas@smith-hood.com"
+      },
+      {
+        "id": "15cfcf8a-07a7-4bf2-a021-d5fe80f60169",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "david.guerra@gmail.com"
+      },
+      {
+        "id": "4345f8a7-649e-48bc-9929-095dc1cd26fd",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "fc5f2693-670a-4a84-ba3f-ca778a12ac72",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "rachel.allen@greenplc.com"
+      },
+      {
+        "id": "262c4860-8bbd-4898-be0e-a149209b463f",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "ba500d9f-98af-4f57-8779-08e75be3809c",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "patricia.thompson@smith-hood.com"
+      },
+      {
+        "id": "7d13a239-2106-4a92-b48e-fe7fc8803eee",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "d2dfe2a2-518f-443f-a24a-d03fd089b3c9",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "0f3e15d9-f15e-4b1d-befc-8e6aca839e83",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "chelsea.rogers@smith-hood.com"
+      },
+      {
+        "id": "121b35df-cd3a-408d-a945-527b2e2bd7e7",
+        "type": "relation",
+        "source_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "target_id": "6dd6f509-d0ef-4c46-87ef-04ed97b5b7d4",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "erin.lopez@smith-hood.com",
+        "to_user": "phillip.padilla@greenplc.com"
+      }
+    ]
+  },
+  "kimberly.vaughan@gmail.com": {
+    "id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+    "type": "user",
+    "email": "kimberly.vaughan@gmail.com",
+    "name": "Kimberly Vaughan",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 136.8,
+    "relations": [
+      {
+        "id": "9adf9378-5917-4bce-a261-89d52102dbe3",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 50,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "4c61a3cf-0888-4143-8d2d-dcd9cb8e6d3b",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "e4de4e9e-2c9b-4f00-a212-d01ae4949cc6",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "a78b7172-67b0-4f41-8c32-8051a9fcab48",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "3e935b98-1607-475c-866d-4b599741b482",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      },
+      {
+        "id": "bec0ac73-96ca-4dca-9906-b73dc971046e",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "961d2ec0-d289-4e52-9ce2-cfd5683e4197",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "kevin.frank@brooksvegaandrussell.com"
+      },
+      {
+        "id": "4b6b59c5-bc1e-4529-bb28-6fa0bf1f79f9",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "e18ddbac-4108-4686-9565-1e785feb9bfd",
+        "type": "relation",
+        "source_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "target_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "kimberly.vaughan@gmail.com",
+        "to_user": "erin.lopez@smith-hood.com"
+      }
+    ]
+  },
+  "joshua.hess@smith-hood.com": {
+    "id": "17c2bf16-7986-4d4b-babb-304874fa40fd",
+    "type": "user",
+    "email": "joshua.hess@smith-hood.com",
+    "name": "Joshua Hess",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 1.5,
+    "relations": []
+  },
+  "sandra.duran@gmail.com": {
+    "id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+    "type": "user",
+    "email": "sandra.duran@gmail.com",
+    "name": "Sandra Duran",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 157.8,
+    "relations": [
+      {
+        "id": "9d677dc6-6150-44e9-b19f-21b241f6bc55",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 57,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "9d45c8e0-79b3-439d-8211-20f7561040ec",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 1.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "10f962b9-a658-4b51-a697-f6add487d0f0",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "e0ec5c75-f6c7-445b-82ef-0d1ec26f6b8d",
+        "relation_type": "EMAILED",
+        "weight": 0.6,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "laura.conway@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "496dc599-ca0d-4adb-ab05-226c9ae4ef2b",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "rachel.nelson@gmail.com"
+      },
+      {
+        "id": "bdcbea04-51e4-46d0-b7f4-ffb1042df608",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "ad299ff0-ba54-4b52-a395-4e6a2981db35",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "michael.oconnor@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "5085adc6-49a5-44ec-a1e5-002ad94c0316",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "michael.moore@smith-hood.com"
+      },
+      {
+        "id": "e94b990c-8304-43f7-9021-9cf9dc5fd958",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "david.guerra@gmail.com"
+      },
+      {
+        "id": "fbdcf7b4-4e0c-4b82-8c14-3e9d202c139a",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "carrie.perez@gmail.com"
+      },
+      {
+        "id": "b63faec8-2b2a-464a-9cbf-d759b4ced7e4",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      },
+      {
+        "id": "675c5e84-857a-4355-905f-e72daaa66d29",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "b81c0864-de1e-4640-8b2c-50e87feebc98",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "craig.yang@brooksvegaandrussell.com"
+      },
+      {
+        "id": "f32011cd-ae40-425e-9555-8b4033c6ebcc",
+        "type": "relation",
+        "source_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sandra.duran@gmail.com",
+        "to_user": "sara.ross@gmail.com"
+      }
+    ]
+  },
+  "sarah.morris@gmail.com": {
+    "id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+    "type": "user",
+    "email": "sarah.morris@gmail.com",
+    "name": "Sarah Morris",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 13.8,
+    "relations": []
+  },
+  "sheila.boyle@gmail.com": {
+    "id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+    "type": "user",
+    "email": "sheila.boyle@gmail.com",
+    "name": "Sheila Boyle",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 185.7,
+    "relations": [
+      {
+        "id": "8ce5f1f1-6fa3-4f30-8d22-3189c0d5a1f3",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 61,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "1b44eee7-7ec7-40b9-aef2-4df564621d45",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 1.8,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "rachel.nelson@gmail.com"
+      },
+      {
+        "id": "e0412bbe-de92-42f9-85be-6c0fb8780492",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "1a90a170-c3c7-412e-953f-b11becc4304a",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "margaret.wilson@greenplc.com"
+      },
+      {
+        "id": "4c4bc14c-e9c5-481d-9918-504a8694c871",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 1.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "9e41c977-7ce3-4aba-b353-890a724d8459",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "7a0bbce4-e8e0-45f7-912c-5aa0abb5f43d",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "6dd6f509-d0ef-4c46-87ef-04ed97b5b7d4",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "phillip.padilla@greenplc.com"
+      },
+      {
+        "id": "f9ae30fa-3be9-4cc3-9cb3-5c55b77b8433",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      },
+      {
+        "id": "66c7e595-c085-463f-8954-901093c462cc",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "48e0b372-3234-483f-94d8-bd01cf170fc1",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "243ca392-bdc6-4570-9e43-5ddc8267a2e5",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "matthew.santos@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "7f2ebf10-14c0-48bc-92ba-89147fb025db",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "77ad10b6-5113-4734-8c2a-c6277e373682",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "34975804-c902-4c45-a5d9-cd0a2aadb2d9",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "8f987d6f-3022-4195-97f3-9efe0f3dc3e1",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "nicole.kim@brooksvegaandrussell.com"
+      },
+      {
+        "id": "9ea66c17-3ce6-4c15-9b8a-c861a2ce510f",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "cynthia.terry@gmail.com"
+      },
+      {
+        "id": "cab751ad-4860-4e08-952a-ad55ac042250",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "63ebf685-6017-43da-8e2c-0dd0e5cf0ed3",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "brian.nichols@smith-hood.com"
+      },
+      {
+        "id": "ec4d3d52-8bdb-4bca-8e6a-e42d25bc2f61",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "4b5004fd-bcc5-48d0-a39f-95dacbb67904",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "nancy.richard@smith-hood.com"
+      },
+      {
+        "id": "11b8fdeb-736c-4092-b1d0-82f0a40927dd",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "michael.moore@smith-hood.com"
+      },
+      {
+        "id": "06d512be-01df-4781-aa15-9c7d9380883d",
+        "type": "relation",
+        "source_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "target_id": "fc5f2693-670a-4a84-ba3f-ca778a12ac72",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sheila.boyle@gmail.com",
+        "to_user": "rachel.allen@greenplc.com"
+      }
+    ]
+  },
+  "richard.meyer@smith-hood.com": {
+    "id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+    "type": "user",
+    "email": "richard.meyer@smith-hood.com",
+    "name": "Richard Meyer",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 6.1,
+    "relations": []
+  },
+  "sarah.morrow@brooksvegaandrussell.com": {
+    "id": "b7820585-7eb2-47b5-832e-a5764002a392",
+    "type": "user",
+    "email": "sarah.morrow@brooksvegaandrussell.com",
+    "name": "Sarah Morrow",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 82.4,
+    "relations": [
+      {
+        "id": "144020a5-3fa9-479f-bb94-c30634534894",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 44,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "cd8c5b11-592d-4da5-b661-c6c4312f5106",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "9faa5986-bde0-47f5-96b1-b86ef65c8770",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "7f7040f7-86e8-40e7-a4a6-bd1baf8223fc",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "michael.jones@brooksvegaandrussell.com"
+      },
+      {
+        "id": "52851908-45bc-4b02-a1e1-630452a82cd2",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "1c25550f-3ce8-48df-9396-4b62852dc358",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "961d2ec0-d289-4e52-9ce2-cfd5683e4197",
+        "relation_type": "EMAILED",
+        "weight": 0.8,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "kevin.frank@brooksvegaandrussell.com"
+      },
+      {
+        "id": "e434527a-187a-468a-9751-899ad3df7fa0",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "021de6c9-bc77-419c-a229-da41eb29b341",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "6c77bf80-36ab-4a58-b6d4-3ab09f80c7ae",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "066f3dcf-c4db-45a1-8a82-877cbecc430f",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "michael.mendoza@greenplc.com"
+      },
+      {
+        "id": "ba6b395c-0c52-46a2-bd1b-347dec0e4f0b",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "4e7af7ab-36d0-4080-8875-774ded507056",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "gina.thomas@smith-hood.com"
+      },
+      {
+        "id": "869a9376-932a-43f5-ba61-198025bb61b1",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "a4e39e28-ebd1-46a8-b503-d3168a7f141f",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "emily.shelton@brooksvegaandrussell.com"
+      },
+      {
+        "id": "ebe8b506-77a3-4fc2-8ddb-91097160a907",
+        "type": "relation",
+        "source_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "target_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "sarah.morrow@brooksvegaandrussell.com",
+        "to_user": "carrie.perez@gmail.com"
+      }
+    ]
+  },
+  "rachel.nelson@gmail.com": {
+    "id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+    "type": "user",
+    "email": "rachel.nelson@gmail.com",
+    "name": "Rachel Nelson",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 94.3,
+    "relations": [
+      {
+        "id": "0763f590-c9ae-462b-9bd6-4fe538c21368",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 26,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "e3d5d89c-d124-4ad3-b92c-94c04436dfee",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "b7820585-7eb2-47b5-832e-a5764002a392",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "sarah.morrow@brooksvegaandrussell.com"
+      },
+      {
+        "id": "bdcc8b1f-57c1-4f95-b268-b702faab49ff",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "ad8c77bf-bc0e-46dd-9862-fe64dd50ecaf",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "47babf97-722d-45e2-803b-8b90d3f044c3",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "ee9f15fd-fa58-4925-aaa2-f8fafc8ff968",
+        "type": "relation",
+        "source_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "target_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "rachel.nelson@gmail.com",
+        "to_user": "alexander.sloan@gmail.com"
+      }
+    ]
+  },
+  "alexander.sloan@gmail.com": {
+    "id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+    "type": "user",
+    "email": "alexander.sloan@gmail.com",
+    "name": "Alexander Sloan",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 118.0,
+    "relations": [
+      {
+        "id": "a5bd1e8a-a19b-4e5b-9fba-a5fccc32ae91",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 50,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "d152fc8e-8fd9-4bf8-98b1-4ba77d8afc5d",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "rachel.nelson@gmail.com"
+      },
+      {
+        "id": "94bc23a5-82eb-4b24-a7f6-3bd4b351496d",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "249c6158-9985-448c-a20c-5dcdc3b63324",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "erin.lopez@smith-hood.com"
+      },
+      {
+        "id": "cff86b3d-675d-4f4c-b256-1a4d6bfeaf5a",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 2.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "44ddd21e-156c-42c8-bef1-94211cd0f333",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+        "relation_type": "EMAILED",
+        "weight": 0.8,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "cynthia.terry@gmail.com"
+      },
+      {
+        "id": "028fad1e-b1cc-47ad-a7c1-8b3c2207daae",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 0.8,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "9c425e1e-9f76-4127-b0d3-f3f09f83c3e3",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "e4fd69ce-b4ff-4450-a261-75aaf61302a1",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "carrie.perez@gmail.com"
+      },
+      {
+        "id": "dd0da396-60aa-4454-b4aa-cf0dceff499c",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "4cc9d0c6-d107-4051-91ca-89ffd174d881",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+        "relation_type": "EMAILED",
+        "weight": 1.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "sara.ross@gmail.com"
+      },
+      {
+        "id": "4afdcb17-53e8-4e0b-87ce-759137a040b6",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "0f3e15d9-f15e-4b1d-befc-8e6aca839e83",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "chelsea.rogers@smith-hood.com"
+      },
+      {
+        "id": "e856b249-8581-4e28-ad2a-e349a768b57c",
+        "type": "relation",
+        "source_id": "329222cf-66a5-40a3-99e1-e20fe5dea4de",
+        "target_id": "122442ec-018c-4c82-8c4f-9f7629ac092b",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "alexander.sloan@gmail.com",
+        "to_user": "stephen.wilson@quinnfieldsandrodriguez.com"
+      }
+    ]
+  },
+  "jessica.padilla@quinnfieldsandrodriguez.com": {
+    "id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+    "type": "user",
+    "email": "jessica.padilla@quinnfieldsandrodriguez.com",
+    "name": "Jessica Padilla",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 125.3,
+    "relations": [
+      {
+        "id": "1686d9b7-f165-456d-bc13-47ce99d82796",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 55,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "12839f08-3241-47a6-ae0b-eb2e7ad150d6",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "243ca392-bdc6-4570-9e43-5ddc8267a2e5",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "matthew.santos@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "15717dbd-2e4d-4a07-9240-067517e27075",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "e5e99975-0d18-4e03-9d95-0f1e51e06e49",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "carrie.perez@gmail.com"
+      },
+      {
+        "id": "516ecd1b-7f9e-4817-bd5f-8e9431c8119a",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "923a8e32-e5ba-402e-a800-2570792f7045",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "7345bbef-e170-477b-a2b4-4a1adcab340f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "richard.meyer@smith-hood.com"
+      },
+      {
+        "id": "0aedcf78-3e1e-44dd-a21a-39e27aa7593c",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "dfa1f12e-ae50-46fe-8022-334dd47e235a",
+        "relation_type": "EMAILED",
+        "weight": 0.8,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "sarah.morris@gmail.com"
+      },
+      {
+        "id": "5a7ad3dd-1d4f-4e5a-adfd-57cc88f64f75",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "1759d7e7-96ac-4d95-a241-a5693cb10e76",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "57ee0eba-6c13-45ff-8526-b13c842b6beb",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "allison.russell@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "5e75cf6e-1975-4a97-9362-76f5bb324995",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "e0ec5c75-f6c7-445b-82ef-0d1ec26f6b8d",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "laura.conway@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "80dd1968-b952-4461-aca5-9e1622d37efe",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "87d7a3e1-1fa5-4ac2-b3cf-0cb475f655c3",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "david.guerra@gmail.com"
+      },
+      {
+        "id": "633a7858-f841-4fd1-8f2a-509438a41369",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "cynthia.terry@gmail.com"
+      },
+      {
+        "id": "9191cc7b-4ea6-4cd3-a8ab-4a7750e50fb3",
+        "type": "relation",
+        "source_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "jessica.padilla@quinnfieldsandrodriguez.com",
+        "to_user": "rachel.nelson@gmail.com"
+      }
+    ]
+  },
+  "cynthia.terry@gmail.com": {
+    "id": "224c62f7-84b2-435b-a185-4d5c6699419c",
+    "type": "user",
+    "email": "cynthia.terry@gmail.com",
+    "name": "Cynthia Terry",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 14.2,
+    "relations": []
+  },
+  "michael.moore@smith-hood.com": {
+    "id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+    "type": "user",
+    "email": "michael.moore@smith-hood.com",
+    "name": "Michael Moore",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 134.40000000000003,
+    "relations": [
+      {
+        "id": "576912bb-744e-4911-9003-819b054fc5da",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "b36f8451-b93e-4b56-96fb-f97d1c43ad0f",
+        "relation_type": "EMAILED",
+        "weight": 45,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "alexander.smith@gmail.com"
+      },
+      {
+        "id": "e8af98d0-dd84-4885-8f71-397d76ada651",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "ebfe3a3a-8ca1-4891-94f2-5fa552dfdcb8",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "jessica.padilla@quinnfieldsandrodriguez.com"
+      },
+      {
+        "id": "9c720b1a-18bc-4ae5-97e2-cedd7d41e7eb",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "517d6979-41af-4933-8f64-b93d3d7fdea8",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "rachel.nelson@gmail.com"
+      },
+      {
+        "id": "80411934-df83-4721-bcfd-55c464d0e7a4",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "7aaf70d4-b4e5-44f8-9861-be9bb8e6f928",
+        "relation_type": "EMAILED",
+        "weight": 0.8,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "sandra.duran@gmail.com"
+      },
+      {
+        "id": "73cf7745-0444-4a12-bc67-e52dc715ed4f",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "dfbf45e6-d683-43ae-9e84-8cc3fa4ea750",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "kimberly.vaughan@gmail.com"
+      },
+      {
+        "id": "d65fd763-bf75-47ef-a754-3ab675368673",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "10bf9397-0eef-48e3-bb64-ede390e877ee",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "rachael.bradley@smith-hood.com"
+      },
+      {
+        "id": "2b899d79-e3a3-4e1c-ad01-b183147c2301",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "848ea7e0-2f2a-490c-bac7-74726a483bf8",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "sheila.boyle@gmail.com"
+      },
+      {
+        "id": "47befbbc-732c-4f3a-8599-80dc98dd4fdf",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "066f3dcf-c4db-45a1-8a82-877cbecc430f",
+        "relation_type": "EMAILED",
+        "weight": 0.3,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "michael.mendoza@greenplc.com"
+      },
+      {
+        "id": "50208e30-c8ff-4610-8f95-a418d6f30bf8",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "4b5004fd-bcc5-48d0-a39f-95dacbb67904",
+        "relation_type": "EMAILED",
+        "weight": 1.0,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "nancy.richard@smith-hood.com"
+      },
+      {
+        "id": "b0625ed4-37e5-4099-9e66-cde07388233c",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "17c2bf16-7986-4d4b-babb-304874fa40fd",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "joshua.hess@smith-hood.com"
+      },
+      {
+        "id": "8ac33435-1b8b-47c8-b667-e63465c7f3a2",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "63ebf685-6017-43da-8e2c-0dd0e5cf0ed3",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "brian.nichols@smith-hood.com"
+      },
+      {
+        "id": "293aaec0-3004-44ca-8028-fe47e1d485cf",
+        "type": "relation",
+        "source_id": "5b8dab00-8324-429e-bc0e-5457c0d63018",
+        "target_id": "5e36cc5d-4c95-40db-af41-827b28356b98",
+        "relation_type": "EMAILED",
+        "weight": 0.5,
+        "from_user": "michael.moore@smith-hood.com",
+        "to_user": "natasha.cook@brooksvegaandrussell.com"
+      }
+    ]
+  },
+  "david.guerra@gmail.com": {
+    "id": "736325f6-0c64-4e3b-85f9-bb992d44f438",
+    "type": "user",
+    "email": "david.guerra@gmail.com",
+    "name": "David Guerra",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 12.5,
+    "relations": []
+  },
+  "joel.duke@smith-hood.com": {
+    "id": "34a4c4d5-2240-4bc2-a530-df178be3f574",
+    "type": "user",
+    "email": "joel.duke@smith-hood.com",
+    "name": "Joel Duke",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 3.0,
+    "relations": []
+  },
+  "rachel.allen@greenplc.com": {
+    "id": "fc5f2693-670a-4a84-ba3f-ca778a12ac72",
+    "type": "user",
+    "email": "rachel.allen@greenplc.com",
+    "name": "Rachel Allen",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 6.4,
+    "relations": []
+  },
+  "margaret.wilson@greenplc.com": {
+    "id": "1a90a170-c3c7-412e-953f-b11becc4304a",
+    "type": "user",
+    "email": "margaret.wilson@greenplc.com",
+    "name": "Margaret Wilson",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 2.1,
+    "relations": []
+  },
+  "kevin.frank@brooksvegaandrussell.com": {
+    "id": "961d2ec0-d289-4e52-9ce2-cfd5683e4197",
+    "type": "user",
+    "email": "kevin.frank@brooksvegaandrussell.com",
+    "name": "Kevin Frank",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 3.0,
+    "relations": []
+  },
+  "andrea.montgomery@quinnfieldsandrodriguez.com": {
+    "id": "59eaf6cd-8ab1-44a5-9d5a-e31dece053c9",
+    "type": "user",
+    "email": "andrea.montgomery@quinnfieldsandrodriguez.com",
+    "name": "Andrea Montgomery",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 2,
+    "relations": []
+  },
+  "robert.barnett@greenplc.com": {
+    "id": "f2540d01-d701-4a1e-8cb9-2d7fb5690b1a",
+    "type": "user",
+    "email": "robert.barnett@greenplc.com",
+    "name": "Robert Barnett",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 1.9,
+    "relations": []
+  },
+  "phillip.padilla@greenplc.com": {
+    "id": "6dd6f509-d0ef-4c46-87ef-04ed97b5b7d4",
+    "type": "user",
+    "email": "phillip.padilla@greenplc.com",
+    "name": "Phillip Padilla",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 0.8,
+    "relations": []
+  },
+  "natasha.cook@brooksvegaandrussell.com": {
+    "id": "5e36cc5d-4c95-40db-af41-827b28356b98",
+    "type": "user",
+    "email": "natasha.cook@brooksvegaandrussell.com",
+    "name": "Natasha Cook",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 5.3,
+    "relations": []
+  },
+  "matthew.santos@quinnfieldsandrodriguez.com": {
+    "id": "243ca392-bdc6-4570-9e43-5ddc8267a2e5",
+    "type": "user",
+    "email": "matthew.santos@quinnfieldsandrodriguez.com",
+    "name": "Matthew Santos",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 3.0,
+    "relations": []
+  },
+  "gina.thomas@smith-hood.com": {
+    "id": "4e7af7ab-36d0-4080-8875-774ded507056",
+    "type": "user",
+    "email": "gina.thomas@smith-hood.com",
+    "name": "Gina Thomas",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 3.0,
+    "relations": []
+  },
+  "patricia.thompson@smith-hood.com": {
+    "id": "ba500d9f-98af-4f57-8779-08e75be3809c",
+    "type": "user",
+    "email": "patricia.thompson@smith-hood.com",
+    "name": "Patricia Thompson",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 3.4,
+    "relations": []
+  },
+  "sara.ross@gmail.com": {
+    "id": "00f1c9bc-27c5-46b4-83a9-b142038d459a",
+    "type": "user",
+    "email": "sara.ross@gmail.com",
+    "name": "Sara Ross",
+    "domain": "gmail.com",
+    "is_central_user": false,
+    "connection_strength": 11.5,
+    "relations": []
+  },
+  "michael.jones@brooksvegaandrussell.com": {
+    "id": "7f7040f7-86e8-40e7-a4a6-bd1baf8223fc",
+    "type": "user",
+    "email": "michael.jones@brooksvegaandrussell.com",
+    "name": "Michael Jones",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 5.1,
+    "relations": []
+  },
+  "chelsea.rogers@smith-hood.com": {
+    "id": "0f3e15d9-f15e-4b1d-befc-8e6aca839e83",
+    "type": "user",
+    "email": "chelsea.rogers@smith-hood.com",
+    "name": "Chelsea Rogers",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 2.6999999999999997,
+    "relations": []
+  },
+  "rachael.bradley@smith-hood.com": {
+    "id": "10bf9397-0eef-48e3-bb64-ede390e877ee",
+    "type": "user",
+    "email": "rachael.bradley@smith-hood.com",
+    "name": "Rachael Bradley",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 0.5,
+    "relations": []
+  },
+  "crystal.lewis@brooksvegaandrussell.com": {
+    "id": "5dcbc128-1107-4698-950c-43b302457f7b",
+    "type": "user",
+    "email": "crystal.lewis@brooksvegaandrussell.com",
+    "name": "Crystal Lewis",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 2.9,
+    "relations": []
+  },
+  "laura.conway@quinnfieldsandrodriguez.com": {
+    "id": "e0ec5c75-f6c7-445b-82ef-0d1ec26f6b8d",
+    "type": "user",
+    "email": "laura.conway@quinnfieldsandrodriguez.com",
+    "name": "Laura Conway",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 4.7,
+    "relations": []
+  },
+  "stephen.wilson@quinnfieldsandrodriguez.com": {
+    "id": "122442ec-018c-4c82-8c4f-9f7629ac092b",
+    "type": "user",
+    "email": "stephen.wilson@quinnfieldsandrodriguez.com",
+    "name": "Stephen Wilson",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 3.4,
+    "relations": []
+  },
+  "brian.nichols@smith-hood.com": {
+    "id": "63ebf685-6017-43da-8e2c-0dd0e5cf0ed3",
+    "type": "user",
+    "email": "brian.nichols@smith-hood.com",
+    "name": "Brian Nichols",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 4.9,
+    "relations": []
+  },
+  "allison.russell@quinnfieldsandrodriguez.com": {
+    "id": "57ee0eba-6c13-45ff-8526-b13c842b6beb",
+    "type": "user",
+    "email": "allison.russell@quinnfieldsandrodriguez.com",
+    "name": "Allison Russell",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 2.0,
+    "relations": []
+  },
+  "katelyn.flores@quinnfieldsandrodriguez.com": {
+    "id": "d298b8ec-806f-4b7c-b137-1ac535bed478",
+    "type": "user",
+    "email": "katelyn.flores@quinnfieldsandrodriguez.com",
+    "name": "Katelyn Flores",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 1,
+    "relations": []
+  },
+  "michael.mendoza@greenplc.com": {
+    "id": "066f3dcf-c4db-45a1-8a82-877cbecc430f",
+    "type": "user",
+    "email": "michael.mendoza@greenplc.com",
+    "name": "Michael Mendoza",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 1.7000000000000002,
+    "relations": []
+  },
+  "nancy.richard@smith-hood.com": {
+    "id": "4b5004fd-bcc5-48d0-a39f-95dacbb67904",
+    "type": "user",
+    "email": "nancy.richard@smith-hood.com",
+    "name": "Nancy Richard",
+    "domain": "smith-hood.com",
+    "is_central_user": false,
+    "connection_strength": 5.0,
+    "relations": []
+  },
+  "emily.shelton@brooksvegaandrussell.com": {
+    "id": "a4e39e28-ebd1-46a8-b503-d3168a7f141f",
+    "type": "user",
+    "email": "emily.shelton@brooksvegaandrussell.com",
+    "name": "Emily Shelton",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 1.4,
+    "relations": []
+  },
+  "michael.oconnor@quinnfieldsandrodriguez.com": {
+    "id": "ad299ff0-ba54-4b52-a395-4e6a2981db35",
+    "type": "user",
+    "email": "michael.oconnor@quinnfieldsandrodriguez.com",
+    "name": "Michael Oconnor",
+    "domain": "quinnfieldsandrodriguez.com",
+    "is_central_user": false,
+    "connection_strength": 1.5,
+    "relations": []
+  },
+  "melissa.phillips@greenplc.com": {
+    "id": "1af36927-9e3b-4bb7-90b5-3099f04cc18f",
+    "type": "user",
+    "email": "melissa.phillips@greenplc.com",
+    "name": "Melissa Phillips",
+    "domain": "greenplc.com",
+    "is_central_user": false,
+    "connection_strength": 0.9,
+    "relations": []
+  },
+  "craig.yang@brooksvegaandrussell.com": {
+    "id": "b81c0864-de1e-4640-8b2c-50e87feebc98",
+    "type": "user",
+    "email": "craig.yang@brooksvegaandrussell.com",
+    "name": "Craig Yang",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 0.5,
+    "relations": []
+  },
+  "nicole.kim@brooksvegaandrussell.com": {
+    "id": "8f987d6f-3022-4195-97f3-9efe0f3dc3e1",
+    "type": "user",
+    "email": "nicole.kim@brooksvegaandrussell.com",
+    "name": "Nicole Kim",
+    "domain": "brooksvegaandrussell.com",
+    "is_central_user": false,
+    "connection_strength": 0.3,
+    "relations": []
+  }
+}

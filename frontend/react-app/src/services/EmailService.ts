@@ -1,4 +1,5 @@
 import axios from "axios";
+import MockDataService from './MockDataService';
 
 export type EmailService = "gmail" | "outlook";
 
@@ -148,32 +149,20 @@ class EmailAPIService {
     }
   }
 
-  async handleAuthCallback(
-    code: string
-  ): Promise<{ accessToken: string; refreshToken?: string }> {
-    try {
-      const service = this.getService();
-      if (!service) {
-        throw new Error("No email service selected");
-      }
+  async handleAuthCallback(token: string): Promise<{ accessToken: string; refreshToken?: string }> {
+  try {
+    // Ici, nous recevons déjà le JWT token du backend, pas besoin de l'échanger
+    console.log(`Handling auth with token: ${token.substring(0, 10)}...`);
 
-      // Correction de l'URL pour correspondre à la route backend
-      const response = await axios.get(`${this.baseUrl}/auth/callback`, {
-        params: { code, state: service },
-      });
+    // Stockage du token
+    this.setTokens(token);
 
-      // Adapter selon la structure de la réponse du backend
-      const access_token = response.data.access_token || "";
-      const refresh_token = response.data.refresh_token || "";
-
-      this.setTokens(access_token, refresh_token);
-
-      return { accessToken: access_token, refreshToken: refresh_token };
-    } catch (error) {
-      console.error(`Error handling auth callback:`, error);
-      throw error;
-    }
+    return { accessToken: token };
+  } catch (error) {
+    console.error(`Error handling auth callback:`, error);
+    throw error;
   }
+}
 
   async fetchEmails(
     options: EmailFetchOptions = {}
@@ -238,12 +227,17 @@ class EmailAPIService {
   }
 
   async sendEmail(email: {
-    to: string[];
-    cc?: string[];
-    bcc?: string[];
-    subject: string;
-    body: string;
-    body_type: string;
+      body_type: string;
+      subject: string;
+      from: string;
+      to: string[];
+      cc: string[];
+      body: string;
+      bodyType: string;
+      attachments: any[];
+      categories: any[];
+      importance: string;
+      isRead: boolean
   }): Promise<{ success: boolean; message_id?: string }> {
     const service = this.getService();
     this.getTokens(); // Ensure we have tokens loaded
@@ -341,7 +335,7 @@ class EmailAPIService {
     }
   }
 
-  // Nouvelle méthode pour déclencher l'exportation des emails Gmail
+  // méthode pour déclencher l'exportation des emails Gmail
   async exportGmailEmails(
     email: string,
     maxEmails?: number,
@@ -377,7 +371,7 @@ class EmailAPIService {
     }
   }
 
-  // Nouvelle méthode pour vérifier le statut de la classification des emails
+  // méthode pour vérifier le statut de la classification des emails
   async checkClassificationStatus(outputDir?: string): Promise<{
     status: string;
     mode?: string;
@@ -386,12 +380,17 @@ class EmailAPIService {
     message?: string;
   }> {
     try {
+      console.log(`services/EmailService.tsx : 395 `);
+      console.log("Checking Classification Status:", outputDir);
       const response = await axios.get(
         `${this.baseUrl}/classified-emails/status`,
         {
           params: { output_dir: outputDir },
         }
       );
+
+      console.log("services/EmailService.tsx : 404 ");
+      console.log(response);
 
       return response.data;
     } catch (error) {
@@ -403,35 +402,88 @@ class EmailAPIService {
     }
   }
 
-  // Nouvelle méthode pour récupérer les emails classifiés
   async getClassifiedEmails(
-    batchNumber?: number,
-    outputDir?: string
-  ): Promise<{ total_emails: number; emails: any[] }> {
-    try {
-      const response = await axios.get(`${this.baseUrl}/classified-emails`, {
-        params: {
-          batch_number: batchNumber,
-          output_dir: outputDir,
-        },
-      });
+  batchNumber?: number,
+  outputDir?: string
+): Promise<{ total_emails: number; emails: any[] }> {
+  try {
+    // Obtenir le token JWT et l'email de l'utilisateur depuis le localStorage
+    const token = localStorage.getItem('jwt_token');
+    const userEmail = localStorage.getItem('userEmail');
 
-      return response.data;
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des emails classifiés:",
-        error
-      );
+    if (!token || !userEmail) {
+      throw new Error('Non authentifié. Veuillez vous connecter à nouveau.');
+    }
+
+    // Appeler l'API backend avec les bons paramètres et l'authentification
+    const response = await axios.get(`${this.baseUrl}/emails/classified`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      params: {
+        email: userEmail,  // Ajouter le paramètre email requis
+        batch_number: batchNumber,
+        output_dir: outputDir
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des emails classifiés:", error);
+
+    // En cas d'erreur, utiliser les données mockées comme fallback
+    try {
+      console.log("Utilisation des données mockées comme fallback");
+      const mockEmails = await MockDataService.fetchMockEmails();
+
+      return {
+        total_emails: mockEmails.length,
+        emails: mockEmails
+      };
+    } catch (mockError) {
+      console.error("Erreur lors de la récupération des données mockées:", mockError);
       throw error;
     }
   }
+}
+
+
+
+
+
+  /*
+
+  async getClassifiedEmails(
+  batchNumber?: number,
+  outputDir?: string
+  ): Promise<{ total_emails: number; emails: any[] }> {
+  try {
+    console.log("Utilisation des données mockées");
+    const mockEmails = await MockDataService.fetchMockEmails();
+    console.log("Mock emails reached");
+
+    return {
+      total_emails: mockEmails.length,
+      emails: mockEmails
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données mockées:", error);
+    throw error;
+  }
+}
+
+
+
+   */
 
   isAuthenticated(): boolean {
     const { accessToken } = this.getTokens();
     return !!accessToken;
   }
+
 }
 
-// Create singleton instance
+
+
 const emailAPIService = new EmailAPIService();
 export default emailAPIService;
