@@ -1,4 +1,3 @@
-# oria_ui/shared/python/email_graph/utils/__init__.py
 """
 Utilitaires pour le graphe d'emails.
 """

@@ -1,57 +1,221 @@
-from functools import lru_cache
+"""
+Point d'entrée FastAPI pour le service de recherche sémantique Accord.
+Configure l'application avec tous les endpoints et middlewares nécessaires.
+
+🎯 Résultat
+
+Cas simple : spaCy seul (rapide)
+Cas complexe : spaCy + LLM fusionnés (qualité)
+
+"""
 import time
-from typing import Dict, List, Any, Optional
+import logging
+from contextlib import asynccontextmanager
 
-from backend.app.services.semantic_search.llm.chain import create_semantic_parsing_chain
-from backend.app.services.semantic_search.graph.query_builder import build_graph_query
-from backend.app.services.semantic_search.graph.query_executor import execute_graph_query
-from backend.app.services.semantic_search.utils.errors_handlers import handle_parsing_error, handle_execution_error
+import psutil
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
-# Création de la chaîne de traitement (initialisée une seule fois)
-_parsing_chain = create_semantic_parsing_chain()
+debuguerBreakpoint = True
+from backend.app.services.semantic_search.endpoints import router
+from backend.app.services.semantic_search.llm_engine import get_query_parser
+from backend.app.services.semantic_search.query_transformer import get_query_transformer
 
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
-@lru_cache(maxsize=100)
-def semantic_search(
-        query_text: str,
-        user_id: str,
-        timeout_ms: int = 500
-) -> List[Dict[str, Any]]:
-    """
-    Point d'entrée principal pour la recherche sémantique
+debuguerBreakpoint = True
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Gestionnaire de cycle de vie de l'application"""
 
-    Args:
-        query_text: Requête en langage naturel
-        user_id: Identifiant de l'utilisateur
-        timeout_ms: Timeout en millisecondes
+    # Startup
+    logger.info("🚀 Démarrage du service de recherche sémantique Accord")
 
-    Returns:
-        Liste des résultats de recherche
-    """
-    start_time = time.time()
+    # Pré-chargement des modèles pour optimiser les premières requêtes
+    logger.info("📥 Pré-chargement des composants...")
 
     try:
+        # Initialiser le parser LLM
+        debuguerBreakpoint = True
+        llm_parser = get_query_parser()
+        if llm_parser.model:
+            logger.info("✅ Modèle LLM Mistral 7B chargé")
+        else:
+            logger.warning("⚠️ Modèle LLM non disponible, fallback activé")
 
-        # 1. Parsing sémantique - transformation de la requête en structure
-        email_query = _parsing_chain.run(
-            query=query_text)
+        # Initialiser le transformer
+        transformer = get_query_transformer()
+        logger.info("✅ Query transformer initialisé")
 
-        # Vérification du timeout intermédiaire
-        if (time.time() - start_time) * 1000 > timeout_ms * 0.4:
-            # Simplifier la requête si on approche du timeout
-            email_query.filters = email_query.filters[:1] if email_query.filters else []
+        # Test de sanité au demarrage
+        """
+            - Vérifier que le pipeline complet fonctionne (LLM + transformer)
+            - Mesurer les performances au démarrage
+            - S'assurer que tous les composants sont correctement chargés
+        """
+        test_query = "emails de test"
+        start_time = time.time()
+        from backend.app.services.semantic_search.models import NaturalLanguageRequest
+        # crée un objet Pydantic pour encapsuler la requête,
+        test_request = NaturalLanguageRequest(query=test_query)
+        debuguerBreakpoint = True
+        result = transformer.transform_query(test_request) #Go to : query_transformer.transform_query
+        print(result)
 
-        # 2. Construction de la requête pour le moteur de graphe
-        graph_query = build_graph_query(email_query)
 
-        # 3. Exécution avec le temps restant
-        remaining_ms = timeout_ms - int((time.time() - start_time) * 1000)
-        results = execute_graph_query(graph_query, timeout_ms=remaining_ms)
-
-        return results
+        test_time = (time.time() - start_time) * 1000
+        logger.info(f"✅ Test de sanité réussi en {test_time:.1f}ms")
 
     except Exception as e:
-        if "parsing" in str(e).lower():
-            return handle_parsing_error(query_text, user_id, e)
-        else:
-            return handle_execution_error(query_text, user_id, e)
+        logger.error(f"❌ Erreur lors de l'initialisation: {e}")
+    logger.info("🎯 Service de recherche sémantique prêt")
+
+    yield
+
+    # Shutdown
+    logger.info("🛑 Arrêt du service de recherche sémantique")
+
+
+# Création de l'application FastAPI
+app = FastAPI(
+    title="Accord Semantic Search Service",
+    description="Service de recherche sémantique pour l'application Accord - Transforme le langage naturel en requêtes structurées",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Configuration CORS pour développement
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # React development
+        "http://localhost:8080",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8080",
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
+
+
+# Middleware de logging des requêtes
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log toutes les requêtes avec timing"""
+    start_time = time.time()
+    start_memory = psutil.Process().memory_info().rss / 1024 ** 2
+
+    # Log de la requête entrante
+    logger.info(f"📥 {request.method} {request.url.path}")
+
+    response = await call_next(request)
+
+    end_time = time.time()
+    end_memory = psutil.Process().memory_info().rss / 1024 ** 2
+
+    # Log de la réponse avec timing
+    process_time = (time.time() - start_time) * 1000
+    logger.info(f"📤 {request.method} {request.url.path} - {response.status_code} ({process_time:.1f}ms)")
+
+    # Logs pour monitoring
+    logger.info(f"🔍 {request.url.path} - "
+                f"Latency: {(end_time - start_time) * 1000:.1f}ms - "
+                f"Memory: {end_memory:.1f}MB (+{end_memory - start_memory:.1f}MB)")
+
+    response.headers["X-Process-Time"] = str(process_time)
+
+    return response
+
+
+# Gestionnaire d'erreurs global
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Gestionnaire d'erreurs global pour debugging"""
+    logger.error(f"❌ Erreur non gérée sur {request.url.path}: {str(exc)}", exc_info=True)
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Erreur interne du serveur",
+            "detail": str(exc) if app.debug else "Une erreur inattendue s'est produite",
+            "path": str(request.url.path),
+            "timestamp": time.time()
+        }
+    )
+
+
+# Inclusion du router principal
+app.include_router(router)
+
+
+# Endpoint de santé général
+@app.get("/health", tags=["health"])
+async def health_check():
+    """Vérification de l'état général du service"""
+    return {
+        "status": "healthy",
+        "service": "accord-semantic-search",
+        "version": "1.0.0",
+        "timestamp": time.time(),
+        "components": {
+            "llm_parser": get_query_parser().model is not None,
+            "query_transformer": True
+        }
+    }
+
+
+# Endpoint d'information sur le service
+@app.get("/info", tags=["info"])
+async def service_info():
+    """Informations détaillées sur le service"""
+    llm_parser = get_query_parser()
+
+    return {
+        "service_name": "Accord Semantic Search",
+        "version": "1.0.0",
+        "description": "Service de transformation de requêtes en langage naturel",
+        "capabilities": [
+            "Parse de langage naturel",
+            "Extraction d'entités (NER)",
+            "Détection d'intention",
+            "Transformation en structure sémantique",
+            "Support multilingue (FR/EN)"
+        ],
+        "models": {
+            "llm_model": {
+                "available": llm_parser.model is not None,
+                "path": llm_parser.config.model_path,
+                "type": "Mistral 7B GGUF"
+            },
+            "nlp_parser": {
+                "available": True,
+                "type": "Rule-based + spaCy NER"
+            }
+        },
+        "performance": {
+            "target_latency_ms": 500,
+            "max_query_length": 500,
+            "supported_languages": ["fr", "en", "auto"]
+        }
+    }
+
+
+# Point d'entrée pour uvicorn
+if __name__ == "__main__":
+    import uvicorn
+
+    debuguerBreakpoint = True
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,  # Désactiver en production
+        log_level="info"
+    )

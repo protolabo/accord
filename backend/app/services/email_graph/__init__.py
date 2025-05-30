@@ -1,5 +1,5 @@
 """
-Module d'analyse de graphe d'emails pour Oria.
+Module d'analyse de graphe d'emails pour Accord.
 
 Ce module utilise NetworkX pour construire, analyser et extraire des informations
 à partir des emails.
