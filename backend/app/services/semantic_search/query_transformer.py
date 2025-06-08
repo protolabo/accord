@@ -138,7 +138,7 @@ class QueryTransformationStrategy:
             'query_type': QueryType.COMBINED,
             'semantic_text': parsed_data.get('semantic_text', ''),
             'filters': filters,
-            'similarity_threshold': 0.25,  # Plus permissif pour combiné
+            'similarity_threshold': 0.25,
             'limit': 30
         }
 
@@ -277,7 +277,6 @@ class SemanticQueryTransformer:
                 'confidence': llm_confidence
             })
 
-        # Fusionner les entités (NLP généralement meilleur pour NER)
         nlp_entities = nlp_result.get('entities', [])
         llm_filters = llm_result.get('filters', {}) if llm_result else {}
 
@@ -287,12 +286,16 @@ class SemanticQueryTransformer:
             all_entities = nlp_entities + synthetic_entities
             merged['entities'] = self._deduplicate_merged_entities(all_entities)
 
-        # Fusionner filtres intelligemment
+        # Fusionner filtres de Spacy et du LLM
         merged_filters = nlp_result.get('filters', {}).copy()
-        if llm_result:
+        if llm_result and 'filters' in llm_result:
             llm_filters = llm_result.get('filters', {})
-            # LLM peut être meilleur pour dates/contacts structurés
-            for key in ['contact_email', 'date_from', 'date_to']:
+
+            # Copier TOUS les filtres pertinents du LLM
+            if 'contact_name' in llm_filters:
+                merged_filters['contact_name'] = llm_filters['contact_name']
+
+            for key in ['contact_email', 'date_from', 'date_to', 'has_attachments', 'topic_ids']:
                 if key in llm_filters and llm_filters[key]:
                     merged_filters[key] = llm_filters[key]
 
@@ -305,7 +308,7 @@ class SemanticQueryTransformer:
         if not llm_result:
             return 0.0
 
-        confidence = 0.5  # Base
+        confidence = 0.5
 
         # Bonus si query_type détecté
         if llm_result.get('query_type') and llm_result['query_type'] != 'semantic':
@@ -469,7 +472,6 @@ class SemanticQueryTransformer:
             return 'nlp_primary'
 
 
-# Instance singleton
 _transformer_instance: Optional[SemanticQueryTransformer] = None
 
 

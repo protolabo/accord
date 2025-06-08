@@ -76,6 +76,7 @@ class ThreadNodeManager:
                     participants.add(email.strip())
 
             thread_data["participants"] = list(participants)
+            thread_data['topics'] = list(thread_data.get("topics", []))
 
             return thread_id
 
@@ -102,6 +103,8 @@ class ThreadNodeManager:
             if email and email.strip():
                 participants.append(email.strip())
 
+        topics = email_data.get("topics", [])
+
         # Ajouter le noeud au graphe
         self.graph.add_node(
             thread_id,
@@ -110,7 +113,7 @@ class ThreadNodeManager:
             message_count=1,
             last_message_date=date_iso,
             participants=participants,
-            topics=[],
+            topics=topics,
             subject=email_data.get("Subject", "")
         )
 
