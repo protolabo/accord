@@ -1,13 +1,8 @@
 """
-Point d'entrée FastAPI pour le service de recherche sémantique Accord.
+Point d'entrée FastAPI pour le service de recherche sémantique Accord (version spaCy).
 Configure l'application avec tous les endpoints et middlewares nécessaires.
-
-🎯 Résultat
-
-Cas simple : spaCy seul (rapide)
-Cas complexe : spaCy + LLM fusionnés (qualité)
-
 """
+
 import time
 import logging
 from contextlib import asynccontextmanager
@@ -17,10 +12,11 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-debuguerBreakpoint = True
-from backend.app.services.semantic_search.endpoints import router
-from backend.app.services.semantic_search.llm_engine import get_query_parser
-from backend.app.services.semantic_search.query_transformer import get_query_transformer
+from .api.endpoints import router
+from .core.query_transformer import get_query_transformer
+from .services.parsing_service import NLPParsingService
+from .config import SPACY_CONFIG
+
 
 # Configuration du logging
 logging.basicConfig(
@@ -29,52 +25,55 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-debuguerBreakpoint = True
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Gestionnaire de cycle de vie de l'application"""
 
     # Startup
-    logger.info("🚀 Démarrage du service de recherche sémantique Accord")
+    logger.info("🚀 Démarrage du service de recherche sémantique Accord (spaCy)")
 
-    # Pré-chargement des modèles pour optimiser les premières requêtes
+    # Pré-chargement des composants pour optimiser les premières requêtes
     logger.info("📥 Pré-chargement des composants...")
 
     try:
-        # Initialiser le parser LLM
-        debuguerBreakpoint = True
-        llm_parser = get_query_parser()
-        if llm_parser.model:
-            logger.info("✅ Modèle LLM Mistral 7B chargé")
+        # Initialiser le parser spaCy
+        parser = NLPParsingService()
+        if parser.nlp_model:
+            model_name = getattr(parser.nlp_model, 'meta', {}).get('name', 'unknown')
+            logger.info(f"✅ Modèle spaCy chargé: {model_name}")
         else:
-            logger.warning("⚠️ Modèle LLM non disponible, fallback activé")
+            logger.warning("⚠️ Modèle spaCy non disponible, utilisation des patterns uniquement")
 
         # Initialiser le transformer
         transformer = get_query_transformer()
         logger.info("✅ Query transformer initialisé")
 
-        # Test de sanité au demarrage
-        """
-            - Vérifier que le pipeline complet fonctionne (LLM + transformer)
-            - Mesurer les performances au démarrage
-            - S'assurer que tous les composants sont correctement chargés
-        """
+        # Test de sanité au démarrage
         test_query = "emails de test"
         start_time = time.time()
-        from backend.app.services.semantic_search.models import NaturalLanguageRequest
-        # crée un objet Pydantic pour encapsuler la requête,
-        test_request = NaturalLanguageRequest(query=test_query)
-        debuguerBreakpoint = True
-        result = transformer.transform_query(test_request) #Go to : query_transformer.transform_query
-        print(result)
 
+        # Créer un objet request simple pour le test
+        class MockRequest:
+            def __init__(self, query):
+                self.query = query
+                self.user_context = None
+                self.central_user_email = None
+
+        test_request = MockRequest(test_query)
+        result = transformer.transform_query(test_request)
 
         test_time = (time.time() - start_time) * 1000
-        logger.info(f"✅ Test de sanité réussi en {test_time:.1f}ms")
+
+        if result.get('success'):
+            logger.info(f"✅ Test de sanité réussi en {test_time:.1f}ms")
+        else:
+            logger.warning(f"⚠️ Test de sanité échoué: {result.get('error', {}).get('message', 'Unknown')}")
 
     except Exception as e:
         logger.error(f"❌ Erreur lors de l'initialisation: {e}")
-    logger.info("🎯 Service de recherche sémantique prêt")
+
+    logger.info("🎯 Service de recherche sémantique prêt (spaCy + patterns)")
 
     yield
 
@@ -84,9 +83,9 @@ async def lifespan(app: FastAPI):
 
 # Création de l'application FastAPI
 app = FastAPI(
-    title="Accord Semantic Search Service",
-    description="Service de recherche sémantique pour l'application Accord - Transforme le langage naturel en requêtes structurées",
-    version="1.0.0",
+    title="Accord Semantic Search Service (spaCy)",
+    description="Service de recherche sémantique pour l'application Accord - Transforme le langage naturel en requêtes structurées (version spaCy uniquement)",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -121,12 +120,12 @@ async def log_requests(request: Request, call_next):
     end_memory = psutil.Process().memory_info().rss / 1024 ** 2
 
     # Log de la réponse avec timing
-    process_time = (time.time() - start_time) * 1000
+    process_time = (end_time - start_time) * 1000
     logger.info(f"📤 {request.method} {request.url.path} - {response.status_code} ({process_time:.1f}ms)")
 
     # Logs pour monitoring
     logger.info(f"🔍 {request.url.path} - "
-                f"Latency: {(end_time - start_time) * 1000:.1f}ms - "
+                f"Latency: {process_time:.1f}ms - "
                 f"Memory: {end_memory:.1f}MB (+{end_memory - start_memory:.1f}MB)")
 
     response.headers["X-Process-Time"] = str(process_time)
@@ -146,7 +145,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             "error": "Erreur interne du serveur",
             "detail": str(exc) if app.debug else "Une erreur inattendue s'est produite",
             "path": str(request.url.path),
-            "timestamp": time.time()
+            "timestamp": time.time(),
+            "service": "semantic-search-spacy"
         }
     )
 
@@ -159,51 +159,53 @@ app.include_router(router)
 @app.get("/health", tags=["health"])
 async def health_check():
     """Vérification de l'état général du service"""
-    return {
-        "status": "healthy",
-        "service": "accord-semantic-search",
-        "version": "1.0.0",
-        "timestamp": time.time(),
-        "components": {
-            "llm_parser": get_query_parser().model is not None,
-            "query_transformer": True
-        }
-    }
+    try:
+        parser = NLPParsingService()
+        transformer = get_query_transformer()
 
-
-# Endpoint d'information sur le service
-@app.get("/info", tags=["info"])
-async def service_info():
-    """Informations détaillées sur le service"""
-    llm_parser = get_query_parser()
-
-    return {
-        "service_name": "Accord Semantic Search",
-        "version": "1.0.0",
-        "description": "Service de transformation de requêtes en langage naturel",
-        "capabilities": [
-            "Parse de langage naturel",
-            "Extraction d'entités (NER)",
-            "Détection d'intention",
-            "Transformation en structure sémantique",
-            "Support multilingue (FR/EN)"
-        ],
-        "models": {
-            "llm_model": {
-                "available": llm_parser.model is not None,
-                "path": llm_parser.config.model_path,
-                "type": "Mistral 7B GGUF"
+        return {
+            "status": "healthy",
+            "service": "accord-semantic-search-spacy",
+            "version": "2.0.0",
+            "timestamp": time.time(),
+            "components": {
+                "spacy_parser": parser.nlp_model is not None,
+                "query_transformer": transformer is not None,
+                "patterns_loaded": True
             },
-            "nlp_parser": {
-                "available": True,
-                "type": "Rule-based + spaCy NER"
+            "performance": {
+                "mode": "spacy_patterns_only",
+                "expected_latency_ms": "< 100ms"
             }
-        },
-        "performance": {
-            "target_latency_ms": 500,
-            "max_query_length": 500,
-            "supported_languages": ["fr", "en", "auto"]
         }
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "service": "accord-semantic-search-spacy",
+                "error": str(e),
+                "timestamp": time.time()
+            }
+        )
+
+
+# Endpoint racine
+@app.get("/", tags=["root"])
+async def root():
+    """Page d'accueil du service"""
+    return {
+        "message": "Accord Semantic Search Service",
+        "version": "2.0.0",
+        "description": "Service de transformation de requêtes en langage naturel utilisant spaCy et patterns enrichis",
+        "endpoints": {
+            "parse": "/semantic-search/parse",
+            "health": "/semantic-search/health",
+            "info": "/semantic-search/info",
+            "test": "/semantic-search/test-query"
+        },
+        "docs": "/docs",
+
     }
 
 
@@ -211,11 +213,10 @@ async def service_info():
 if __name__ == "__main__":
     import uvicorn
 
-    debuguerBreakpoint = True
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True,  # Désactiver en production
+        reload=True,
         log_level="info"
     )

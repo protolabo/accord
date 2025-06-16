@@ -2,7 +2,9 @@
 Module de recherche dans le graphe d'emails
 """
 
-from .graph_search_engine import GraphSearchEngine, SearchResult, SearchMode
+from .search_manager import GraphSearchEngine
+from .result_service import SearchResult
+from .config import SearchMode
 
 __all__ = [
     'GraphSearchEngine',

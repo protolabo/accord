@@ -1,14 +1,14 @@
 """
-Module de recherche sémantique Accord - Backend.
+Module de recherche sémantique Accord - Version spaCy uniquement.
 
 Ce module fournit les services de transformation de requêtes en langage naturel
-pour l'application accord.
+pour l'application Accord.
 
 Composants principaux:
-- Query Parser: Analyse NLP + règles heuristiques
-- LLM Engine: Mistral 7B GGUF pour parsing avancé
-- Query Transformer: Fusion intelligente et transformation
+- Query Parser: Analyse spaCy + patterns enrichis
+- Query Transformer: Transformation optimisée
 - API Endpoints: Interface REST pour le frontend
+- Validation Services: Validation robuste des données
 
 Usage:
     from semantic_search import app
@@ -16,24 +16,22 @@ Usage:
 """
 
 from .main import app
-from .query_parser import get_query_parser
-from .query_transformer import get_query_transformer
-from .llm_engine import get_query_parser as get_llm_parser
-from .models import (
+from .core.query_parser import get_query_parser
+from .core.query_transformer import get_query_transformer
+from .api.models import (
     NaturalLanguageRequest,
     SemanticQuery,
     SearchFilter,
-    QueryType
+    QueryTypeEnum
 )
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 __all__ = [
     "app",
     "get_query_parser",
     "get_query_transformer",
-    "get_llm_parser",
     "NaturalLanguageRequest",
     "SemanticQuery",
     "SearchFilter",
-    "QueryType"
+    "QueryTypeEnum"
 ]
