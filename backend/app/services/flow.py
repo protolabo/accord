@@ -1,29 +1,24 @@
 """
 Module Recherche Semantique
-Connecte tous les modules : création du graphe, parsing NLP, recherche sémantique.
+ création du graphe, parsing NLP, recherche sémantique.
 """
 
 import json
 import time
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import traceback
+import random
+import argparse
 
 # Import des modules du projet
 from backend.app.services.email_graph.processor import EmailGraphProcessor
-from backend.app.services.email_graph.search.search_manager import GraphSearchEngine  # ✅ Import correct
+from backend.app.services.email_graph.search.search_manager import GraphSearchEngine
 from backend.app.services.semantic_search.models import NaturalLanguageRequest
 from backend.app.services.semantic_search.query_transformer import get_query_transformer
 
 
 class AccordPipeline:
-    """
-    Pipeline principal d'Accord qui orchestre :
-    1. Construction du graphe d'emails
-    2. Transformation de requêtes NLP en sémantique
-    3. Recherche dans le graphe
-    4. Formatage des résultats
-    """
 
     def __init__(self):
         """Initialise le pipeline"""
@@ -76,12 +71,12 @@ class AccordPipeline:
             print("🔍 Initialisation du moteur de recherche...")
             self.search_engine = GraphSearchEngine(self.graph_processor.graph)
 
-            # Statistiques - CORRECTION COMPLÈTE
+            # Statistiques
             build_time = time.time() - start_time
             self.stats['graph_build_time'] = build_time
             self.stats['last_update'] = datetime.now()
 
-            # ✅ Accéder aux statistiques via la méthode correcte
+            # Accéder aux statistiques via la méthode correcte
             search_stats = self.search_engine.get_search_statistics()
             index_stats = search_stats.get('index_stats', {})
 
@@ -177,7 +172,6 @@ class AccordPipeline:
 
             # Phase 2 : Recherche dans le graphe
             print("\n🎯 Recherche dans le graphe...")
-            print("*" * 50)
             search_results = self.search_engine.search(semantic_query)
 
             print(f"✅ {len(search_results)} résultats trouvés")
@@ -221,8 +215,6 @@ class AccordPipeline:
 
     def get_pipeline_stats(self) -> Dict[str, Any]:
         """Retourne les statistiques du pipeline"""
-
-        # ✅ Obtenir les stats via la méthode correcte
         index_stats = {}
         if self.search_engine:
             search_stats = self.search_engine.get_search_statistics()
@@ -249,197 +241,418 @@ class AccordPipeline:
         }
 
 
-def debug_search_engine(search_engine):
-    """Fonction de debug pour diagnostiquer l'indexation"""
+class TestDataGenerator:
+    """Générateur de données de test pour le pipeline"""
 
-    print("\n" + "=" * 50)
-    print("DEBUG - ÉTAT DE L'INDEX DE RECHERCHE")
-    print("=" * 50)
+    @staticmethod
+    def create_basic_test_data(num_emails: int = 20) -> List[Dict[str, Any]]:
+        """Crée des données de test basiques"""
+        base_date = datetime.now()
 
-    # ✅ Obtenir les stats via la méthode correcte
-    stats = search_engine.get_search_statistics()
-    index_stats = stats.get('index_stats', {})
+        contacts = [
+            {"email": "marie@company.com", "name": "Marie Dupont"},
+            {"email": "jean@client.com", "name": "Jean Martin"},
+            {"email": "support@service.com", "name": "Support Service"}
+        ]
 
-    print(f"📊 Messages indexés: {index_stats.get('messages', 0)}")
-    print(f"📊 Utilisateurs indexés: {index_stats.get('users', 0)}")
-    print(f"📊 Threads indexés: {index_stats.get('threads', 0)}")
-    print(f"📊 Termes dans l'index inversé: {index_stats.get('unique_terms', 0)}")
+        subjects_and_topics = [
+            {
+                "subject": "Facture mensuelle janvier 2025",
+                "topics": ["facturation", "billing"],
+                "content": "Voici votre facture mensuelle pour janvier. Montant total 1500€."
+            },
+            {
+                "subject": "Projet IA - Rapport hebdomadaire",
+                "topics": ["projet", "ia", "rapport"],
+                "content": "Rapport hebdomadaire du projet intelligence artificielle."
+            },
+            {
+                "subject": "Newsletter tech - Actualités",
+                "topics": ["newsletter", "actualites", "tech"],
+                "content": "Newsletter hebdomadaire avec les dernières actualités."
+            },
+            {
+                "subject": "Réunion équipe - Notes importantes",
+                "topics": ["meeting", "important", "notes"],
+                "content": "Notes de la réunion équipe avec décisions importantes."
+            },
+            {
+                "subject": "Commande matériel bureau",
+                "topics": ["commande", "materiel"],
+                "content": "Commande de nouveau matériel pour le bureau."
+            }
+        ]
 
-    # ✅ Accéder aux données via le service d'indexation
-    indexing_service = search_engine.indexing_service
+        test_emails = []
+        for i in range(num_emails):
+            contact = contacts[i % len(contacts)]
+            subject_info = subjects_and_topics[i % len(subjects_and_topics)]
+            email_date = base_date - timedelta(days=i)
 
-    # Échantillon de termes indexés
-    if hasattr(indexing_service, 'inverted_index') and indexing_service.inverted_index:
-        sample_terms = list(indexing_service.inverted_index.keys())[:10]
-        print(f"\n🔍 Premiers termes indexés: {sample_terms}")
+            test_emails.append({
+                "Message-ID": f"msg{i:03d}@company.com",
+                "Thread-ID": f"thread{i // 3:03d}",
+                "From": contact["email"],
+                "To": "user@company.com",
+                "Subject": subject_info["subject"],
+                "Content": subject_info["content"],
+                "Date": email_date.isoformat(),
+                "has_attachments": i % 5 == 0,
+                "attachment_count": 2 if i % 5 == 0 else 0,
+                "is_important": i % 7 == 0,
+                "is_unread": i < 5,
+                "topics": subject_info["topics"]
+            })
 
-    # Vérifier les utilisateurs créés
-    print(f"\n👥 Utilisateurs créés:")
-    if hasattr(indexing_service, 'user_nodes'):
-        for user_id, user_data in list(indexing_service.user_nodes.items())[:5]:
-            email = user_data.get('email', 'No email')
-            name = user_data.get('name', 'No name')
-            print(f"   {user_id}: {name} <{email}>")
+        return test_emails
 
-    # Vérifier quelques messages avec leur TF
-    print(f"\n📧 Échantillon de messages indexés:")
-    if hasattr(indexing_service, 'message_nodes'):
-        for i, (msg_id, msg_data) in enumerate(indexing_service.message_nodes.items()):
-            if i < 3:
-                print(f"   {msg_id}:")
-                print(f"      Sujet: {msg_data.get('subject', 'No subject')}")
-                print(f"      De: {msg_data.get('from', 'No sender')}")
-                tf_terms = list(msg_data.get('_tf', {}).keys())[:8]
-                print(f"      Termes TF: {tf_terms}")
-                topics = msg_data.get('topics', [])
-                print(f"      Topics: {topics}")
+    @staticmethod
+    def create_enhanced_test_data(num_emails: int = 50) -> List[Dict[str, Any]]:
+        """Crée des données de test enrichies pour couvrir tous les cas"""
+        base_date = datetime.now()
 
-    # Vérifier l'index temporel
-    print(f"\n📅 Index temporel:")
-    if hasattr(indexing_service, 'temporal_index'):
-        sample_dates = list(indexing_service.temporal_index.keys())[:5]
-        for date_key in sample_dates:
-            count = len(indexing_service.temporal_index[date_key])
-            print(f"   {date_key}: {count} message(s)")
+        # Contacts variés
+        contacts = [
+            {"email": "marie.dupont@company.com", "name": "Marie Dupont"},
+            {"email": "pierre.martin@client.com", "name": "Pierre Martin"},
+            {"email": "jean.bernard@partner.com", "name": "Jean Bernard"},
+            {"email": "support@service.com", "name": "Support Service"},
+            {"email": "newsletter@news.com", "name": "Newsletter Service"},
+            {"email": "facture@billing.com", "name": "Service Facturation"},
+            {"email": "livraison@shipping.com", "name": "Service Livraison"},
+            {"email": "equipe@company.com", "name": "Équipe Marketing"}
+        ]
 
-    print("=" * 50)
+        # Templates d'emails variés
+        email_templates = [
+            {
+                "subject": "Budget prévisionnel Q1 2025",
+                "content": "Voici le budget détaillé pour le premier trimestre 2025.",
+                "topics": ["budget", "finance"],
+                "attachments": [{"filename": "budget_q1_2025.xlsx", "size": "245KB"}]
+            },
+            {
+                "subject": "Projet X - Mise à jour importante",
+                "content": "Le projet X avance bien. Voici les dernières mises à jour.",
+                "topics": ["projet", "update"],
+                "attachments": []
+            },
+            {
+                "subject": "Rapport de performance mensuel",
+                "content": "Analyse détaillée de la performance de notre équipe.",
+                "topics": ["performance", "rapport"],
+                "attachments": [{"filename": "performance_report.pdf", "size": "1.2MB"}]
+            },
+            {
+                "subject": "Facture #2025-001",
+                "content": "Veuillez trouver ci-joint la facture pour les services.",
+                "topics": ["facturation", "billing"],
+                "attachments": [{"filename": "facture_2025_001.pdf", "size": "150KB"}]
+            },
+            {
+                "subject": "Newsletter Tech - Janvier 2025",
+                "content": "Les dernières actualités technologiques du mois.",
+                "topics": ["newsletter", "tech"],
+                "attachments": []
+            },
+            {
+                "subject": "Confirmation de livraison",
+                "content": "Votre commande a été expédiée et sera livrée demain.",
+                "topics": ["livraison", "shipping"],
+                "attachments": [{"filename": "bon_livraison.pdf", "size": "80KB"}]
+            },
+            {
+                "subject": "Réunion équipe - Notes importantes",
+                "content": "Compte-rendu de la réunion avec les décisions prises.",
+                "topics": ["meeting", "important"],
+                "attachments": [{"filename": "meeting_notes.docx", "size": "45KB"}]
+            },
+            {
+                "subject": "Message urgent - Action requise",
+                "content": "Ce message nécessite votre attention immédiate.",
+                "topics": ["urgent", "important"],
+                "attachments": []
+            }
+        ]
+
+        test_emails = []
+        central_user = "user@company.com"
+
+        for i in range(num_emails):
+            template = random.choice(email_templates)
+            contact = random.choice(contacts)
+
+            # Varier les dates 
+            days_ago = random.randint(0, 60)
+            email_date = base_date - timedelta(days=days_ago)
+
+            # Varier expéditeur/destinataire
+            if i % 3 == 0:
+                # Email envoyé par l'utilisateur central
+                from_email = central_user
+                to_email = contact["email"]
+            else:
+                # Email reçu
+                from_email = contact["email"]
+                to_email = central_user
+
+            # Ajouter CC parfois
+            cc_list = []
+            if i % 5 == 0:
+                cc_list = [random.choice(contacts)["email"] for _ in range(random.randint(1, 3))]
+
+            email = {
+                "Message-ID": f"msg{i:04d}@company.com",
+                "Thread-ID": f"thread{i // 4:03d}",
+                "From": from_email,
+                "To": to_email,
+                "Cc": ",".join(cc_list) if cc_list else "",
+                "Subject": template["subject"],
+                "Content": template["content"],
+                "Date": email_date.isoformat(),
+                "has_attachments": len(template["attachments"]) > 0,
+                "attachment_count": len(template["attachments"]),
+                "attachments": template["attachments"],
+                "is_important": "important" in template["topics"] or "urgent" in template["topics"],
+                "is_unread": i < 10,
+                "is_archived": i > 40,
+                "topics": template["topics"]
+            }
+
+            test_emails.append(email)
+
+        return test_emails
 
 
-def create_test_pipeline():
-    """Crée un pipeline de test avec des données COHÉRENTES"""
-    from datetime import timedelta
+class QueryTester:
+    """Testeur de requêtes pour le pipeline"""
 
-    base_date = datetime.now()
+    @staticmethod
+    def get_all_test_queries() -> List[str]:
+        """Retourne la liste complète des requêtes de test"""
+        return [
+            # 1. Recherche par contenu/mots-clés
+            "emails parlant de budget",
+            "courriels mentionnant projet X",
+            "discussions sur performance",
+            "emails avec mot-clé spécifique",
 
-    contacts = [
-        {"email": "marie@company.com", "name": "Marie Dupont"},
-        {"email": "jean@client.com", "name": "Jean Martin"},
-        {"email": "support@service.com", "name": "Support Service"}
-    ]
+            # 2. Recherche par destinataire/expéditeur
+            "emails de Marie",
+            "emails envoyés à Pierre",
+            "messages pour l'équipe",
+            "courriels à destination de Jean",
 
-    subjects_and_topics = [
-        {
-            "subject": "Facture mensuelle janvier 2025",
-            "topics": ["facturation", "billing"],
-            "content": "Voici votre facture mensuelle pour janvier. Montant total 1500€. Merci de procéder au paiement avant le 15."
-        },
-        {
-            "subject": "Projet IA - Rapport hebdomadaire",
-            "topics": ["projet", "ia", "rapport"],
-            "content": "Rapport hebdomadaire du projet intelligence artificielle. Avancement des développements et prochaines étapes."
-        },
-        {
-            "subject": "Newsletter tech - Actualités développement",
-            "topics": ["newsletter", "actualites", "tech"],
-            "content": "Newsletter hebdomadaire avec les dernières actualités technologiques et tendances développement."
-        },
-        {
-            "subject": "Réunion équipe - Notes importantes",
-            "topics": ["meeting", "important", "notes"],
-            "content": "Notes de la réunion équipe avec décisions importantes et actions à suivre. Pièces jointes incluses."
-        },
-        {
-            "subject": "Commande matériel bureau",
-            "topics": ["commande", "materiel"],
-            "content": "Commande de nouveau matériel pour le bureau. Ordinateurs portables et écrans. Livraison prévue."
+            # 3. Recherche temporelle simple
+            "emails d'hier",
+            "messages de la semaine dernière",
+            "courriels du mois dernier",
+            "mails de l'année dernière",
+            "messages récents",
+            "emails d'aujourd'hui",
+
+            # 4. Recherche temporelle avancée
+            "messages de janvier",
+            "courriels entre le 1er et le 15 mars",
+            "emails du 15/03/2024",
+            "messages du 2024-01-15",
+            "courriels de mars 2024",
+
+            # 5. Recherche par type/catégorie
+            "emails de livraison",
+            "factures",
+            "newsletter",
+
+            # 6. Recherche par attributs
+            "emails avec pièces jointes",
+            "courriels avec PDF",
+            "emails non lus",
+            "messages importants",
+            "courriels archivés",
+            "messages envoyés",
+
+            # 7. Recherches combinées
+            "emails de Marie avec pièces jointes hier",
+            "factures de la semaine dernière",
+            "messages importants de ce mois",
+
+            # 8. Recherches négatives
+            "emails sans pièces jointes",
+            "messages sans importance",
+        ]
+
+    @staticmethod
+    def test_basic_queries(pipeline: AccordPipeline) -> None:
+        """Test des requêtes de base"""
+        test_queries = [
+            "emails de Marie sur les factures",
+            "messages d'hier",
+            "projet IA",
+            "emails importants avec pièces jointes",
+            "newsletter",
+            "rapport"
+        ]
+
+        print("\n" + "=" * 60)
+        print("🧪 TEST DES REQUÊTES DE BASE")
+        print("=" * 60)
+
+        for query in test_queries:
+            result = pipeline.search(query)
+
+            if result['success']:
+                print(f"\n📝 Requête: '{query}'")
+                print(f"📊 Résultats: {result['stats']['total_results']}")
+                print(f"⏱️ Temps total: {result['stats']['search_time_ms']}ms")
+
+                for i, res in enumerate(result['results'][:2]):
+                    print(f"\n   #{i + 1} [Score: {res['scores']['total']:.3f}]")
+                    print(f"      📧 Sujet: {res['metadata']['subject']}")
+                    print(f"      👤 De: {res['metadata']['sender']['name']} <{res['metadata']['sender']['email']}>")
+                    print(f"      📅 Date: {res['metadata']['date']}")
+            else:
+                print(f"\n❌ Erreur pour '{query}': {result['error']}")
+
+    @staticmethod
+    def test_all_queries(pipeline: AccordPipeline) -> Dict[str, Any]:
+        """Test exhaustif de toutes les requêtes supportées"""
+        test_queries = QueryTester.get_all_test_queries()
+
+        print("\n" + "=" * 80)
+        print("🧪 TEST EXHAUSTIF DE TOUTES LES REQUÊTES")
+        print("=" * 80)
+
+        results_summary = {
+            'success': 0,
+            'failed': 0,
+            'details': []
         }
-    ]
 
-    # Générer 20 emails plus réalistes
-    test_emails = []
-    for i in range(20):
-        contact = contacts[i % len(contacts)]
-        subject_info = subjects_and_topics[i % len(subjects_and_topics)]
+        for i, query in enumerate(test_queries, 1):
+            print(f"\n[{i}/{len(test_queries)}] Requête: '{query}'")
+            print("-" * 60)
 
-        # Dates plus cohérentes - emails récents
-        email_date = base_date - timedelta(days=i)
+            try:
+                result = pipeline.search(query)
 
-        test_emails.append({
-            "Message-ID": f"msg{i:03d}@company.com",
-            "Thread-ID": f"thread{i // 3:03d}",
-            "From": contact["email"],
-            "To": "user@company.com",
-            "Subject": subject_info["subject"],
-            "Content": subject_info["content"],
-            "Date": email_date.isoformat(),
-            "has_attachments": i % 5 == 0,
-            "attachment_count": 2 if i % 5 == 0 else 0,
-            "is_important": i % 7 == 0,  # ~14% sont importants
-            "is_unread": i < 5,  # Les 5 premiers sont non lus
-            "topics": subject_info["topics"]
-        })
+                if result['success']:
+                    parsed = result['query']['parsed']
+                    stats = result['stats']
 
-    print(f"📧 Génération de {len(test_emails)} emails de test")
-    print(f"📅 Du {test_emails[-1]['Date'][:10]} au {test_emails[0]['Date'][:10]}")
+                    print(f"✅ Succès!")
+                    print(f"   📊 Type détecté: {parsed['query_type']}")
+                    print(f"   🔍 Texte sémantique: '{parsed['semantic_text']}'")
+                    print(f"   🏷️ Filtres: {parsed['filters']}")
+                    print(f"   📈 Résultats: {stats['total_results']}")
+                    print(f"   ⏱️ Temps: {stats['search_time_ms']}ms")
 
+                    results_summary['success'] += 1
+                    results_summary['details'].append({
+                        'query': query,
+                        'success': True,
+                        'type': parsed['query_type'],
+                        'filters': parsed['filters'],
+                        'results_count': stats['total_results']
+                    })
+
+                else:
+                    print(f"❌ Échec: {result['error']}")
+                    results_summary['failed'] += 1
+                    results_summary['details'].append({
+                        'query': query,
+                        'success': False,
+                        'error': result['error']
+                    })
+
+            except Exception as e:
+                print(f"❌ Exception: {str(e)}")
+                results_summary['failed'] += 1
+                results_summary['details'].append({
+                    'query': query,
+                    'success': False,
+                    'error': str(e)
+                })
+
+        # Résumé final
+        print("\n" + "=" * 80)
+        print("📊 RÉSUMÉ DES TESTS")
+        print("=" * 80)
+        print(f"✅ Réussis: {results_summary['success']}/{len(test_queries)}")
+        print(f"❌ Échoués: {results_summary['failed']}/{len(test_queries)}")
+        print(f"📈 Taux de succès: {(results_summary['success'] / len(test_queries) * 100):.1f}%")
+
+        # Analyser les types de requêtes
+        type_counts = {}
+        for detail in results_summary['details']:
+            if detail['success']:
+                query_type = detail['type']
+                type_counts[query_type] = type_counts.get(query_type, 0) + 1
+
+        print("\n📊 Distribution des types de requêtes:")
+        for query_type, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True):
+            print(f"   {query_type}: {count}")
+
+        # Requêtes échouées
+        if results_summary['failed'] > 0:
+            print("\n❌ Requêtes échouées:")
+            for detail in results_summary['details']:
+                if not detail['success']:
+                    print(f"   - '{detail['query']}': {detail['error']}")
+
+        return results_summary
+
+
+def main():
+    """Point d'entrée principal avec options de ligne de commande"""
+    parser = argparse.ArgumentParser(description='ACCORD - Pipeline de Recherche Sémantique')
+    parser.add_argument('--mode', choices=['basic', 'enhanced', 'full'], default='basic',
+                       help='Mode de test : basic (20 emails), enhanced (50 emails), full (test complet)')
+    parser.add_argument('--debug', action='store_true', help='Activer le mode debug')
+
+    args = parser.parse_args()
+
+    print("=" * 80)
+    print("🚀 ACCORD - Pipeline de Recherche Sémantique")
+    print(f"📋 Mode: {args.mode.upper()}")
+    print("=" * 80)
+
+    # Créer le pipeline
     pipeline = AccordPipeline()
 
+    # Générer les données selon le mode
+    if args.mode == 'basic':
+        test_emails = TestDataGenerator.create_basic_test_data(20)
+        print(f"📧 Mode basique : {len(test_emails)} emails de test")
+    elif args.mode == 'enhanced':
+        test_emails = TestDataGenerator.create_enhanced_test_data(50)
+        print(f"📧 Mode enrichi : {len(test_emails)} emails de test")
+    else:  # full
+        test_emails = TestDataGenerator.create_enhanced_test_data(100)
+        print(f"📧 Mode complet : {len(test_emails)} emails de test")
+
+    # Initialiser le graphe
     init_result = pipeline.initialize_graph(
         emails=test_emails,
         central_user="user@company.com"
     )
 
-    if init_result['success']:
-        print("\n✅ Pipeline de test créé avec succès!")
-        print(f"📊 Statistiques: {init_result['stats']}")
-
-        # ✅ Décommenter pour debugger l'indexation
-        # debug_search_engine(pipeline.search_engine)
-
-    else:
-        print(f"\n❌ Erreur création pipeline: {init_result['error']}")
-
-    return pipeline
-
-
-def main():
-    print("=" * 60)
-    print("🚀 ACCORD - Pipeline de Recherche Sémantique")
-    print("=" * 60)
-
-    # Créer le pipeline de test
-    pipeline = create_test_pipeline()
-
-    if not pipeline.is_initialized:
-        print("❌ Échec de l'initialisation du pipeline")
+    if not init_result['success']:
+        print(f"❌ Échec de l'initialisation: {init_result['error']}")
         return
 
-    # Quelques exemples de requêtes
-    test_queries = [
-        "emails de Marie sur les factures",
-        "messages d'hier",
-        "projet IA",
-        "emails importants avec pièces jointes",
-        "newsletter",
-        "rapport"
-    ]
+    print(f"\n✅ Pipeline initialisé avec succès!")
+    print(f"📊 Stats du graphe: {init_result['stats']}")
 
-    print("\n" + "=" * 60)
-    print("🧪 TEST DES REQUÊTES")
-    print("=" * 60)
-
-    for query in test_queries:
-        result = pipeline.search(query)
-
-        if result['success']:
-            print(f"\n📝 Requête: '{query}'")
-            print(f"📊 Résultats: {result['stats']['total_results']}")
-            print(f"⏱️ Temps total: {result['stats']['search_time_ms']}ms")
-
-            for i, res in enumerate(result['results']):
-                print(f"\n   #{i + 1} [Score: {res['scores']['total']:.3f}]")
-                print(f"      📧 Sujet: {res['metadata']['subject']}")
-                print(f"      👤 De: {res['metadata']['sender']['name']} <{res['metadata']['sender']['email']}>")
-                print(f"      📅 Date: {res['metadata']['date']}")
-                if res['snippet']:
-                    print(f"      📝 Extrait: {res['snippet']}")
-        else:
-            print(f"\n❌ Erreur pour '{query}': {result['error']}")
+    # Lancer les tests selon le mode
+    if args.mode == 'basic':
+        QueryTester.test_basic_queries(pipeline)
+    else:
+        QueryTester.test_all_queries(pipeline)
 
     # Afficher les statistiques finales
-    print("\n" + "=" * 60)
-    print("📊 STATISTIQUES DU PIPELINE")
-    print("=" * 60)
+    print("\n" + "=" * 80)
+    print("📊 STATISTIQUES GLOBALES DU PIPELINE")
+    print("=" * 80)
     stats = pipeline.get_pipeline_stats()
     print(json.dumps(stats, indent=2))
 

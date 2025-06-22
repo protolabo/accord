@@ -1,15 +1,10 @@
-"""
-Parseur de requêtes en langage naturel pour Accord - Version enrichie.
-Utilise des patterns multilingues et des techniques NLP pour extraire l'intention et les entités.
-Combine règles heuristiques, patterns enrichis et validation intelligente.
-"""
-
 import re
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
 import pytz
+import calendar
 
 # Import du nouveau système de patterns
 from backend.app.services.semantic_search.patterns import get_patterns, is_blacklisted_name, get_stopwords
@@ -20,10 +15,9 @@ try:
     SPACY_AVAILABLE = True
 except ImportError:
     SPACY_AVAILABLE = False
-    raise RuntimeError("spaCy n'est pas installé : installez-le avec pip install spacy")
+    raise RuntimeError("spaCy n'est pas installé ")
 
 
-# ceci doit etre ameliorer ou meme enrichi selon l'evolution de l'application
 class IntentType(Enum):
     """Types d'intention détectés dans les requêtes"""
     SEARCH_SEMANTIC = "search_semantic"  # Recherche par contenu/sens
@@ -112,37 +106,21 @@ class NaturalLanguageQueryParser:
         language = self._detect_language(query)
 
         # Nettoyer la requête
-        # supprimer tous ce qui est comme accents dans le programme
         cleaned_query = self._clean_query(query)
 
         # Extraire les entités avec patterns adaptés à la langue
         entities = self._extract_entities(cleaned_query, language)
 
-        # Détecter l'intention, analyse une requête pour déterminer quel type de recherche l'utilisateur veut faire.
-        # la cle de la recherche
+        # Détecter l'intention
         intent = self._detect_intent(cleaned_query, entities, language)
 
         # Extraire les filtres
-        """
-        # Résultat final :
-            filters = {
-                "date_from": "2024-01-22",
-                "contact_name": "Marie"
-            }       
-        """
         filters = self._extract_filters(cleaned_query, entities, context)
 
         # Extraire le texte sémantique pur
-        """
-        # Supprimer entités structurées
-        # Supprime "Marie" (PERSON)
-        # Supprime "la semaine dernière" (TEMPORAL)
-        
-        pour l'exemple : "emails de marie la semaine dernière"
-        """
         semantic_text = self._extract_semantic_text(cleaned_query, entities, language)
 
-        # Calculer la confiance avec nouvelle méthode, formule a ajuster selon les retours des utilisateurs
+        # Calculer la confiance
         confidence = self._calculate_overall_confidence(entities, intent, language)
 
         return {
@@ -189,14 +167,16 @@ class NaturalLanguageQueryParser:
         french_indicators = [
             'emails', 'mails', 'messages', 'courriels', 'de', 'du', 'des', 'avec', 'dans',
             'par', 'pour', 'hier', 'aujourd', 'demain', 'semaine', 'mois', 'année',
-            'pièce jointe', 'expéditeur', 'destinataire', 'conversation', 'réunion'
+            'pièce jointe', 'expéditeur', 'destinataire', 'conversation', 'réunion',
+            'envoyé', 'envoyés', 'sans', 'entre'
         ]
 
         # Indicateurs anglais
         english_indicators = [
             'email', 'mail', 'message', 'from', 'to', 'with', 'in', 'by', 'for',
             'yesterday', 'today', 'tomorrow', 'week', 'month', 'year',
-            'attachment', 'sender', 'recipient', 'conversation', 'meeting'
+            'attachment', 'sender', 'recipient', 'conversation', 'meeting',
+            'sent', 'without', 'between'
         ]
 
         # Compter les occurrences
@@ -227,7 +207,6 @@ class NaturalLanguageQueryParser:
             entities.extend(self._extract_entities_spacy(query))
 
         # 2. Extraction avec patterns enrichis
-        # Dans tous les cas, il repasse par le pattern enrichie
         entities.extend(self._extract_entities_patterns(query, language))
 
         # 3. Déduplication et validation
@@ -278,7 +257,7 @@ class NaturalLanguageQueryParser:
         """Extraction d'entités avec patterns enrichis"""
         entities = []
 
-        # Sélectionner les patterns selon la langue et les recupere
+        # Sélectionner les patterns selon la langue
         if language == 'auto':
             patterns_data = self.all_patterns
         else:
@@ -291,20 +270,38 @@ class NaturalLanguageQueryParser:
             for match in matches:
                 try:
                     normalized_value = self._normalize_temporal_entity(match.group(), config)
-                    entity = ParsedEntity(
-                        type='TEMPORAL',
-                        value=normalized_value,
-                        original=match.group(),
-                        confidence=0.9
-                    )
-                    entities.append(entity)
+
+                    # Gérer les plages de dates qui retournent un dict
+                    if isinstance(normalized_value, dict) and 'start' in normalized_value:
+                        # Créer deux entités pour la plage
+                        entity_start = ParsedEntity(
+                            type='TEMPORAL',
+                            value=normalized_value['start'],
+                            original=match.group(),
+                            confidence=0.9
+                        )
+                        entity_end = ParsedEntity(
+                            type='TEMPORAL',
+                            value=normalized_value['end'],
+                            original=match.group(),
+                            confidence=0.9
+                        )
+                        entities.extend([entity_start, entity_end])
+                    else:
+                        entity = ParsedEntity(
+                            type='TEMPORAL',
+                            value=normalized_value,
+                            original=match.group(),
+                            confidence=0.9
+                        )
+                        entities.append(entity)
                 except Exception as e:
                     print(f"⚠️ Erreur normalisation temporelle: {e}")
 
         # Extraction de contacts
         contact_patterns = patterns_data.get('contact', {})
         for pattern, contact_type in contact_patterns.items():
-            if contact_type in ['from_contact', 'to_contact']:
+            if contact_type in ['from_contact', 'to_contact', 'team_contact']:
                 matches = re.finditer(pattern, query, re.IGNORECASE)
                 for match in matches:
                     try:
@@ -312,7 +309,7 @@ class NaturalLanguageQueryParser:
                         name = match.groups()[-1].strip() if match.groups() else match.group().strip()
 
                         # Nettoyer le nom
-                        name = re.sub(r'^(de|from|par|by|à|to)\s+', '', name, flags=re.IGNORECASE)
+                        name = re.sub(r'^(de|from|par|by|à|to|pour|for)\s+', '', name, flags=re.IGNORECASE)
 
                         # Validation du nom
                         if self._is_valid_person_name(name, language):
@@ -323,6 +320,16 @@ class NaturalLanguageQueryParser:
                                 confidence=0.7
                             )
                             entities.append(entity)
+
+                            # Ajouter un marqueur pour le type de contact
+                            if contact_type == 'to_contact':
+                                entity = ParsedEntity(
+                                    type='RECIPIENT_MARKER',
+                                    value='recipient',
+                                    original=match.group(),
+                                    confidence=0.9
+                                )
+                                entities.append(entity)
                     except Exception as e:
                         print(f"⚠️ Erreur extraction contact: {e}")
 
@@ -376,7 +383,7 @@ class NaturalLanguageQueryParser:
             return False
 
         # Rejeter les mots trop génériques
-        generic_words = ['user', 'admin', 'client', 'customer', 'support', 'team', 'group']
+        generic_words = ['user', 'admin', 'client', 'customer', 'support', 'team', 'group', 'équipe']
         if name_clean.lower() in generic_words:
             return False
 
@@ -388,7 +395,7 @@ class NaturalLanguageQueryParser:
         return bool(re.match(email_pattern, email))
 
     def _normalize_temporal_entity(self, text: str, config: Dict[str, Any], timezone: str = "UTC") -> str:
-        """Normalise une entité temporelle en date ISO avec support timezone"""
+        """Normalise une entité temporelle en date ISO avec support timezone et plages"""
         try:
             # Utiliser timezone pour calculs
             tz = pytz.timezone(timezone) if timezone != "UTC" else pytz.UTC
@@ -446,7 +453,7 @@ class NaturalLanguageQueryParser:
                 # Calculer le prochain/dernier jour de la semaine
                 target_weekday = config['day']
                 days_ahead = target_weekday - now.weekday()
-                if days_ahead <= 0:  # Si c'est aujourd'hui ou dans le passé, prendre la semaine prochaine
+                if days_ahead <= 0:  # Si c'est aujourd'hui ou dans le passé
                     days_ahead += 7
                 target_date = now + timedelta(days=days_ahead)
                 return target_date.strftime('%Y-%m-%d')
@@ -457,34 +464,77 @@ class NaturalLanguageQueryParser:
                 target_date = now.replace(month=target_month, day=1)
                 return target_date.strftime('%Y-%m-%d')
 
+            elif config['type'] == 'date_range_month':
+                # Plage de dates dans un mois
+                if 'capture_groups' in config:
+                    match = re.search(
+                        r'(?:entre\s+le\s+|du\s+)?(\d{1,2})\s+(?:et|au|jusqu\'au)\s+(\d{1,2})\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)',
+                        text, re.IGNORECASE
+                    )
+                    if match:
+                        start_day, end_day, month = match.groups()
+                        month_num = self._get_month_number(month)
+                        year = now.year
+                        return {
+                            'start': f"{year}-{month_num:02d}-{int(start_day):02d}",
+                            'end': f"{year}-{month_num:02d}-{int(end_day):02d}"
+                        }
+
+            elif config['type'] == 'date_range_iso':
+                # Plage de dates ISO
+                match = re.search(r'(\d{4}-\d{2}-\d{2})\s+(?:et|au|jusqu\'au|to|until)\s+(\d{4}-\d{2}-\d{2})', text)
+                if match:
+                    return {
+                        'start': match.group(1),
+                        'end': match.group(2)
+                    }
+
+            elif config['type'] == 'month_period':
+                # Début/milieu/fin de mois
+                match = re.search(
+                    r'(début|milieu|fin)\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)',
+                    text, re.IGNORECASE
+                )
+                if match:
+                    period, month_name = match.groups()
+                    month_num = self._get_month_number(month_name)
+                    year = now.year
+
+                    if period == 'début':
+                        return f"{year}-{month_num:02d}-01"
+                    elif period == 'milieu':
+                        return f"{year}-{month_num:02d}-15"
+                    elif period == 'fin':
+                        last_day = calendar.monthrange(year, month_num)[1]
+                        return f"{year}-{month_num:02d}-{last_day}"
+
         except Exception as e:
             print(f"⚠️ Erreur normalisation temporelle: {e}")
 
         # Fallback: retourner le texte original
         return text
 
-    """
-    analyse une requête pour déterminer quel type de recherche l'utilisateur veut faire.
-    Moteur principal de la recherche. surement a ameliore #important
-    """
+    def _get_month_number(self, month_name: str) -> int:
+        """Convertit un nom de mois en numéro"""
+        months_fr = {
+            'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4,
+            'mai': 5, 'juin': 6, 'juillet': 7, 'août': 8,
+            'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12
+        }
+        months_en = {
+            'january': 1, 'february': 2, 'march': 3, 'april': 4,
+            'may': 5, 'june': 6, 'july': 7, 'august': 8,
+            'september': 9, 'october': 10, 'november': 11, 'december': 12
+        }
+
+        month_lower = month_name.lower()
+        return months_fr.get(month_lower, months_en.get(month_lower, 1))
 
     def _detect_intent(self, query: str, entities: List[ParsedEntity], language: str) -> IntentType:
         """Détecte l'intention principale avec patterns enrichis"""
 
         # Initialiser les scores
         intent_scores = {intent: 0.0 for intent in IntentType}
-
-        # Résultat: {
-            #   SEARCH_SEMANTIC: 0.0,
-            #   SEARCH_CONTACT: 0.0,
-            #   SEARCH_TEMPORAL: 0.0,
-            #   SEARCH_TOPIC: 0.0,
-            #   SEARCH_THREAD: 0.0,
-            #   SEARCH_ATTACHMENT: 0.0,
-            #   SEARCH_COMBINED: 0.0,
-            #   UNKNOWN: 0.0
-        # }
-
 
         # Sélectionner les patterns d'intention selon la langue
         if language == 'auto':
@@ -515,18 +565,18 @@ class NaturalLanguageQueryParser:
             entity_type_counts[entity.type] = entity_type_counts.get(entity.type, 0) + 1
 
         for entity_type, count in entity_type_counts.items():
-            if entity_type in ['EMAIL', 'PERSON']:
+            if entity_type in ['EMAIL', 'PERSON', 'RECIPIENT_MARKER']:
                 intent_scores[IntentType.SEARCH_CONTACT] += 0.8 * count
             elif entity_type == 'TEMPORAL':
                 intent_scores[IntentType.SEARCH_TEMPORAL] += 0.8 * count
             elif entity_type == 'TOPIC':
                 intent_scores[IntentType.SEARCH_TOPIC] += 0.6 * count
 
-        # 3. Patterns d'action spécifiques avec nouveau système
+        # 3. Patterns d'action spécifiques
         action_patterns = self.all_patterns.get('action', {})
         for pattern, action_type in action_patterns.items():
             if re.search(pattern, query, re.IGNORECASE):
-                if action_type == 'has_attachment':
+                if action_type in ['has_attachment', 'without_attachment']:
                     intent_scores[IntentType.SEARCH_ATTACHMENT] += 1.2
                 elif action_type == 'in_thread':
                     intent_scores[IntentType.SEARCH_THREAD] += 1.0
@@ -550,40 +600,80 @@ class NaturalLanguageQueryParser:
 
         return best_intent[0]
 
-    def _extract_filters(self, query: str, entities: List[ParsedEntity], context: QueryContext = None) -> Dict[
-        str, Any]:
-        """Extrait les filtres avec support du contexte"""
+    def _extract_filters(self, query: str, entities: List[ParsedEntity], context: QueryContext = None) -> Dict[str, Any]:
+        """Extrait les filtres avec support du contexte et négation"""
         filters = {}
 
         # Filtres temporels
         temporal_entities = [e for e in entities if e.type == 'TEMPORAL']
         if temporal_entities:
-            # Utiliser la première date trouvée comme date de début
-            filters['date_from'] = temporal_entities[0].value
-            # Si contexte timezone disponible, l'utiliser pour la normalisation
-            if context and context.timezone:
-                # Re-normaliser avec le bon timezone
-                pass  # Déjà géré dans normalize_temporal_entity
+            # Gérer les plages de dates
+            if len(temporal_entities) >= 2:
+                # Trier par date
+                dates = sorted([e.value for e in temporal_entities])
+                filters['date_from'] = dates[0]
+                filters['date_to'] = dates[-1]
+            else:
+                filters['date_from'] = temporal_entities[0].value
+
+        # Gérer les plages temporelles complexes
+        date_range_match = re.search(
+            r'entre\s+le\s+(\d{1,2})\s+et\s+le\s+(\d{1,2})\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)',
+            query, re.IGNORECASE
+        )
+        if date_range_match:
+            start_day, end_day, month = date_range_match.groups()
+            month_num = self._get_month_number(month)
+            current_year = datetime.now().year
+            filters['date_from'] = f"{current_year}-{month_num:02d}-{int(start_day):02d}"
+            filters['date_to'] = f"{current_year}-{month_num:02d}-{int(end_day):02d}"
 
         # Filtres de contact
         email_entities = [e for e in entities if e.type == 'EMAIL']
         person_entities = [e for e in entities if e.type == 'PERSON']
+        has_recipient_marker = any(e.type == 'RECIPIENT_MARKER' for e in entities)
+
+        # Détecter si c'est un destinataire ou expéditeur
+        query_lower = query.lower()
+        is_recipient = (
+            has_recipient_marker or
+            any(pattern in query_lower for pattern in
+                ['envoyé à', 'envoyés à', 'pour', 'à destination', 'sent to', 'for'])
+        )
+        is_sender = any(pattern in query_lower for pattern in
+                       ['de', 'par', 'from', 'reçu de', 'received from'])
 
         if email_entities:
-            filters['contact_email'] = email_entities[0].value
+            if is_recipient:
+                filters['recipient_email'] = email_entities[0].value
+            else:
+                filters['contact_email'] = email_entities[0].value
         elif person_entities:
-            filters['contact_name'] = person_entities[0].value
+            if is_recipient:
+                filters['recipient_name'] = person_entities[0].value
+            else:
+                filters['contact_name'] = person_entities[0].value
 
-        # Filtres de topic
-        topic_entities = [e for e in entities if e.type == 'TOPIC']
-        if topic_entities:
-            filters['topic_ids'] = [e.value for e in topic_entities]
+        # Détection des états spéciaux
+        if any(pattern in query_lower for pattern in ['envoyé', 'envoyés', 'boîte d\'envoi', 'sent', 'outbox']):
+            filters['message_type'] = 'sent'
+        elif any(pattern in query_lower for pattern in ['reçu', 'reçus', 'inbox', 'received']):
+            filters['message_type'] = 'received'
 
-        # Filtres d'action avec patterns enrichis
+        # Gestion de la négation et des actions
         action_patterns = self.all_patterns.get('action', {})
         for pattern, action_type in action_patterns.items():
-            if re.search(pattern, query, re.IGNORECASE):
-                if action_type == 'has_attachment':
+            match = re.search(pattern, query, re.IGNORECASE)
+            if match:
+                if action_type == 'without_attachment':
+                    filters['has_attachments'] = False
+                elif action_type == 'without_importance':
+                    filters['is_important'] = False
+                elif action_type == 'sent_by_me':
+                    filters['message_type'] = 'sent'
+                elif action_type == 'received_by_me':
+                    filters['message_type'] = 'received'
+                elif action_type == 'has_attachment':
                     filters['has_attachments'] = True
                 elif action_type == 'unread':
                     filters['is_unread'] = True
@@ -591,6 +681,18 @@ class NaturalLanguageQueryParser:
                     filters['is_important'] = True
                 elif action_type == 'archived':
                     filters['is_archived'] = True
+
+        # Types de pièces jointes spécifiques
+        attachment_types = re.findall(r'\b(pdf|doc|docx|xls|xlsx|ppt|pptx|zip|jpg|png|gif)\b', query_lower)
+        if attachment_types:
+            filters['attachment_types'] = list(set(attachment_types))
+            if 'has_attachments' not in filters:
+                filters['has_attachments'] = True
+
+        # Filtres de topic
+        topic_entities = [e for e in entities if e.type == 'TOPIC']
+        if topic_entities:
+            filters['topic_ids'] = [e.value for e in topic_entities]
 
         return filters
 
@@ -602,7 +704,7 @@ class NaturalLanguageQueryParser:
 
         # Supprimer les entités structurées détectées
         for entity in entities:
-            if entity.type in ['EMAIL', 'TEMPORAL', 'PERSON', 'TOPIC']:
+            if entity.type in ['EMAIL', 'TEMPORAL', 'PERSON', 'TOPIC', 'RECIPIENT_MARKER']:
                 # Supprimer l'entité et son contexte immédiat
                 pattern = re.escape(entity.original)
                 semantic_text = re.sub(pattern, '', semantic_text, flags=re.IGNORECASE)
@@ -695,6 +797,8 @@ class NaturalLanguageQueryParser:
                 weight = 1.1  # Dates sont fiables
             elif entity.type == 'TOPIC':
                 weight = 0.8  # Topics moins fiables
+            elif entity.type == 'RECIPIENT_MARKER':
+                weight = 0.9  # Marqueurs de destinataire fiables
 
             total_confidence += entity.confidence * weight
             total_weight += weight

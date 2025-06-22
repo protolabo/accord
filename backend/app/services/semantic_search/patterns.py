@@ -82,6 +82,29 @@ class EmailPatterns:
                 r'\b(\d{4})-(\d{2})-(\d{2})\b': {'type': 'iso_date'},
                 r'\b(\d{1,2}) (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre) (\d{4})\b': {
                     'type': 'date_text_fr'},
+
+                r'\b(entre\s+le\s+)?(\d{1,2})\s+(et|au)\s+(\d{1,2})\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b': {
+                    'type': 'date_range_month',
+                    'capture_groups': ['start_day', 'end_day', 'month']
+                },
+                r'\b(du\s+)?(\d{1,2})\s+(au|jusqu\'au)\s+(\d{1,2})\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b': {
+                    'type': 'date_range_month',
+                    'capture_groups': ['start_day', 'end_day', 'month']
+                },
+                r'\b(entre|du)\s+(\d{4}-\d{2}-\d{2})\s+(et|au|jusqu\'au)\s+(\d{4}-\d{2}-\d{2})\b': {
+                    'type': 'date_range_iso',
+                    'capture_groups': ['start_date', 'end_date']
+                },
+
+                #  Périodes spécifiques
+                r'\b(début|milieu|fin)\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b': {
+                    'type': 'month_period',
+                    'capture_groups': ['period', 'month']
+                },
+                r'\b(première|deuxième|dernière)\s+semaine\s+de\s+(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b': {
+                    'type': 'week_of_month',
+                    'capture_groups': ['week_number', 'month']
+                },
             },
 
             'en': {
@@ -115,6 +138,15 @@ class EmailPatterns:
                 r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b': {'type': 'absolute_date_us'},
                 r'\b(january|february|march|april|may|june|july|august|september|october|november|december) (\d{1,2}),? (\d{4})\b': {
                     'type': 'date_text_en'},
+
+                r'\b(between\s+)?(\d{1,2})\s+(and|to)\s+(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)\b': {
+                    'type': 'date_range_month',
+                    'capture_groups': ['start_day', 'end_day', 'month']
+                },
+                r'\b(from\s+)?(\d{4}-\d{2}-\d{2})\s+(to|until)\s+(\d{4}-\d{2}-\d{2})\b': {
+                    'type': 'date_range_iso',
+                    'capture_groups': ['start_date', 'end_date']
+                },
             }
         }
 
@@ -141,6 +173,14 @@ class EmailPatterns:
                 # Domaines emails
                 r'\b(domaine|domain)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b': 'email_domain',
                 r'\b(@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b': 'email_domain',
+
+                r'\b(envoyé[s]?\s+à|destiné[s]?\s+à|pour|adressé[s]?\s+à)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(emails?\s+envoyé[s]?\s+à|mails?\s+envoyé[s]?\s+à)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(messages?\s+pour|courriels?\s+pour)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(à\s+destination\s+de?)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+
+                r'\b(pour\s+l\'équipe|à\s+l\'équipe|équipe)\s+([A-Z][a-zA-Z\s.-]{2,20})\b': 'team_contact',
+                r'\b(tout\s+le\s+monde|tous|toute\s+l\'équipe)\b': 'all_contacts',
             },
 
             'en': {
@@ -156,6 +196,10 @@ class EmailPatterns:
                 # Groupes
                 r'\b(team|group|department|dept)\s+([A-Z][a-zA-Z\s]{2,20})\b': 'group_contact',
                 r'\b(company|firm|organization|org)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'company_contact',
+                r'\b(sent\s+to|addressed\s+to|for)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(emails?\s+sent\s+to|mails?\s+sent\s+to)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(messages?\s+for)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+
             }
         }
 
@@ -271,6 +315,17 @@ class EmailPatterns:
                 r'\b(sans|without|excluding|excluant)\b': 'exclude',
                 r'\b(seulement|only|uniquement|just)\b': 'only',
                 r'\b(contenant|containing|avec le mot|with word)\b': 'contains',
+
+                #  Négation/Exclusion
+                r'\b(sans|excepté|sauf|hormis)\s+(pièce[s]?\s+jointe[s]?|attachment[s]?|fichier[s]?)\b': 'without_attachment',
+                r'\b(sans|excepté)\s+(importance|important)\b': 'without_importance',
+                r'\b(ne\s+pas|pas\s+de|aucun[e]?)\s+(pièce[s]?\s+jointe[s]?)\b': 'without_attachment',
+
+                #  États manquants
+                r'\b(messages?\s+envoyé[s]?|emails?\s+envoyé[s]?|courriels?\s+envoyé[s]?)\b': 'sent_by_me',
+                r'\b(boîte\s+d\'envoi|envoyé[s]?\s+par\s+moi)\b': 'sent_by_me',
+                r'\b(messages?\s+reçu[s]?|emails?\s+reçu[s]?|reçu[s]?)\b': 'received_by_me',
+
             },
 
             'en': {
@@ -295,6 +350,15 @@ class EmailPatterns:
                 r'\b(marked|tagged|labeled)\b': 'tagged',
                 r'\b(forwarded|forward)\b': 'forwarded',
                 r'\b(replied|answered)\b': 'replied',
+
+                #  Negation patterns
+                r'\b(without|except|excluding)\s+(attachment[s]?|file[s]?)\b': 'without_attachment',
+                r'\b(no|none)\s+(attachment[s]?|file[s]?)\b': 'without_attachment',
+
+                #  Sent/Received states
+                r'\b(sent\s+messages?|sent\s+emails?|messages?\s+sent)\b': 'sent_by_me',
+                r'\b(outbox|sent\s+by\s+me)\b': 'sent_by_me',
+                r'\b(received\s+messages?|received\s+emails?|inbox)\b': 'received_by_me',
             }
         }
 

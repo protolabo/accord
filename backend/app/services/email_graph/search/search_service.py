@@ -108,55 +108,168 @@ class SearchService:
 
     def search_by_user(self, filters, query=''):
         """
-        Recherche par utilisateur avec matching flexible
+        Recherche par utilisateur avec support expéditeur/destinataire
 
         Args:
-            filters (dict): Filtres incluant contact_email et/ou contact_name
+            filters (dict): Filtres incluant contact_email, recipient_email, etc.
             query (str): Requête textuelle optionnelle
 
         Returns:
             dict: Scores par message_id
         """
-        contact_email = filters.get('contact_email', '').lower()
+        # Gérer les différents types de recherche utilisateur
+        contact_email = filters.get('contact_email', '').lower()  # Expéditeur
         contact_name = filters.get('contact_name', '').lower()
-
-        if not contact_email and not contact_name:
-            return {}
-
-        # Trouver les utilisateurs correspondants
-        matching_users = self._find_matching_users(contact_email, contact_name)
-
-        if not matching_users:
-            logger.logger.info(f"Aucun utilisateur trouvé pour: {contact_email} {contact_name}")
-            return {}
-
-        logger.logger.info(f"🎯 {len(matching_users)} utilisateur(s) correspondant(s)")
-
-        # Calculer les scores utilisateur
-        user_scores = self.scoring.calculate_user_scores(matching_users)
+        recipient_email = filters.get('recipient_email', '').lower()  # Destinataire
+        recipient_name = filters.get('recipient_name', '').lower()
 
         results = defaultdict(lambda: defaultdict(float))
 
-        # Enrichir avec les scores de graphe et filtrer
-        for message_id, user_score in user_scores.items():
-            message_data = self.indexing.message_nodes.get(message_id, {})
+        # Recherche par expéditeur
+        if contact_email or contact_name:
+            sender_users = self._find_matching_users(contact_email, contact_name)
+            sender_scores = self.scoring.calculate_user_scores(
+                sender_users,
+                role_weights={'sent': 1.0, 'received': 0.0}  # Seulement les messages envoyés
+            )
 
-            if not self._apply_message_filters(message_id, message_data, filters):
-                continue
+            for msg_id, score in sender_scores.items():
+                results[msg_id]['user'] = score
 
-            results[message_id]['user'] = user_score
+        #  Recherche par destinataire
+        if recipient_email or recipient_name:
+            recipient_users = self._find_matching_users(recipient_email, recipient_name)
 
-            # Ajouter score de graphe
-            graph_scores = self.scoring.calculate_graph_scores([message_id])
-            results[message_id]['graph'] = graph_scores.get(message_id, 0.0)
+            # Chercher dans les messages où ces utilisateurs sont destinataires
+            for user_id, match_score in recipient_users:
+                # Messages où l'utilisateur est destinataire (TO, CC, BCC)
+                for message_id in self._find_messages_to_recipient(user_id):
+                    message_data = self.indexing.message_nodes.get(message_id, {})
 
-            # Ajouter score de contenu si requête fournie
-            if query:
-                content_results = self.search_by_content(query, filters)
+                    if self._apply_message_filters(message_id, message_data, filters):
+                        results[message_id]['user'] = max(
+                            results[message_id]['user'],
+                            match_score * 0.9
+                        )
+
+        # Ajouter scores de contenu si requête fournie
+        if query:
+            content_results = self.search_by_content(query, filters)
+            for message_id in results:
                 if message_id in content_results:
                     results[message_id]['content'] = content_results[message_id].get('content', 0)
 
         return dict(results)
+
+    def _find_messages_to_recipient(self, user_id):
+        """
+        NOUVEAU: Trouve tous les messages envoyés à un utilisateur spécifique
+
+        Args:
+            user_id (str): ID de l'utilisateur destinataire
+
+        Returns:
+            set: IDs des messages
+        """
+        messages = set()
+
+        # Chercher toutes les relations entrantes vers cet utilisateur
+        for message_id, _, edge_data in self.indexing.graph.in_edges(user_id, data=True):
+            edge_type = edge_data.get('type')
+            if edge_type in ['RECEIVED', 'CC', 'BCC']:
+                messages.add(message_id)
+
+        return messages
+
+    def _apply_message_filters(self, message_id, message_data, filters):
+        """Applique les filtres additionnels à un message (version améliorée)"""
+
+        # Filtres existants...
+
+        # NOUVEAU: Filtre type de message (sent/received)
+        if filters.get('message_type'):
+            message_type = filters['message_type']
+
+            if message_type == 'sent':
+                # Vérifier si le message a été envoyé par l'utilisateur central
+                is_sent = False
+                for user_id, _, edge_data in self.indexing.graph.in_edges(message_id, data=True):
+                    if edge_data.get('type') == 'SENT':
+                        user_data = self.indexing.user_nodes.get(user_id, {})
+                        if user_data.get('is_central_user', False):
+                            is_sent = True
+                            break
+                if not is_sent:
+                    return False
+
+            elif message_type == 'received':
+                # Vérifier si le message a été reçu par l'utilisateur central
+                is_received = False
+                for _, user_id, edge_data in self.indexing.graph.out_edges(message_id, data=True):
+                    if edge_data.get('type') in ['RECEIVED', 'CC', 'BCC']:
+                        user_data = self.indexing.user_nodes.get(user_id, {})
+                        if user_data.get('is_central_user', False):
+                            is_received = True
+                            break
+                if not is_received:
+                    return False
+
+        # Filtre types de pièces jointes spécifiques
+        if filters.get('attachment_types'):
+            required_types = set(filters['attachment_types'])
+            message_attachments = message_data.get('attachments', [])
+
+            if not message_attachments:
+                return False
+
+            # Extraire les extensions des pièces jointes
+            attachment_extensions = set()
+            for attachment in message_attachments:
+                if isinstance(attachment, dict):
+                    filename = attachment.get('filename', '')
+                else:
+                    filename = str(attachment)
+
+                if '.' in filename:
+                    ext = filename.split('.')[-1].lower()
+                    attachment_extensions.add(ext)
+
+            # Vérifier si au moins un type requis est présent
+            if not required_types.intersection(attachment_extensions):
+                return False
+
+        #  Filtre destinataire spécifique (complément de search_by_user)
+        if filters.get('recipient_name'):
+            recipient_name = filters['recipient_name'].lower()
+            found = False
+
+            # Vérifier dans les relations du graphe
+            for _, user_id, edge_data in self.indexing.graph.out_edges(message_id, data=True):
+                if edge_data.get('type') in ['RECEIVED', 'CC', 'BCC']:
+                    user_data = self.indexing.user_nodes.get(user_id, {})
+                    if recipient_name in user_data.get('name', '').lower():
+                        found = True
+                        break
+
+            if not found:
+                return False
+
+        # Filtres existants...
+        if filters.get('has_attachments') is not None:
+            message_has_attachments = message_data.get('has_attachments', False)
+            if filters['has_attachments'] != message_has_attachments:
+                return False
+
+        if filters.get('is_unread') and not message_data.get('is_unread', True):
+            return False
+
+        if filters.get('is_important') and not message_data.get('is_important'):
+            return False
+
+        if filters.get('is_archived') and not message_data.get('is_archived', False):
+            return False
+
+        return True
 
     def search_by_topic(self, filters, query=''):
         """
@@ -193,7 +306,7 @@ class SearchService:
 
     def search_combined(self, query, filters):
         """
-        Recherche combinée avec fusion des scores
+        Recherche combinée avec fusion des scores (version améliorée)
 
         Args:
             query (str): Requête textuelle
@@ -205,13 +318,28 @@ class SearchService:
         combined_results = defaultdict(lambda: defaultdict(float))
         all_results = []
 
+        #  Gérer les cas de négation spécialement
+        has_negation = (
+                filters.get('has_attachments') is False or
+                filters.get('is_important') is False
+        )
+
         # Déterminer si on a plusieurs filtres
-        has_multiple_filters = sum([
-            bool(filters.get('topic_ids')),
-            bool(filters.get('has_attachments')),
-            bool(filters.get('contact_name') or filters.get('contact_email')),
-            bool(filters.get('date_from'))
-        ]) > 1
+        active_filters = []
+        if filters.get('topic_ids'):
+            active_filters.append('topics')
+        if filters.get('has_attachments') is not None:
+            active_filters.append('attachments')
+        if filters.get('contact_name') or filters.get('contact_email'):
+            active_filters.append('sender')
+        if filters.get('recipient_name') or filters.get('recipient_email'):
+            active_filters.append('recipient')
+        if filters.get('date_from'):
+            active_filters.append('temporal')
+        if filters.get('message_type'):
+            active_filters.append('message_type')
+
+        has_multiple_filters = len(active_filters) > 1
 
         # Exécuter les différents types de recherche
         search_results = {}
@@ -226,8 +354,8 @@ class SearchService:
             search_results['topics'] = self.search_by_topic(filters, query)
             all_results.append(set(search_results['topics'].keys()))
 
-        # Recherche par utilisateur
-        if filters.get('contact_name') or filters.get('contact_email'):
+        # Recherche par utilisateur (expéditeur ou destinataire)
+        if any(filters.get(k) for k in ['contact_name', 'contact_email', 'recipient_name', 'recipient_email']):
             search_results['user'] = self.search_by_user(filters, query)
             all_results.append(set(search_results['user'].keys()))
 
@@ -236,15 +364,29 @@ class SearchService:
             search_results['temporal'] = self.search_by_temporal(filters, query)
             all_results.append(set(search_results['temporal'].keys()))
 
-        # Fusion des résultats
-        if has_multiple_filters and all_results:
-            # INTERSECTION - garder seulement les messages présents dans TOUS les résultats
-            valid_messages = set.intersection(*all_results) if all_results else set()
+        # Pour les filtres de négation ou d'état, on doit chercher dans TOUS les messages
+        if has_negation or filters.get('message_type'):
+            # Parcourir tous les messages et appliquer les filtres
+            all_messages = set()
+            for message_id, message_data in self.indexing.message_nodes.items():
+                if self._apply_message_filters(message_id, message_data, filters):
+                    all_messages.add(message_id)
+
+            # Si on a d'autres résultats, faire l'intersection
+            if all_results:
+                valid_messages = all_messages.intersection(
+                    set.intersection(*all_results) if has_multiple_filters else set.union(*all_results)
+                )
+            else:
+                valid_messages = all_messages
         else:
-            # UNION - tous les messages trouvés
-            valid_messages = set()
-            for result_set in all_results:
-                valid_messages.update(result_set)
+            # Logique existante pour fusion normale
+            if has_multiple_filters and all_results:
+                valid_messages = set.intersection(*all_results)
+            else:
+                valid_messages = set()
+                for result_set in all_results:
+                    valid_messages.update(result_set)
 
         # Combiner les scores pour les messages valides
         for message_id in valid_messages:
