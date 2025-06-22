@@ -382,7 +382,7 @@ class TestDataGenerator:
             template = random.choice(email_templates)
             contact = random.choice(contacts)
 
-            # Varier les dates 
+            # Varier les dates
             days_ago = random.randint(0, 60)
             email_date = base_date - timedelta(days=days_ago)
 
@@ -605,7 +605,7 @@ class QueryTester:
 def main():
     """Point d'entrée principal avec options de ligne de commande"""
     parser = argparse.ArgumentParser(description='ACCORD - Pipeline de Recherche Sémantique')
-    parser.add_argument('--mode', choices=['basic', 'enhanced', 'full'], default='basic',
+    parser.add_argument('--mode', choices=['basic', 'enhanced', 'full'], default='full',
                        help='Mode de test : basic (20 emails), enhanced (50 emails), full (test complet)')
     parser.add_argument('--debug', action='store_true', help='Activer le mode debug')
 
