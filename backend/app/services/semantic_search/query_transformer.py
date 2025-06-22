@@ -268,7 +268,7 @@ class SemanticQueryTransformer:
         llm_confidence = self._estimate_llm_confidence(llm_result)
 
         # Si LLM significativement plus confiant, privilégier ses résultats
-        if llm_confidence > nlp_confidence + 0.2:
+        if llm_confidence > nlp_confidence :
             # Utiliser structure LLM comme base
             merged.update({
                 'intent': self._map_llm_to_intent(llm_result.get('query_type', 'semantic')),

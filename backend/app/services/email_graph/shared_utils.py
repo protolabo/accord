@@ -3,7 +3,7 @@ Utilitaires partagés pour tous les types de nœuds du graphe d'emails.
 """
 
 from datetime import datetime
-from ..utils.email_utils import normalize_email
+from .utils.email_utils import normalize_email
 
 
 def parse_email_date(date_str, fallback_key=None):
