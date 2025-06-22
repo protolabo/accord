@@ -1,25 +1,48 @@
 """
-Parser de requêtes en langage naturel simplifié utilisant uniquement spaCy et patterns.
-Version allégée sans LLM pour des performances optimales.
+Parseur de requêtes en langage naturel pour Accord - Version enrichie.
+Utilise des patterns multilingues et des techniques NLP pour extraire l'intention et les entités.
+Combine règles heuristiques, patterns enrichis et validation intelligente.
 """
 
 import re
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+from datetime import datetime, timedelta
 from dataclasses import dataclass
 from enum import Enum
+import pytz
 
-from .patterns import get_patterns, is_blacklisted_name, get_stopwords
-from ..config import SPACY_CONFIG, CONFIDENCE_WEIGHTS, IntentType
+# Import du nouveau système de patterns
+from backend.app.services.semantic_search.patterns import get_patterns, is_blacklisted_name, get_stopwords
+
+# Import conditionnel de spaCy pour NER
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+    raise RuntimeError("spaCy n'est pas installé : installez-le avec pip install spacy")
+
+
+# ceci doit etre ameliorer ou meme enrichi selon l'evolution de l'application
+class IntentType(Enum):
+    """Types d'intention détectés dans les requêtes"""
+    SEARCH_SEMANTIC = "search_semantic"  # Recherche par contenu/sens
+    SEARCH_CONTACT = "search_contact"  # Recherche par expéditeur/contact
+    SEARCH_TEMPORAL = "search_temporal"  # Recherche temporelle
+    SEARCH_TOPIC = "search_topic"  # Recherche par sujet/catégorie
+    SEARCH_THREAD = "search_thread"  # Recherche dans conversations
+    SEARCH_ATTACHMENT = "search_attachment"  # Recherche avec fichiers joints
+    SEARCH_COMBINED = "search_combined"  # Requête combinée
+    UNKNOWN = "unknown"
 
 
 @dataclass
 class ParsedEntity:
     """Entité extraite de la requête"""
-    type: str
-    value: str
-    original: str
-    confidence: float
+    type: str  # Type d'entité (PERSON, DATE, EMAIL, etc.)
+    value: str  # Valeur normalisée
+    original: str  # Texte original
+    confidence: float  # Score de confiance
 
 
 @dataclass
@@ -33,8 +56,8 @@ class QueryContext:
 
 class NaturalLanguageQueryParser:
     """
-    Parser principal pour les requêtes en langage naturel.
-    Utilise spaCy et patterns enrichis pour une analyse rapide et précise.
+    Parseur principal pour les requêtes en langage naturel.
+    Utilise patterns enrichis, analyse heuristique, NER et validation intelligente.
     """
 
     def __init__(self):
@@ -42,28 +65,33 @@ class NaturalLanguageQueryParser:
         self._load_patterns()
 
     def _load_spacy_model(self):
-        """Charge le modèle spaCy avec fallback"""
-        try:
-            import spacy
-            for model_name in SPACY_CONFIG['models_priority']:
-                try:
-                    return spacy.load(model_name)
-                except OSError:
-                    continue
-        except ImportError:
-            pass
-
-        if SPACY_CONFIG['fallback_enabled']:
-            print("⚠️ Aucun modèle spaCy disponible, utilisation des patterns uniquement")
+        """Charge le modèle spaCy si disponible"""
+        if not SPACY_AVAILABLE:
             return None
-        else:
-            raise RuntimeError("spaCy n'est pas installé ou aucun modèle disponible")
+
+        try:
+            # Essayer le modèle français en premier
+            return spacy.load("fr_core_news_sm")
+        except OSError:
+            try:
+                # Fallback sur modèle anglais
+                return spacy.load("en_core_web_sm")
+            except OSError:
+                print("⚠️ Aucun modèle spaCy disponible, utilisation des patterns uniquement")
+                return None
 
     def _load_patterns(self):
         """Charge les patterns enrichis"""
+        # Charger tous les patterns en mode auto (FR + EN)
         self.all_patterns = get_patterns('auto', 'all')
+
+        # Patterns spécifiques par langue
         self.patterns_fr = get_patterns('fr', 'all')
         self.patterns_en = get_patterns('en', 'all')
+
+        # Stopwords
+        self.stopwords_fr = get_stopwords('fr')
+        self.stopwords_en = get_stopwords('en')
         self.stopwords_auto = get_stopwords('auto')
 
     def parse_query(self, query: str, context: QueryContext = None) -> Dict[str, Any]:
@@ -71,34 +99,50 @@ class NaturalLanguageQueryParser:
         Parse une requête en langage naturel
 
         Args:
-            query (str): Requête utilisateur
-            context (QueryContext): Contexte optionnel
+            query: Requête utilisateur
+            context: Contexte optionnel
 
         Returns:
-            dict: Résultat du parsing avec entités et intention
+            Dictionnaire avec intention, entités et métadonnées
         """
         if not query or len(query.strip()) < 2:
             return self._empty_parse_result(query)
 
-        # Détecter la langue
+        # Détecter la langue en premier
         language = self._detect_language(query)
 
         # Nettoyer la requête
+        # supprimer tous ce qui est comme accents dans le programme
         cleaned_query = self._clean_query(query)
 
-        # Extraire les entités
+        # Extraire les entités avec patterns adaptés à la langue
         entities = self._extract_entities(cleaned_query, language)
 
-        # Détecter l'intention
+        # Détecter l'intention, analyse une requête pour déterminer quel type de recherche l'utilisateur veut faire.
+        # la cle de la recherche
         intent = self._detect_intent(cleaned_query, entities, language)
 
         # Extraire les filtres
+        """
+        # Résultat final :
+            filters = {
+                "date_from": "2024-01-22",
+                "contact_name": "Marie"
+            }       
+        """
         filters = self._extract_filters(cleaned_query, entities, context)
 
         # Extraire le texte sémantique pur
+        """
+        # Supprimer entités structurées
+        # Supprime "Marie" (PERSON)
+        # Supprime "la semaine dernière" (TEMPORAL)
+        
+        pour l'exemple : "emails de marie la semaine dernière"
+        """
         semantic_text = self._extract_semantic_text(cleaned_query, entities, language)
 
-        # Calculer la confiance
+        # Calculer la confiance avec nouvelle méthode, formule a ajuster selon les retours des utilisateurs
         confidence = self._calculate_overall_confidence(entities, intent, language)
 
         return {
@@ -122,9 +166,20 @@ class NaturalLanguageQueryParser:
                 'has_temporal': any(e.type in ['TEMPORAL', 'DATE', 'TIME'] for e in entities),
                 'has_person': any(e.type == 'PERSON' for e in entities),
                 'has_email': any(e.type == 'EMAIL' for e in entities),
-                'patterns_used': 'spacy_patterns'
+                'patterns_used': 'enriched_multilingual'
             }
         }
+
+    def _clean_query(self, query: str) -> str:
+        """Nettoie et normalise la requête"""
+        # Supprimer caractères spéciaux inutiles mais garder @ pour emails
+        cleaned = re.sub(r'[^\w\s@.-]', ' ', query)
+
+        # Normaliser les espaces
+        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+
+        # Convertir en minuscules pour pattern matching
+        return cleaned.lower()
 
     def _detect_language(self, query: str) -> str:
         """Détection de langue améliorée"""
@@ -161,28 +216,18 @@ class NaturalLanguageQueryParser:
         elif english_score > french_score:
             return 'en'
         else:
-            return 'auto'
-
-    def _clean_query(self, query: str) -> str:
-        """Nettoie et normalise la requête"""
-        # Supprimer caractères spéciaux inutiles mais garder @ pour emails
-        cleaned = re.sub(r'[^\w\s@.-]', ' ', query)
-
-        # Normaliser les espaces
-        cleaned = re.sub(r'\s+', ' ', cleaned).strip()
-
-        # Convertir en minuscules pour pattern matching
-        return cleaned.lower()
+            return 'auto'  # Utiliser patterns multilingues
 
     def _extract_entities(self, query: str, language: str) -> List[ParsedEntity]:
-        """Extrait les entités nommées avec spaCy et patterns enrichis"""
+        """Extrait les entités nommées avec patterns enrichis"""
         entities = []
 
         # 1. Extraction avec spaCy si disponible
         if self.nlp_model:
             entities.extend(self._extract_entities_spacy(query))
 
-        # 2. Extraction avec patterns enrichis (toujours)
+        # 2. Extraction avec patterns enrichis
+        # Dans tous les cas, il repasse par le pattern enrichie
         entities.extend(self._extract_entities_patterns(query, language))
 
         # 3. Déduplication et validation
@@ -207,7 +252,7 @@ class NaturalLanguageQueryParser:
                         type=entity_type,
                         value=ent.text.strip(),
                         original=ent.text,
-                        confidence=CONFIDENCE_WEIGHTS['spacy_entity']
+                        confidence=0.8  # Confiance de base pour spaCy
                     )
                     entities.append(entity)
 
@@ -233,7 +278,7 @@ class NaturalLanguageQueryParser:
         """Extraction d'entités avec patterns enrichis"""
         entities = []
 
-        # Sélectionner les patterns selon la langue
+        # Sélectionner les patterns selon la langue et les recupere
         if language == 'auto':
             patterns_data = self.all_patterns
         else:
@@ -250,7 +295,7 @@ class NaturalLanguageQueryParser:
                         type='TEMPORAL',
                         value=normalized_value,
                         original=match.group(),
-                        confidence=CONFIDENCE_WEIGHTS['pattern_match']
+                        confidence=0.9
                     )
                     entities.append(entity)
                 except Exception as e:
@@ -275,7 +320,7 @@ class NaturalLanguageQueryParser:
                                 type='PERSON',
                                 value=name.title(),
                                 original=match.group(),
-                                confidence=CONFIDENCE_WEIGHTS['pattern_match'] * 0.8
+                                confidence=0.7
                             )
                             entities.append(entity)
                     except Exception as e:
@@ -290,7 +335,7 @@ class NaturalLanguageQueryParser:
                             type='EMAIL',
                             value=email,
                             original=match.group(),
-                            confidence=CONFIDENCE_WEIGHTS['pattern_match']
+                            confidence=0.95
                         )
                         entities.append(entity)
 
@@ -303,17 +348,11 @@ class NaturalLanguageQueryParser:
                     type='TOPIC',
                     value=topic_type,
                     original=match.group(),
-                    confidence=CONFIDENCE_WEIGHTS['pattern_match'] * 0.9
+                    confidence=0.8
                 )
                 entities.append(entity)
 
         return entities
-
-    def _normalize_temporal_entity(self, text: str, config: Dict[str, Any], timezone: str = "UTC") -> str:
-        """Normalise une entité temporelle en date ISO avec support timezone"""
-        # Import de la fonction de transformation
-        from ..services.transformation_service import normalize_temporal_entity
-        return normalize_temporal_entity(text, config, timezone)
 
     def _is_valid_person_name(self, name: str, language: str) -> bool:
         """Validation intelligente des noms de personnes"""
@@ -332,7 +371,7 @@ class NaturalLanguageQueryParser:
 
         # Pattern de nom réaliste
         # Accepter: "Marie", "Jean Dupont", "Marie-Claire", "O'Connor"
-        name_pattern = r"^[A-ZÀ-Ÿ][a-zA-ZÀ-ÿ]+(?:[-'\s][A-ZÀ-Ÿ][a-zA-ZÀ-ÿ]+)*$"
+        name_pattern = r"^[A-Z][a-z]+(?:[-'\s][A-Z][a-z]+)*$"
         if not re.match(name_pattern, name_clean):
             return False
 
@@ -348,10 +387,104 @@ class NaturalLanguageQueryParser:
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return bool(re.match(email_pattern, email))
 
+    def _normalize_temporal_entity(self, text: str, config: Dict[str, Any], timezone: str = "UTC") -> str:
+        """Normalise une entité temporelle en date ISO avec support timezone"""
+        try:
+            # Utiliser timezone pour calculs
+            tz = pytz.timezone(timezone) if timezone != "UTC" else pytz.UTC
+            now = datetime.now(tz)
+
+            if config['type'] == 'relative_day':
+                target_date = now + timedelta(days=config['offset'])
+                return target_date.strftime('%Y-%m-%d')
+
+            elif config['type'] == 'relative_week':
+                # Début de semaine + offset
+                days_since_monday = now.weekday()
+                week_start = now - timedelta(days=days_since_monday)
+                target_date = week_start + timedelta(weeks=config['offset'])
+                return target_date.strftime('%Y-%m-%d')
+
+            elif config['type'] == 'relative_month':
+                # Calcul approximatif par mois
+                if config['offset'] == -1:  # Mois dernier
+                    if now.month == 1:
+                        target_date = now.replace(year=now.year - 1, month=12, day=1)
+                    else:
+                        target_date = now.replace(month=now.month - 1, day=1)
+                elif config['offset'] == 0:  # Ce mois
+                    target_date = now.replace(day=1)
+                else:  # Mois suivant
+                    if now.month == 12:
+                        target_date = now.replace(year=now.year + 1, month=1, day=1)
+                    else:
+                        target_date = now.replace(month=now.month + 1, day=1)
+                return target_date.strftime('%Y-%m-%d')
+
+            elif config['type'] == 'relative_year':
+                target_date = now.replace(year=now.year + config['offset'], month=1, day=1)
+                return target_date.strftime('%Y-%m-%d')
+
+            elif config['type'] == 'absolute_date_fr':
+                # Format DD/MM/YYYY ou DD-MM-YYYY
+                date_match = re.match(r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})', text)
+                if date_match:
+                    day, month, year = date_match.groups()
+                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+
+            elif config['type'] == 'absolute_date_us':
+                # Format MM/DD/YYYY
+                date_match = re.match(r'(\d{1,2})/(\d{1,2})/(\d{4})', text)
+                if date_match:
+                    month, day, year = date_match.groups()
+                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+
+            elif config['type'] == 'iso_date':
+                return text  # Déjà au bon format
+
+            elif config['type'] == 'weekday':
+                # Calculer le prochain/dernier jour de la semaine
+                target_weekday = config['day']
+                days_ahead = target_weekday - now.weekday()
+                if days_ahead <= 0:  # Si c'est aujourd'hui ou dans le passé, prendre la semaine prochaine
+                    days_ahead += 7
+                target_date = now + timedelta(days=days_ahead)
+                return target_date.strftime('%Y-%m-%d')
+
+            elif config['type'] == 'month':
+                # Mois spécifique dans l'année courante
+                target_month = config['month']
+                target_date = now.replace(month=target_month, day=1)
+                return target_date.strftime('%Y-%m-%d')
+
+        except Exception as e:
+            print(f"⚠️ Erreur normalisation temporelle: {e}")
+
+        # Fallback: retourner le texte original
+        return text
+
+    """
+    analyse une requête pour déterminer quel type de recherche l'utilisateur veut faire.
+    Moteur principal de la recherche. surement a ameliore #important
+    """
+
     def _detect_intent(self, query: str, entities: List[ParsedEntity], language: str) -> IntentType:
         """Détecte l'intention principale avec patterns enrichis"""
+
         # Initialiser les scores
         intent_scores = {intent: 0.0 for intent in IntentType}
+
+        # Résultat: {
+            #   SEARCH_SEMANTIC: 0.0,
+            #   SEARCH_CONTACT: 0.0,
+            #   SEARCH_TEMPORAL: 0.0,
+            #   SEARCH_TOPIC: 0.0,
+            #   SEARCH_THREAD: 0.0,
+            #   SEARCH_ATTACHMENT: 0.0,
+            #   SEARCH_COMBINED: 0.0,
+            #   UNKNOWN: 0.0
+        # }
+
 
         # Sélectionner les patterns d'intention selon la langue
         if language == 'auto':
@@ -374,7 +507,7 @@ class NaturalLanguageQueryParser:
 
                 for pattern in patterns_list:
                     if re.search(pattern, query, re.IGNORECASE):
-                        intent_scores[intent_enum] += CONFIDENCE_WEIGHTS['intent_detection']
+                        intent_scores[intent_enum] += 1.0
 
         # 2. Scoring basé sur les entités détectées
         entity_type_counts = {}
@@ -389,7 +522,7 @@ class NaturalLanguageQueryParser:
             elif entity_type == 'TOPIC':
                 intent_scores[IntentType.SEARCH_TOPIC] += 0.6 * count
 
-        # 3. Patterns d'action spécifiques
+        # 3. Patterns d'action spécifiques avec nouveau système
         action_patterns = self.all_patterns.get('action', {})
         for pattern, action_type in action_patterns.items():
             if re.search(pattern, query, re.IGNORECASE):
@@ -427,6 +560,10 @@ class NaturalLanguageQueryParser:
         if temporal_entities:
             # Utiliser la première date trouvée comme date de début
             filters['date_from'] = temporal_entities[0].value
+            # Si contexte timezone disponible, l'utiliser pour la normalisation
+            if context and context.timezone:
+                # Re-normaliser avec le bon timezone
+                pass  # Déjà géré dans normalize_temporal_entity
 
         # Filtres de contact
         email_entities = [e for e in entities if e.type == 'EMAIL']
@@ -459,6 +596,7 @@ class NaturalLanguageQueryParser:
 
     def _extract_semantic_text(self, query: str, entities: List[ParsedEntity], language: str) -> str:
         """Extrait le texte sémantique pur en supprimant les entités structurées"""
+
         # Commencer avec la requête nettoyée
         semantic_text = query
 
@@ -471,7 +609,7 @@ class NaturalLanguageQueryParser:
 
         # Supprimer les mots-outils selon la langue
         stopwords = self.stopwords_auto if language == 'auto' else (
-            get_stopwords('fr') if language == 'fr' else get_stopwords('en')
+            self.stopwords_fr if language == 'fr' else self.stopwords_en
         )
 
         for stopword in stopwords:
@@ -513,6 +651,7 @@ class NaturalLanguageQueryParser:
 
     def _deduplicate_entities(self, entities: List[ParsedEntity]) -> List[ParsedEntity]:
         """Supprime les entités dupliquées en gardant celle avec le meilleur score"""
+
         # Grouper par valeur normalisée et type
         entity_groups = {}
         for entity in entities:
@@ -531,9 +670,10 @@ class NaturalLanguageQueryParser:
         return unique_entities
 
     def _calculate_overall_confidence(self, entities: List[ParsedEntity], intent: IntentType, language: str) -> float:
-        """Calcule un score de confiance global"""
+        """Calcule un score de confiance global amélioré"""
+
         if not entities:
-            return 0.3
+            return 0.3  # Confiance faible sans entités
 
         # Moyenne pondérée des confiances des entités
         total_confidence = 0

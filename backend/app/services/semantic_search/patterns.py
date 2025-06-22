@@ -6,6 +6,7 @@ Supporte français et anglais avec fallback automatique.
 from typing import Dict, Any, List
 
 
+
 class EmailPatterns:
     """Gestionnaire centralisé de tous les patterns email"""
 
@@ -122,20 +123,20 @@ class EmailPatterns:
         self.contact_patterns = {
             'fr': {
                 # Expéditeur
-                r'\b(de|from|par|by|expéditeur|sender|envoyé par)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'from_contact',
-                r'\b(emails?\s+de|mails?\s+de|messages?\s+de|courriels?\s+de)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'from_contact',
-                r'\b(reçu de|provenant de|venant de)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'from_contact',
+                r'\b(de|from|par|by|expéditeur|sender|envoyé par)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'from_contact',
+                r'\b(emails?\s+de|mails?\s+de|messages?\s+de|courriels?\s+de)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'from_contact',
+                r'\b(reçu de|provenant de|venant de)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'from_contact',
 
                 # Destinataire
-                r'\b(à|to|pour|destinataire|envoyé à)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'to_contact',
-                r'\b(emails?\s+à|mails?\s+à|messages?\s+à)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'to_contact',
+                r'\b(à|to|pour|destinataire|envoyé à)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
+                r'\b(emails?\s+à|mails?\s+à|messages?\s+à)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'to_contact',
 
                 # Email addresses
                 r'\b([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b': 'email_address',
 
                 # Groupes/organisations
-                r'\b(équipe|team|groupe|group|département|dept)\s+([A-Z][a-zA-ZÀ-ÿ\s]{2,20})\b': 'group_contact',
-                r'\b(société|company|entreprise|firm)\s+([A-Z][a-zA-ZÀ-ÿ\s.-]{2,30})\b': 'company_contact',
+                r'\b(équipe|team|groupe|group|département|dept)\s+([A-Z][a-zA-Z\s]{2,20})\b': 'group_contact',
+                r'\b(société|company|entreprise|firm)\s+([A-Z][a-zA-Z\s.-]{2,30})\b': 'company_contact',
 
                 # Domaines emails
                 r'\b(domaine|domain)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b': 'email_domain',
@@ -481,3 +482,5 @@ def is_blacklisted_name(name: str, language: str = 'auto') -> bool:
 def get_stopwords(language: str = 'auto') -> List[str]:
     """Fonction utilitaire pour récupérer les stopwords"""
     return get_email_patterns().get_stopwords(language)
+
+
