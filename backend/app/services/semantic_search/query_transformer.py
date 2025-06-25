@@ -10,7 +10,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 
 from backend.app.services.semantic_search.models import SemanticQuery, SearchFilter, QueryType, NaturalLanguageRequest
-from backend.app.services.semantic_search.query_parser import get_query_parser, IntentType
+from backend.app.services.semantic_search.parsing.query_parser import get_query_parser, IntentType
 from backend.app.services.semantic_search.llm_engine import get_query_parser as get_llm_parser
 
 

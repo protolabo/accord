@@ -16,7 +16,7 @@ Usage:
 """
 
 from .main import app
-from .query_parser import get_query_parser
+from .parsing.query_parser import get_query_parser
 from .query_transformer import get_query_transformer
 from .llm_engine import get_query_parser as get_llm_parser
 from .models import (
