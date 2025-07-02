@@ -24,7 +24,7 @@ except ImportError:
 @dataclass
 class LLMConfig:
     """Configuration du modèle LLM"""
-    model_path: str = "H:\\llm\\lmstudio\\lmstudio-community\\Mistral-7B-Instruct-v0.3-GGUF\\Mistral-7B-Instruct-v0.3-Q4_K_M.gguf"
+    model_path: str = ""
     n_ctx: int = 8192  # Contexte augmenté
     n_threads: int = -1  # Auto-détection threads
     n_gpu_layers: int = 32  # GPU layers
